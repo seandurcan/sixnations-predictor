@@ -139,6 +139,8 @@ model Match {
   @@index([tournamentId])
 
   @@index([kickoffTime])
+
+@@unique([tournamentId, matchNumber])
 }
 
 model Prediction {

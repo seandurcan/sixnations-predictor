@@ -100,8 +100,48 @@ async function main() {
     },
   });
 
+await prisma.match.createMany({
+  skipDuplicates: true,
+  data: [
+    {
+      tournamentId: tournament.id,
+      round: 1,
+      matchNumber: 1,
+      venue: "Aviva Stadium",
+      city: "Dublin",
+      country: "Ireland",
+      kickoffTime: new Date("2027-02-05T20:10:00Z"),
+      homeTeamId: ireland.id,
+      awayTeamId: england.id,
+    },
+    {
+      tournamentId: tournament.id,
+      round: 1,
+      matchNumber: 2,
+      venue: "Murrayfield",
+      city: "Edinburgh",
+      country: "Scotland",
+      kickoffTime: new Date("2027-02-06T14:10:00Z"),
+      homeTeamId: scotland.id,
+      awayTeamId: italy.id,
+    },
+    {
+      tournamentId: tournament.id,
+      round: 1,
+      matchNumber: 3,
+      venue: "Stade de France",
+      city: "Paris",
+      country: "France",
+      kickoffTime: new Date("2027-02-06T16:40:00Z"),
+      homeTeamId: france.id,
+      awayTeamId: wales.id,
+    }
+  ]
+});
+
   console.log("Teams created");
   console.log("Tournament created", tournament.id);
+  console.log("Matches created");
 }
 
 main()
