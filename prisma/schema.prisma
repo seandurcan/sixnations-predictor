@@ -1,0 +1,338 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum TournamentStatus {
+  DRAFT
+  OPEN
+  LOCKED
+  COMPLETED
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+  TEST
+}
+
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+model User {
+  id                       Int @id @default(autoincrement())
+
+  firstName                String
+  lastName                 String
+
+  email                    String @unique
+  mobile                   String
+
+  passwordHash             String
+
+  role                     UserRole @default(USER)
+
+  paymentStatus            PaymentStatus @default(PENDING)
+
+  themePreference          ThemePreference @default(SYSTEM)
+
+  emailVerified            Boolean @default(false)
+
+  paidAt                   DateTime?
+
+  totalPoints              Int @default(0)
+
+  cumulativeError          Int @default(0)
+
+  exactScores              Int @default(0)
+
+  registrationOrder        Int
+
+  predictionsSubmitted     Boolean @default(false)
+
+  predictionSubmittedAt    DateTime?
+
+  createdAt                DateTime @default(now())
+
+  updatedAt                DateTime @updatedAt
+
+  deletedAt                DateTime?
+
+  predictions              Prediction[]
+  payments                 Payment[]
+  passwordResets           PasswordReset[]
+  snapshots                LeaderboardSnapshot[]
+  submissions              PredictionSubmission[]
+
+  @@index([email])
+  @@index([paymentStatus])
+}
+
+model Team {
+  id              Int @id @default(autoincrement())
+
+  name            String @unique
+
+  shortCode       String @unique
+
+  flagSvg         String
+
+  primaryColor    String
+
+  secondaryColor  String?
+
+  stadium         String?
+
+  createdAt       DateTime @default(now())
+
+  updatedAt       DateTime @updatedAt
+
+  homeMatches     Match[] @relation("HomeTeam")
+  awayMatches     Match[] @relation("AwayTeam")
+}
+
+model Tournament {
+  id                Int @id @default(autoincrement())
+
+  year              Int @unique
+
+  name              String
+
+  status            TournamentStatus
+
+  firstKickoff      DateTime
+
+  predictionLockAt  DateTime
+
+  createdAt         DateTime @default(now())
+
+  updatedAt         DateTime @updatedAt
+
+  matches           Match[]
+  snapshots         LeaderboardSnapshot[]
+  submissions       PredictionSubmission[]
+}
+
+model Match {
+  id                Int @id @default(autoincrement())
+
+  tournamentId      Int
+
+  round             Int
+
+  venue             String
+
+  kickoffTime       DateTime
+
+  homeTeamId        Int
+
+  awayTeamId        Int
+
+  actualHomeScore   Int?
+
+  actualAwayScore   Int?
+
+  completed         Boolean @default(false)
+
+  createdAt         DateTime @default(now())
+
+  updatedAt         DateTime @updatedAt
+
+	
+	tournament Tournament @relation(fields: [tournamentId], references: [id])
+
+  homeTeam Team @relation("HomeTeam", fields: [homeTeamId], references: [id])
+
+  awayTeam Team @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  predictions Prediction[]
+
+  @@index([tournamentId])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+}
+
+model Prediction {
+  id                   Int @id @default(autoincrement())
+
+  userId               Int
+
+  matchId              Int
+
+  predictedHomeScore   Int
+
+  predictedAwayScore   Int
+
+  pointsAwarded        Int @default(0)
+
+  errorValue           Int @default(0)
+
+  exactScore           Boolean @default(false)
+
+  createdAt            DateTime @default(now())
+
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+
+  @@index([userId])
+  @@index([matchId])
+}
+
+model Payment {
+  id                   Int @id @default(autoincrement())
+
+  userId               Int
+
+  provider             PaymentProvider
+
+  providerPaymentId    String @unique
+
+  amount               Decimal @db.Decimal(10,2)
+
+  currency             String @default("EUR")
+
+  status               PaymentStatus
+
+  completedAt          DateTime?
+
+  createdAt            DateTime @default(now())
+
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model PasswordReset {
+  id            Int @id @default(autoincrement())
+
+  userId        Int
+
+  token         String @unique
+
+  expiresAt     DateTime
+
+  used          Boolean @default(false)
+
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PredictionSubmission {
+  id                Int @id @default(autoincrement())
+
+  userId            Int
+
+  tournamentId      Int
+
+  receiptReference  String @unique
+
+  submittedAt       DateTime @default(now())
+
+  ipAddress         String?
+
+  userAgent         String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+}
+
+model LeaderboardSnapshot {
+  id                 Int @id @default(autoincrement())
+
+  tournamentId       Int
+
+  userId             Int
+
+  snapshotNumber     Int
+
+  rank               Int
+
+  previousRank       Int?
+
+  rankMovement       Int?
+
+  totalPoints        Int
+
+  cumulativeError    Int
+
+  exactScores        Int
+
+  generatedAt        DateTime @default(now())
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([tournamentId, snapshotNumber, userId])
+}
+
+model ScoreAudit {
+  id              Int @id @default(autoincrement())
+
+  matchId         Int
+
+  previousHome    Int?
+
+  previousAway    Int?
+
+  newHome         Int
+
+  newAway         Int
+
+  adminUserId     Int
+
+  createdAt       DateTime @default(now())
+
+  @@index([matchId])
+}
+
+model TournamentWinner {
+  id             Int @id @default(autoincrement())
+
+  tournamentId   Int @unique
+
+  userId         Int
+
+  finalPoints    Int
+
+  createdAt      DateTime @default(now())
+}
+
+model SystemSetting {
+  id          Int @id @default(autoincrement())
+
+  key         String @unique
+
+  value       String
+
+  updatedAt   DateTime @updatedAt
+}
