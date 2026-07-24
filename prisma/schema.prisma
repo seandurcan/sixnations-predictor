@@ -39,19 +39,36 @@ model User {
 }
 
 model Team {
-  id             Int      @id @default(autoincrement())
-  name           String   @unique
-  shortCode      String   @unique
-  flagSvg        String
-  primaryColor   String
-  secondaryColor String?
-  stadium        String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  awayMatches    Match[]  @relation("AwayTeam")
-  homeMatches    Match[]  @relation("HomeTeam")
-}
+  id              Int @id @default(autoincrement())
 
+  name            String @unique
+
+  shortCode       String @unique
+
+  country         String
+
+  flagSvg         String
+
+  primaryColor    String
+
+  secondaryColor  String?
+
+  homeVenue       String?
+
+  city            String?
+
+  foundedYear     Int?
+
+  worldRanking    Int?
+
+  createdAt       DateTime @default(now())
+
+  updatedAt       DateTime @updatedAt
+
+  homeMatches     Match[] @relation("HomeTeam")
+
+  awayMatches     Match[] @relation("AwayTeam")
+}
 model Tournament {
   id               Int                    @id @default(autoincrement())
   year             Int                    @unique
@@ -67,26 +84,61 @@ model Tournament {
 }
 
 model Match {
-  id              Int          @id @default(autoincrement())
-  tournamentId    Int
-  round           Int
-  venue           String
-  kickoffTime     DateTime
-  homeTeamId      Int
-  awayTeamId      Int
-  actualHomeScore Int?
-  actualAwayScore Int?
-  completed       Boolean      @default(false)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  awayTeam        Team         @relation("AwayTeam", fields: [awayTeamId], references: [id])
-  homeTeam        Team         @relation("HomeTeam", fields: [homeTeamId], references: [id])
-  tournament      Tournament   @relation(fields: [tournamentId], references: [id])
-  predictions     Prediction[]
+  id                Int @id @default(autoincrement())
+
+  tournamentId      Int
+
+  round             Int
+  matchNumber       Int
+
+  kickoffTime       DateTime
+
+  venue             String
+
+  city              String?
+  country           String?
+
+  stadiumCapacity   Int?
+
+  referee           String?
+
+  attendance        Int?
+
+  weather           String?
+
+  homeTeamId        Int
+
+  awayTeamId        Int
+
+  actualHomeScore   Int?
+
+  actualAwayScore   Int?
+
+  homeTries         Int?
+
+  awayTries         Int?
+
+  completed         Boolean @default(false)
+
+  sourceUrl         String?
+
+  notes             String?
+
+  createdAt         DateTime @default(now())
+
+  updatedAt         DateTime @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+
+  homeTeam Team @relation("HomeTeam", fields: [homeTeamId], references: [id])
+
+  awayTeam Team @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  predictions Prediction[]
 
   @@index([tournamentId])
-  @@index([homeTeamId])
-  @@index([awayTeamId])
+
+  @@index([kickoffTime])
 }
 
 model Prediction {
