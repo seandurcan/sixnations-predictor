@@ -3,100 +3,218 @@
 import { useEffect, useState } from "react";
 
 export default function PredictionsPage() {
+  const [matches, setMatches] = useState<any[]>([]);
+  const [savedPredictions, setSavedPredictions] =
+    useState<any[]>([]);
+
+  const [currentMatchId, setCurrentMatchId] =
+    useState<number | null>(null);
+
   const [homeScore, setHomeScore] = useState("");
   const [awayScore, setAwayScore] = useState("");
 
-  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
-  const [matches, setMatches] = useState<any[]>([]);
+  const [editing, setEditing] = useState(false);
+
+  const [editingPredictionId, setEditingPredictionId] =
+    useState<number | null>(null);
+
+  const [lockMessage, setLockMessage] =
+    useState("");
+
+  const [isLocked, setIsLocked] =
+    useState(false);
 
   useEffect(() => {
-    loadMatches();
+    initialisePage();
   }, []);
 
-  async function loadMatches() {
-    const response = await fetch("/api/matches");
-    const data = await response.json();
+  async function initialisePage() {
+    const matchesResponse = await fetch(
+      "/api/matches"
+    );
 
-    setMatches(data);
-  }
+    const matchesData =
+      await matchesResponse.json();
 
-  async function savePrediction() {
-    if (matches.length === 0) return;
+    const predictionsResponse = await fetch(
+      "/api/predictions/list"
+    );
 
-    const userId = localStorage.getItem("userId");
+    const predictionsData =
+      await predictionsResponse.json();
 
-    const response = await fetch("/api/predictions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        userId: Number(userId),
-        matchId: matches[currentMatchIndex].id,
-        homeScore: Number(homeScore),
-        awayScore: Number(awayScore),
-      }),
-    });
+    setMatches(matchesData);
+    setSavedPredictions(predictionsData);
 
-    const result = await response.json();
+    const predictedMatchIds =
+      predictionsData.map(
+        (p: any) => p.matchId
+      );
 
-    if (result.success) {
-      setHomeScore("");
-      setAwayScore("");
+    const firstUnpredictedMatch =
+      matchesData.find(
+        (m: any) =>
+          !predictedMatchIds.includes(m.id)
+      );
 
-      if (currentMatchIndex < matches.length - 1) {
-        setCurrentMatchIndex(currentMatchIndex + 1);
-      } else {
-        alert("All predictions completed");
-      }
+    if (firstUnpredictedMatch) {
+      setCurrentMatchId(
+        firstUnpredictedMatch.id
+      );
+    } else if (matchesData.length > 0) {
+      setCurrentMatchId(
+        matchesData[0].id
+      );
     }
   }
 
-  if (matches.length === 0) {
-    return <div className="p-8">Loading matches...</div>;
+  async function refreshPredictions() {
+    const response = await fetch(
+      "/api/predictions/list"
+    );
+
+    const data = await response.json();
+
+    setSavedPredictions(data);
+
+    return data;
   }
 
-  const currentMatch = matches[currentMatchIndex];
+  function goToFirstUnpredictedMatch(
+    predictions: any[]
+  ) {
+    const predictedMatchIds =
+      predictions.map(
+        (p: any) => p.matchId
+      );
 
-  return (
-    <main className="p-8">
-      <h1 className="text-4xl font-bold mb-6">
-        Predictions
-      </h1>
+    const nextMatch = matches.find(
+      (m) =>
+        !predictedMatchIds.includes(m.id)
+    );
 
-      <p className="mb-4">
-        Match {currentMatchIndex + 1} of {matches.length}
-      </p>
+    if (nextMatch) {
+      setCurrentMatchId(nextMatch.id);
+    }
+  }
 
-      <div className="max-w-md border rounded p-6 space-y-4">
-        <h2 className="text-xl font-bold">
-          {currentMatch.homeTeam.name} vs{" "}
-          {currentMatch.awayTeam.name}
-        </h2>
+  function editPrediction(
+    prediction: any
+  ) {
+    setLockMessage("");
+    setIsLocked(false);
 
-        <input
-          type="number"
-          placeholder={`${currentMatch.homeTeam.name} Score`}
-          className="border p-2 w-full"
-          value={homeScore}
-          onChange={(e) => setHomeScore(e.target.value)}
-        />
+    setEditing(true);
 
-        <input
-          type="number"
-          placeholder={`${currentMatch.awayTeam.name} Score`}
-          className="border p-2 w-full"
-          value={awayScore}
-          onChange={(e) => setAwayScore(e.target.value)}
-        />
+    setEditingPredictionId(
+      prediction.id
+    );
 
-        <button
-          onClick={savePrediction}
-          className="bg-green-600 text-white px-4 py-2 rounded"
-        >
-          Save & Next
-        </button>
+    setCurrentMatchId(
+      prediction.matchId
+    );
+
+    setHomeScore(
+      prediction.predictedHomeScore.toString()
+    );
+
+    setAwayScore(
+      prediction.predictedAwayScore.toString()
+    );
+  }
+
+  async function savePrediction() {
+    if (!currentMatchId) return;
+
+    const userId =
+      localStorage.getItem("userId");
+
+    setLockMessage("");
+
+    const response = await fetch(
+      "/api/predictions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          userId: Number(userId),
+          matchId: currentMatchId,
+          homeScore: Number(homeScore),
+          awayScore: Number(awayScore),
+        }),
+      }
+    );
+
+    const result =
+      await response.json();
+
+    if (!result.success) {
+      if (response.status === 403) {
+        setIsLocked(true);
+
+        setLockMessage(
+          "This fixture has already kicked off. Predictions can no longer be edited."
+        );
+      } else {
+        setLockMessage(
+          result.error ??
+            "Failed to save prediction."
+        );
+      }
+
+      return;
+    }
+
+    const refreshedPredictions =
+      await refreshPredictions();
+
+    setHomeScore("");
+    setAwayScore("");
+
+    if (editingPredictionId !== null) {
+      setEditing(false);
+
+      setEditingPredictionId(null);
+
+      goToFirstUnpredictedMatch(
+        refreshedPredictions
+      );
+
+      return;
+    }
+
+    goToFirstUnpredictedMatch(
+      refreshedPredictions
+    );
+  }
+
+  if (
+    matches.length === 0 ||
+    currentMatchId === null
+  ) {
+    return (
+      <div className="p-8">
+        Loading matches...
       </div>
-    </main>
+    );
+  }
+
+  const currentMatch = matches.find(
+    (m) => m.id === currentMatchId
   );
-}
+
+  if (!currentMatch) {
+    return (
+      <div className="p-8">
+        Match not found
+      </div>
+    );
+  }
+
+  const existingPrediction =
+    savedPredictions.find(
+      (p) =>
+        p.matchId === currentMatchId

@@ -3,7 +3,6 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-
   const ireland = await prisma.team.upsert({
     where: { shortCode: "IRE" },
     update: {},
@@ -100,81 +99,189 @@ async function main() {
     },
   });
 
-await prisma.match.createMany({
-  skipDuplicates: true,
-  data: [
-    {
-      tournamentId: tournament.id,
-      round: 1,
-      matchNumber: 1,
-      venue: "Aviva Stadium",
-      city: "Dublin",
-      country: "Ireland",
-      kickoffTime: new Date("2027-02-05T20:10:00Z"),
-      homeTeamId: ireland.id,
-      awayTeamId: england.id,
-    },
-    {
-      tournamentId: tournament.id,
-      round: 1,
-      matchNumber: 2,
-      venue: "Murrayfield",
-      city: "Edinburgh",
-      country: "Scotland",
-      kickoffTime: new Date("2027-02-06T14:10:00Z"),
-      homeTeamId: scotland.id,
-      awayTeamId: italy.id,
-    },
-    {
-      tournamentId: tournament.id,
-      round: 1,
-      matchNumber: 3,
-      venue: "Stade de France",
-      city: "Paris",
-      country: "France",
-      kickoffTime: new Date("2027-02-06T16:40:00Z"),
-      homeTeamId: france.id,
-      awayTeamId: wales.id,
-    },
-{
-  tournamentId: tournament.id,
-  round: 2,
-  matchNumber: 4,
-  venue: "Stadio Olimpico",
-  city: "Rome",
-  country: "Italy",
-  kickoffTime: new Date("2027-02-13T14:10:00Z"),
-  homeTeamId: italy.id,
-  awayTeamId: ireland.id,
-},
-{
-  tournamentId: tournament.id,
-  round: 2,
-  matchNumber: 5,
-  venue: "Murrayfield",
-  city: "Edinburgh",
-  country: "Scotland",
-  kickoffTime: new Date("2027-02-13T16:40:00Z"),
-  homeTeamId: scotland.id,
-  awayTeamId: wales.id,
-},
-{
-  tournamentId: tournament.id,
-  round: 2,
-  matchNumber: 6,
-  venue: "Allianz Stadium",
-  city: "London",
-  country: "England",
-  kickoffTime: new Date("2027-02-14T15:10:00Z"),
-  homeTeamId: england.id,
-  awayTeamId: france.id,
-},
-  ]
-});
+  await prisma.match.createMany({
+    skipDuplicates: true,
+    data: [
+      // ROUND 1
+      {
+        tournamentId: tournament.id,
+        round: 1,
+        matchNumber: 1,
+        venue: "Aviva Stadium",
+        city: "Dublin",
+        country: "Ireland",
+        kickoffTime: new Date("2027-02-05T20:10:00Z"),
+        homeTeamId: ireland.id,
+        awayTeamId: england.id,
+      },
+      {
+        tournamentId: tournament.id,
+        round: 1,
+        matchNumber: 2,
+        venue: "Murrayfield",
+        city: "Edinburgh",
+        country: "Scotland",
+        kickoffTime: new Date("2027-02-06T14:10:00Z"),
+        homeTeamId: scotland.id,
+        awayTeamId: italy.id,
+      },
+      {
+        tournamentId: tournament.id,
+        round: 1,
+        matchNumber: 3,
+        venue: "Stade de France",
+        city: "Paris",
+        country: "France",
+        kickoffTime: new Date("2027-02-06T16:40:00Z"),
+        homeTeamId: france.id,
+        awayTeamId: wales.id,
+      },
+
+      // ROUND 2
+      {
+        tournamentId: tournament.id,
+        round: 2,
+        matchNumber: 4,
+        venue: "Stadio Olimpico",
+        city: "Rome",
+        country: "Italy",
+        kickoffTime: new Date("2027-02-13T14:10:00Z"),
+        homeTeamId: italy.id,
+        awayTeamId: ireland.id,
+      },
+      {
+        tournamentId: tournament.id,
+        round: 2,
+        matchNumber: 5,
+        venue: "Murrayfield",
+        city: "Edinburgh",
+        country: "Scotland",
+        kickoffTime: new Date("2027-02-13T16:40:00Z"),
+        homeTeamId: scotland.id,
+        awayTeamId: wales.id,
+      },
+      {
+        tournamentId: tournament.id,
+        round: 2,
+        matchNumber: 6,
+        venue: "Allianz Stadium",
+        city: "London",
+        country: "England",
+        kickoffTime: new Date("2027-02-14T15:10:00Z"),
+        homeTeamId: england.id,
+        awayTeamId: france.id,
+      },
+
+      // ROUND 3
+      {
+        tournamentId: tournament.id,
+        round: 3,
+        matchNumber: 7,
+        venue: "Principality Stadium",
+        city: "Cardiff",
+        country: "Wales",
+        kickoffTime: new Date("2027-02-20T14:10:00Z"),
+        homeTeamId: wales.id,
+        awayTeamId: ireland.id,
+      },
+      {
+        tournamentId: tournament.id,
+        round: 3,
+        matchNumber: 8,
+        venue: "Allianz Stadium",
+        city: "London",
+        country: "England",
+        kickoffTime: new Date("2027-02-20T16:40:00Z"),
+        homeTeamId: england.id,
+        awayTeamId: italy.id,
+      },
+      {
+        tournamentId: tournament.id,
+        round: 3,
+        matchNumber: 9,
+        venue: "Stade de France",
+        city: "Paris",
+        country: "France",
+        kickoffTime: new Date("2027-02-21T15:10:00Z"),
+        homeTeamId: france.id,
+        awayTeamId: scotland.id,
+      },
+
+      // ROUND 4
+      {
+        tournamentId: tournament.id,
+        round: 4,
+        matchNumber: 10,
+        venue: "Murrayfield",
+        city: "Edinburgh",
+        country: "Scotland",
+        kickoffTime: new Date("2027-03-05T20:10:00Z"),
+        homeTeamId: scotland.id,
+        awayTeamId: ireland.id,
+      },
+      {
+        tournamentId: tournament.id,
+        round: 4,
+        matchNumber: 11,
+        venue: "Stadio Olimpico",
+        city: "Rome",
+        country: "Italy",
+        kickoffTime: new Date("2027-03-06T14:10:00Z"),
+        homeTeamId: italy.id,
+        awayTeamId: france.id,
+      },
+      {
+        tournamentId: tournament.id,
+        round: 4,
+        matchNumber: 12,
+        venue: "Principality Stadium",
+        city: "Cardiff",
+        country: "Wales",
+        kickoffTime: new Date("2027-03-06T16:40:00Z"),
+        homeTeamId: wales.id,
+        awayTeamId: england.id,
+      },
+
+      // ROUND 5
+      {
+        tournamentId: tournament.id,
+        round: 5,
+        matchNumber: 13,
+        venue: "Stadio Olimpico",
+        city: "Rome",
+        country: "Italy",
+        kickoffTime: new Date("2027-03-13T14:10:00Z"),
+        homeTeamId: italy.id,
+        awayTeamId: wales.id,
+      },
+      {
+        tournamentId: tournament.id,
+        round: 5,
+        matchNumber: 14,
+        venue: "Allianz Stadium",
+        city: "London",
+        country: "England",
+        kickoffTime: new Date("2027-03-13T16:40:00Z"),
+        homeTeamId: england.id,
+        awayTeamId: scotland.id,
+      },
+      {
+        tournamentId: tournament.id,
+        round: 5,
+        matchNumber: 15,
+        venue: "Aviva Stadium",
+        city: "Dublin",
+        country: "Ireland",
+        kickoffTime: new Date("2027-03-13T20:10:00Z"),
+        homeTeamId: ireland.id,
+        awayTeamId: france.id,
+      },
+    ],
+  });
 
   console.log("Teams created");
   console.log("Tournament created", tournament.id);
-  console.log("Matches created");
+  console.log("15 fixtures loaded");
 }
 
 main()

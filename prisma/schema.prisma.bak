@@ -145,32 +145,20 @@ model Match {
 
 model Prediction {
   id                 Int      @id @default(autoincrement())
-
   userId             Int
   matchId            Int
-
   predictedHomeScore Int
   predictedAwayScore Int
-
   pointsAwarded      Int      @default(0)
-
   errorValue         Int      @default(0)
-
-  differenceScore    Int      @default(0)
-
   exactScore         Boolean  @default(false)
-
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-
   match              Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
-
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, matchId])
-
   @@index([userId])
-
   @@index([matchId])
 }
 
