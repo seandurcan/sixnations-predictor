@@ -5,8 +5,18 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const prediction = await prisma.prediction.create({
-      data: {
+    const prediction = await prisma.prediction.upsert({
+      where: {
+        userId_matchId: {
+          userId: body.userId,
+          matchId: body.matchId,
+        },
+      },
+      update: {
+        predictedHomeScore: body.homeScore,
+        predictedAwayScore: body.awayScore,
+      },
+      create: {
         userId: body.userId,
         matchId: body.matchId,
         predictedHomeScore: body.homeScore,

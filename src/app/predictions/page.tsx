@@ -27,6 +27,13 @@ export default function PredictionsPage() {
 
     const result = await response.json();
 
+if (result.success) {
+  setHomeScore("");
+  setAwayScore("");
+
+  alert("Prediction saved");
+}
+
     alert(JSON.stringify(result));
   }
 

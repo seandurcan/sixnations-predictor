@@ -1,19 +1,45 @@
+"use client";
+
 export default function HomePage() {
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-5xl font-bold">
-          Six Nations Predictor
-        </h1>
+    <main style={{ padding: "20px" }}>
+      <h1>Six Nations Predictor</h1>
 
-        <p className="mt-4">
-          Predict all 15 matches.
-        </p>
-
-        <button className="mt-6 rounded bg-green-600 px-4 py-2 text-white">
+      <p>
+        <button onClick={() => window.location.href = "/register"}>
           Register
         </button>
-      </div>
+      </p>
+
+      <p>
+        <button onClick={() => window.location.href = "/login"}>
+          Login
+        </button>
+      </p>
+
+      <p>
+        <button onClick={() => window.location.href = "/dashboard"}>
+          Dashboard
+        </button>
+      </p>
+
+      <p>
+        <button onClick={() => window.location.href = "/predictions"}>
+          Predictions
+        </button>
+      </p>
+
+      <p>
+        <button onClick={() => window.location.href = "/leaderboard"}>
+          Leaderboard
+        </button>
+      </p>
+
+      <p>
+        <button onClick={() => window.location.href = "/admin"}>
+          Admin
+        </button>
+      </p>
     </main>
   );
 }

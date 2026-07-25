@@ -135,7 +135,40 @@ await prisma.match.createMany({
       kickoffTime: new Date("2027-02-06T16:40:00Z"),
       homeTeamId: france.id,
       awayTeamId: wales.id,
-    }
+    },
+{
+  tournamentId: tournament.id,
+  round: 2,
+  matchNumber: 4,
+  venue: "Stadio Olimpico",
+  city: "Rome",
+  country: "Italy",
+  kickoffTime: new Date("2027-02-13T14:10:00Z"),
+  homeTeamId: italy.id,
+  awayTeamId: ireland.id,
+},
+{
+  tournamentId: tournament.id,
+  round: 2,
+  matchNumber: 5,
+  venue: "Murrayfield",
+  city: "Edinburgh",
+  country: "Scotland",
+  kickoffTime: new Date("2027-02-13T16:40:00Z"),
+  homeTeamId: scotland.id,
+  awayTeamId: wales.id,
+},
+{
+  tournamentId: tournament.id,
+  round: 2,
+  matchNumber: 6,
+  venue: "Allianz Stadium",
+  city: "London",
+  country: "England",
+  kickoffTime: new Date("2027-02-14T15:10:00Z"),
+  homeTeamId: england.id,
+  awayTeamId: france.id,
+},
   ]
 });
 
