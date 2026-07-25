@@ -1,41 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function PredictionsPage() {
   const [homeScore, setHomeScore] = useState("");
   const [awayScore, setAwayScore] = useState("");
 
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [matches, setMatches] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadMatches();
+  }, []);
+
+  async function loadMatches() {
+    const response = await fetch("/api/matches");
+    const data = await response.json();
+
+    setMatches(data);
+  }
+
   async function savePrediction() {
+    if (matches.length === 0) return;
+
     const userId = localStorage.getItem("userId");
 
-    const response = await fetch(
-      "/api/predictions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: Number(userId),
-          matchId: 1,
-          homeScore: Number(homeScore),
-          awayScore: Number(awayScore),
-        }),
-      }
-    );
+    const response = await fetch("/api/predictions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: Number(userId),
+        matchId: matches[currentMatchIndex].id,
+        homeScore: Number(homeScore),
+        awayScore: Number(awayScore),
+      }),
+    });
 
     const result = await response.json();
 
-if (result.success) {
-  setHomeScore("");
-  setAwayScore("");
+    if (result.success) {
+      setHomeScore("");
+      setAwayScore("");
 
-  alert("Prediction saved");
-}
-
-    alert(JSON.stringify(result));
+      if (currentMatchIndex < matches.length - 1) {
+        setCurrentMatchIndex(currentMatchIndex + 1);
+      } else {
+        alert("All predictions completed");
+      }
+    }
   }
+
+  if (matches.length === 0) {
+    return <div className="p-8">Loading matches...</div>;
+  }
+
+  const currentMatch = matches[currentMatchIndex];
 
   return (
     <main className="p-8">
@@ -43,39 +64,38 @@ if (result.success) {
         Predictions
       </h1>
 
-      <div className="max-w-md border rounded p-6 space-y-4">
+      <p className="mb-4">
+        Match {currentMatchIndex + 1} of {matches.length}
+      </p>
 
+      <div className="max-w-md border rounded p-6 space-y-4">
         <h2 className="text-xl font-bold">
-          Ireland vs France
+          {currentMatch.homeTeam.name} vs{" "}
+          {currentMatch.awayTeam.name}
         </h2>
 
         <input
           type="number"
-          placeholder="Ireland Score"
+          placeholder={`${currentMatch.homeTeam.name} Score`}
           className="border p-2 w-full"
           value={homeScore}
-          onChange={(e) =>
-            setHomeScore(e.target.value)
-          }
+          onChange={(e) => setHomeScore(e.target.value)}
         />
 
         <input
           type="number"
-          placeholder="France Score"
+          placeholder={`${currentMatch.awayTeam.name} Score`}
           className="border p-2 w-full"
           value={awayScore}
-          onChange={(e) =>
-            setAwayScore(e.target.value)
-          }
+          onChange={(e) => setAwayScore(e.target.value)}
         />
 
         <button
           onClick={savePrediction}
           className="bg-green-600 text-white px-4 py-2 rounded"
         >
-          Save Prediction
+          Save & Next
         </button>
-
       </div>
     </main>
   );
