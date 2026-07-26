@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
-  const [userId, setUserId] =
-    useState<string | null>(null);
+  const [user, setUser] =
+    useState<any>(null);
 
   const [leaderboard, setLeaderboard] =
     useState<any[]>([]);
@@ -21,131 +21,144 @@ export default function DashboardPage() {
   const [matchCount, setMatchCount] =
     useState(0);
 
-  const [userName, setUserName] =
-    useState("");
-
   const [lastMatch, setLastMatch] =
     useState<any>(null);
 
   const [lastPrediction, setLastPrediction] =
     useState<any>(null);
 
+  const [loading, setLoading] =
+    useState(true);
+
   useEffect(() => {
     initialise();
   }, []);
 
   async function initialise() {
-    const storedUserId =
-      localStorage.getItem("userId");
+    try {
+      const meResponse =
+        await fetch("/api/auth/me");
 
-    setUserId(storedUserId);
+      if (!meResponse.ok) {
+        window.location.href =
+          "/login";
 
-    const leaderboardResponse =
-      await fetch(
-        "/api/leaderboard?page=1&pageSize=500"
-      );
+        return;
+      }
 
-    const leaderboardData =
-      await leaderboardResponse.json();
+      const me =
+        await meResponse.json();
 
-    const leaderboardRows =
-      leaderboardData.data ?? [];
+      if (!me.authenticated) {
+        window.location.href =
+          "/login";
 
-    setLeaderboard(leaderboardRows);
+        return;
+      }
 
-    const currentUser =
-      leaderboardRows.find(
-        (u: any) =>
-          u.id === Number(storedUserId)
-      );
+      setUser(me.user);
 
-    setUserRow(currentUser);
-
-    const matchesResponse =
-      await fetch("/api/matches");
-
-    const matches =
-      await matchesResponse.json();
-
-    setMatchCount(matches.length);
-
-    const upcomingMatches =
-      matches.filter(
-        (m: any) => !m.completed
-      );
-
-    if (upcomingMatches.length > 0) {
-      setNextMatch(upcomingMatches[0]);
-    }
-
-    const completedMatches =
-      matches.filter(
-        (m: any) => m.completed
-      );
-
-    if (
-      completedMatches.length > 0
-    ) {
-      setLastMatch(
-        completedMatches[
-          completedMatches.length - 1
-        ]
-      );
-    }
-
-    const predictionsResponse =
-      await fetch(
-        "/api/predictions/list"
-      );
-
-    const predictions =
-      await predictionsResponse.json();
-
-    const myPredictions =
-      predictions.filter(
-        (p: any) =>
-          p.userId === Number(storedUserId)
-      );
-
-    setPredictionCount(
-      myPredictions.length
-    );
-
-    if (myPredictions.length > 0) {
-      const sortedPredictions =
-        [...myPredictions].sort(
-          (a, b) =>
-            new Date(
-              b.updatedAt
-            ).getTime() -
-            new Date(
-              a.updatedAt
-            ).getTime()
+      const leaderboardResponse =
+        await fetch(
+          "/api/leaderboard?page=1&pageSize=500"
         );
 
-      setLastPrediction(
-        sortedPredictions[0]
-      );
-    }
+      const leaderboardData =
+        await leaderboardResponse.json();
 
-    const usersResponse =
-      await fetch(
-        "/api/leaderboard?page=1&pageSize=500"
-      );
+      const leaderboardRows =
+        leaderboardData.data ?? [];
 
-    const usersData =
-      await usersResponse.json();
-
-    const currentUserName =
-      usersData.data?.find(
-        (u: any) =>
-          u.id === Number(storedUserId)
+      setLeaderboard(
+        leaderboardRows
       );
 
-    if (currentUserName) {
-      setUserName(
-        `${currentUserName.firstName} ${currentUserName.lastName}`
+      const currentUser =
+        leaderboardRows.find(
+          (u: any) =>
+            u.id === me.user.id
+        );
+
+      setUserRow(currentUser);
+
+      const matchesResponse =
+        await fetch("/api/matches");
+
+      const matches =
+        await matchesResponse.json();
+
+      setMatchCount(
+        matches.length
       );
+
+      const upcomingMatches =
+        matches.filter(
+          (m: any) =>
+            !m.completed
+        );
+
+      if (
+        upcomingMatches.length > 0
+      ) {
+        setNextMatch(
+          upcomingMatches[0]
+        );
+      }
+
+      const completedMatches =
+        matches.filter(
+          (m: any) =>
+            m.completed
+        );
+
+      if (
+        completedMatches.length > 0
+      ) {
+        setLastMatch(
+          completedMatches[
+            completedMatches.length -
+              1
+          ]
+        );
+      }
+
+      const predictionsResponse =
+        await fetch(
+          "/api/predictions/list"
+        );
+
+      const predictions =
+        await predictionsResponse.json();
+
+      setPredictionCount(
+        predictions.length
+      );
+
+      if (
+        predictions.length > 0
+      ) {
+        const sortedPredictions =
+          [...predictions].sort(
+            (a, b) =>
+              new Date(
+                b.updatedAt
+              ).getTime() -
+              new Date(
+                a.updatedAt
+              ).getTime()
+          );
+
+        setLastPrediction(
+          sortedPredictions[0]
+        );
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+
+      window.location.href =
+        "/login";
     }
   }
 
@@ -153,23 +166,37 @@ export default function DashboardPage() {
     if (!userRow) return "-";
 
     if (
-      userRow.rankMovement === undefined ||
-      userRow.rankMovement === null
+      userRow.rankMovement ===
+        undefined ||
+      userRow.rankMovement ===
+        null
     ) {
       return "-";
     }
 
-    if (userRow.rankMovement > 0) {
+    if (
+      userRow.rankMovement > 0
+    ) {
       return `↑ ${userRow.rankMovement}`;
     }
 
-    if (userRow.rankMovement < 0) {
+    if (
+      userRow.rankMovement < 0
+    ) {
       return `↓ ${Math.abs(
         userRow.rankMovement
       )}`;
     }
 
     return "→";
+  }
+
+  if (loading) {
+    return (
+      <div className="p-8">
+        Loading dashboard...
+      </div>
+    );
   }
 
   return (
@@ -182,7 +209,8 @@ export default function DashboardPage() {
       <p className="text-xl mb-8">
         Welcome{" "}
         <strong>
-          {userName || "Player"}
+          {user?.firstName ??
+            "Player"}
         </strong>
       </p>
 

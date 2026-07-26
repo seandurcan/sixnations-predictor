@@ -1,15 +1,23 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request
+) {
   try {
-    const body = await request.json();
+    const user =
+      await requireUser();
 
-    const match = await prisma.match.findUnique({
-      where: {
-        id: body.matchId,
-      },
-    });
+    const body =
+      await request.json();
+
+    const match =
+      await prisma.match.findUnique({
+        where: {
+          id: body.matchId,
+        },
+      });
 
     if (!match) {
       return NextResponse.json(
@@ -26,7 +34,9 @@ export async function POST(request: Request) {
     const now = new Date();
 
     if (
-      new Date(match.kickoffTime) <= now
+      new Date(
+        match.kickoffTime
+      ) <= now
     ) {
       return NextResponse.json(
         {
@@ -44,8 +54,9 @@ export async function POST(request: Request) {
       await prisma.prediction.upsert({
         where: {
           userId_matchId: {
-            userId: body.userId,
-            matchId: body.matchId,
+            userId: user.id,
+            matchId:
+              body.matchId,
           },
         },
         update: {
@@ -55,8 +66,9 @@ export async function POST(request: Request) {
             body.awayScore,
         },
         create: {
-          userId: body.userId,
-          matchId: body.matchId,
+          userId: user.id,
+          matchId:
+            body.matchId,
           predictedHomeScore:
             body.homeScore,
           predictedAwayScore:
@@ -70,6 +82,27 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error(error);
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to save prediction";
+
+    if (
+      message ===
+      "Authentication required"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Authentication required",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
 
     return NextResponse.json(
       {

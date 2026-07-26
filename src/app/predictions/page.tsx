@@ -3,20 +3,31 @@
 import { useEffect, useState } from "react";
 
 export default function PredictionsPage() {
-  const [matches, setMatches] = useState<any[]>([]);
+  const [user, setUser] =
+    useState<any>(null);
+
+  const [matches, setMatches] =
+    useState<any[]>([]);
+
   const [savedPredictions, setSavedPredictions] =
     useState<any[]>([]);
 
   const [currentMatchId, setCurrentMatchId] =
     useState<number | null>(null);
 
-  const [homeScore, setHomeScore] = useState("");
-  const [awayScore, setAwayScore] = useState("");
+  const [homeScore, setHomeScore] =
+    useState("");
 
-  const [editing, setEditing] = useState(false);
+  const [awayScore, setAwayScore] =
+    useState("");
 
-  const [editingPredictionId, setEditingPredictionId] =
-    useState<number | null>(null);
+  const [editing, setEditing] =
+    useState(false);
+
+  const [
+    editingPredictionId,
+    setEditingPredictionId,
+  ] = useState<number | null>(null);
 
   const [lockMessage, setLockMessage] =
     useState("");
@@ -24,47 +35,84 @@ export default function PredictionsPage() {
   const [isLocked, setIsLocked] =
     useState(false);
 
+  const [loading, setLoading] =
+    useState(true);
+
   useEffect(() => {
     initialisePage();
   }, []);
 
   async function initialisePage() {
-    const matchesResponse = await fetch(
-      "/api/matches"
-    );
+    try {
+      const meResponse =
+        await fetch("/api/auth/me");
 
-    const matchesData =
-      await matchesResponse.json();
+      if (!meResponse.ok) {
+        window.location.href =
+          "/login";
+        return;
+      }
 
-    const predictionsResponse = await fetch(
-      "/api/predictions/list"
-    );
+      const me =
+        await meResponse.json();
 
-    const predictionsData =
-      await predictionsResponse.json();
+      if (!me.authenticated) {
+        window.location.href =
+          "/login";
+        return;
+      }
 
-    setMatches(matchesData);
-    setSavedPredictions(predictionsData);
+      setUser(me.user);
 
-    const predictedMatchIds =
-      predictionsData.map(
-        (p: any) => p.matchId
+      const matchesResponse =
+        await fetch("/api/matches");
+
+      const matchesData =
+        await matchesResponse.json();
+
+      const predictionsResponse =
+        await fetch(
+          "/api/predictions/list"
+        );
+
+      const predictionsData =
+        await predictionsResponse.json();
+
+      setMatches(matchesData);
+      setSavedPredictions(
+        predictionsData
       );
 
-    const firstUnpredictedMatch =
-      matchesData.find(
-        (m: any) =>
-          !predictedMatchIds.includes(m.id)
-      );
+      const predictedMatchIds =
+        predictionsData.map(
+          (p: any) => p.matchId
+        );
 
-    if (firstUnpredictedMatch) {
-      setCurrentMatchId(
-        firstUnpredictedMatch.id
-      );
-    } else if (matchesData.length > 0) {
-      setCurrentMatchId(
-        matchesData[0].id
-      );
+      const firstUnpredictedMatch =
+        matchesData.find(
+          (m: any) =>
+            !predictedMatchIds.includes(
+              m.id
+            )
+        );
+
+      if (firstUnpredictedMatch) {
+        setCurrentMatchId(
+          firstUnpredictedMatch.id
+        );
+      } else if (
+        matchesData.length > 0
+      ) {
+        setCurrentMatchId(
+          matchesData[0].id
+        );
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+      window.location.href =
+        "/login";
     }
   }
 
@@ -73,7 +121,8 @@ export default function PredictionsPage() {
       "/api/predictions/list"
     );
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
     setSavedPredictions(data);
 
@@ -90,11 +139,15 @@ export default function PredictionsPage() {
 
     const nextMatch = matches.find(
       (m) =>
-        !predictedMatchIds.includes(m.id)
+        !predictedMatchIds.includes(
+          m.id
+        )
     );
 
     if (nextMatch) {
-      setCurrentMatchId(nextMatch.id);
+      setCurrentMatchId(
+        nextMatch.id
+      );
     }
   }
 
@@ -126,9 +179,6 @@ export default function PredictionsPage() {
   async function savePrediction() {
     if (!currentMatchId) return;
 
-    const userId =
-      localStorage.getItem("userId");
-
     setLockMessage("");
 
     const response = await fetch(
@@ -140,10 +190,11 @@ export default function PredictionsPage() {
             "application/json",
         },
         body: JSON.stringify({
-          userId: Number(userId),
           matchId: currentMatchId,
-          homeScore: Number(homeScore),
-          awayScore: Number(awayScore),
+          homeScore:
+            Number(homeScore),
+          awayScore:
+            Number(awayScore),
         }),
       }
     );
@@ -152,7 +203,9 @@ export default function PredictionsPage() {
       await response.json();
 
     if (!result.success) {
-      if (response.status === 403) {
+      if (
+        response.status === 403
+      ) {
         setIsLocked(true);
 
         setLockMessage(
@@ -174,10 +227,15 @@ export default function PredictionsPage() {
     setHomeScore("");
     setAwayScore("");
 
-    if (editingPredictionId !== null) {
+    if (
+      editingPredictionId !==
+      null
+    ) {
       setEditing(false);
 
-      setEditingPredictionId(null);
+      setEditingPredictionId(
+        null
+      );
 
       goToFirstUnpredictedMatch(
         refreshedPredictions
@@ -191,13 +249,21 @@ export default function PredictionsPage() {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="p-8">
+        Loading predictions...
+      </div>
+    );
+  }
+
   if (
     matches.length === 0 ||
     currentMatchId === null
   ) {
     return (
       <div className="p-8">
-        Loading matches...
+        No matches available
       </div>
     );
   }
@@ -217,4 +283,166 @@ export default function PredictionsPage() {
   const existingPrediction =
     savedPredictions.find(
       (p) =>
-        p.matchId === currentMatchId
+        p.matchId ===
+        currentMatchId
+    );
+
+  return (
+    <main className="p-8">
+
+      <h1 className="text-4xl font-bold mb-2">
+        Predictions
+      </h1>
+
+      <p className="mb-6">
+        Welcome{" "}
+        <strong>
+          {user?.firstName}
+        </strong>
+      </p>
+
+      <p className="mb-4">
+        Completed:{" "}
+        {savedPredictions.length}
+        {" / "}
+        {matches.length}
+      </p>
+
+      {editing && (
+        <div className="mb-4 p-3 bg-yellow-100 rounded">
+          Editing Prediction
+        </div>
+      )}
+
+      {lockMessage && (
+        <div className="mb-4 p-4 rounded border border-red-500 bg-red-100">
+
+          <div className="font-bold text-red-700">
+            🔒 Prediction Locked
+          </div>
+
+          <div className="mt-2 text-red-700">
+            {lockMessage}
+          </div>
+
+        </div>
+      )}
+
+      {isLocked &&
+        existingPrediction && (
+          <div className="mb-4 border rounded p-4 bg-gray-50">
+
+            <h3 className="font-bold mb-2">
+              Your Existing Prediction
+            </h3>
+
+            <p>
+              {
+                existingPrediction.predictedHomeScore
+              }
+              {" - "}
+              {
+                existingPrediction.predictedAwayScore
+              }
+            </p>
+
+          </div>
+        )}
+
+      <div className="grid gap-6 md:grid-cols-2">
+
+        <div className="border rounded p-6 space-y-4">
+
+          <h2 className="text-xl font-bold">
+            {currentMatch.homeTeam.name}
+            {" vs "}
+            {currentMatch.awayTeam.name}
+          </h2>
+
+          <input
+            type="number"
+            disabled={isLocked}
+            className="border p-2 w-full disabled:bg-gray-100 disabled:text-gray-500"
+            placeholder={`${currentMatch.homeTeam.name} Score`}
+            value={homeScore}
+            onChange={(e) =>
+              setHomeScore(
+                e.target.value
+              )
+            }
+          />
+
+          <input
+            type="number"
+            disabled={isLocked}
+            className="border p-2 w-full disabled:bg-gray-100 disabled:text-gray-500"
+            placeholder={`${currentMatch.awayTeam.name} Score`}
+            value={awayScore}
+            onChange={(e) =>
+              setAwayScore(
+                e.target.value
+              )
+            }
+          />
+
+          <button
+            disabled={isLocked}
+            onClick={
+              savePrediction
+            }
+            className="bg-green-600 text-white px-4 py-2 rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            Save Prediction
+          </button>
+
+        </div>
+
+        <div className="border rounded p-6">
+
+          <h2 className="font-bold mb-4">
+            Your Predictions
+          </h2>
+
+          {savedPredictions.map(
+            (prediction) => (
+              <div
+                key={
+                  prediction.id
+                }
+                onClick={() =>
+                  editPrediction(
+                    prediction
+                  )
+                }
+                className="border-b py-2 cursor-pointer hover:bg-gray-100"
+              >
+                {
+                  prediction.match
+                    .homeTeam
+                    .shortCode
+                }
+                {" "}
+                {
+                  prediction.predictedHomeScore
+                }
+                {" - "}
+                {
+                  prediction.predictedAwayScore
+                }
+                {" "}
+                {
+                  prediction.match
+                    .awayTeam
+                    .shortCode
+                }
+              </div>
+            )
+          )}
+
+        </div>
+
+      </div>
+
+    </main>
+  );
+}

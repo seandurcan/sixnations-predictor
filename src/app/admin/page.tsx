@@ -3,33 +3,109 @@
 import { useEffect, useState } from "react";
 
 export default function AdminPage() {
-  const [matches, setMatches] = useState<any[]>([]);
+  const [loading, setLoading] =
+    useState(true);
+
+  const [authorised, setAuthorised] =
+    useState(false);
+
+  const [matches, setMatches] =
+    useState<any[]>([]);
+
   const [selectedMatchId, setSelectedMatchId] =
     useState<number | null>(null);
 
-  const [homeScore, setHomeScore] = useState("");
-  const [awayScore, setAwayScore] = useState("");
+  const [homeScore, setHomeScore] =
+    useState("");
+
+  const [awayScore, setAwayScore] =
+    useState("");
 
   useEffect(() => {
-    loadMatches();
+    initialise();
   }, []);
+
+  async function initialise() {
+    try {
+      const meResponse =
+        await fetch("/api/auth/me");
+
+      if (!meResponse.ok) {
+        window.location.href =
+          "/login";
+        return;
+      }
+
+      const me =
+        await meResponse.json();
+
+      if (!me.authenticated) {
+        window.location.href =
+          "/login";
+        return;
+      }
+
+      if (
+        me.user.role !== "ADMIN"
+      ) {
+        window.location.href =
+          "/dashboard";
+        return;
+      }
+
+      setAuthorised(true);
+
+      await loadMatches();
+
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+
+      window.location.href =
+        "/login";
+    }
+  }
 
   async function loadMatches() {
     const response = await fetch(
       "/api/admin/matches"
     );
 
-    const data = await response.json();
+    if (
+      response.status === 401
+    ) {
+      window.location.href =
+        "/login";
+      return;
+    }
+
+    if (
+      response.status === 403
+    ) {
+      window.location.href =
+        "/dashboard";
+      return;
+    }
+
+    const data =
+      await response.json();
 
     setMatches(data);
 
-    if (data.length > 0 && !selectedMatchId) {
-      setSelectedMatchId(data[0].id);
+    if (
+      data.length > 0 &&
+      !selectedMatchId
+    ) {
+      setSelectedMatchId(
+        data[0].id
+      );
     }
   }
 
   async function saveResult() {
-    if (!selectedMatchId) return;
+    if (!selectedMatchId) {
+      return;
+    }
 
     const response = await fetch(
       "/api/admin/results",
@@ -40,12 +116,34 @@ export default function AdminPage() {
             "application/json",
         },
         body: JSON.stringify({
-          matchId: selectedMatchId,
-          homeScore: Number(homeScore),
-          awayScore: Number(awayScore),
+          matchId:
+            selectedMatchId,
+          homeScore:
+            Number(homeScore),
+          awayScore:
+            Number(awayScore),
         }),
       }
     );
+
+    if (
+      response.status === 401
+    ) {
+      window.location.href =
+        "/login";
+      return;
+    }
+
+    if (
+      response.status === 403
+    ) {
+      alert(
+        "Administrator access required."
+      );
+      window.location.href =
+        "/dashboard";
+      return;
+    }
 
     const result =
       await response.json();
@@ -60,9 +158,23 @@ export default function AdminPage() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="p-8">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authorised) {
+    return null;
+  }
+
   const selectedMatch =
     matches.find(
-      (m) => m.id === selectedMatchId
+      (m) =>
+        m.id ===
+        selectedMatchId
     );
 
   return (
@@ -74,8 +186,6 @@ export default function AdminPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        {/* LEFT PANEL */}
-
         <div className="border rounded p-4">
 
           <h2 className="font-bold mb-4">
@@ -84,64 +194,82 @@ export default function AdminPage() {
 
           <div className="space-y-2 max-h-[700px] overflow-y-auto">
 
-            {matches.map((match) => (
+            {matches.map(
+              (match) => (
+                <div
+                  key={match.id}
+                  onClick={() => {
+                    setSelectedMatchId(
+                      match.id
+                    );
 
-              <div
-                key={match.id}
-                onClick={() => {
-                  setSelectedMatchId(match.id);
+                    setHomeScore(
+                      match.actualHomeScore?.toString() ??
+                        ""
+                    );
 
-                  setHomeScore(
-                    match.actualHomeScore?.toString() ??
-                      ""
-                  );
-
-                  setAwayScore(
-                    match.actualAwayScore?.toString() ??
-                      ""
-                  );
-                }}
-                className={`p-3 border rounded cursor-pointer hover:bg-gray-100 ${
-                  selectedMatchId === match.id
-                    ? "bg-blue-100 border-blue-500"
-                    : ""
-                }`}
-              >
-                <div className="font-semibold">
-                  R{match.round}
-                </div>
-
-                <div>
-                  {match.homeTeam.shortCode}
-                  {" v "}
-                  {match.awayTeam.shortCode}
-                </div>
-
-                {match.completed && (
-                  <div className="text-green-600 text-sm">
-                    Result Entered
+                    setAwayScore(
+                      match.actualAwayScore?.toString() ??
+                        ""
+                    );
+                  }}
+                  className={`p-3 border rounded cursor-pointer hover:bg-gray-100 ${
+                    selectedMatchId ===
+                    match.id
+                      ? "bg-blue-100 border-blue-500"
+                      : ""
+                  }`}
+                >
+                  <div className="font-semibold">
+                    R
+                    {match.round}
                   </div>
-                )}
 
-              </div>
-            ))}
+                  <div>
+                    {
+                      match
+                        .homeTeam
+                        .shortCode
+                    }
+                    {" v "}
+                    {
+                      match
+                        .awayTeam
+                        .shortCode
+                    }
+                  </div>
+
+                  {match.completed && (
+                    <div className="text-green-600 text-sm">
+                      Result
+                      Entered
+                    </div>
+                  )}
+                </div>
+              )
+            )}
 
           </div>
 
         </div>
 
-        {/* RIGHT PANEL */}
-
         <div className="md:col-span-2 border rounded p-6">
 
           {selectedMatch && (
-
             <>
               <h2 className="text-2xl font-bold mb-6">
 
-                {selectedMatch.homeTeam.name}
+                {
+                  selectedMatch
+                    .homeTeam
+                    .name
+                }
                 {" vs "}
-                {selectedMatch.awayTeam.name}
+                {
+                  selectedMatch
+                    .awayTeam
+                    .name
+                }
 
               </h2>
 
@@ -172,14 +300,15 @@ export default function AdminPage() {
                 />
 
                 <button
-                  onClick={saveResult}
+                  onClick={
+                    saveResult
+                  }
                   className="bg-blue-600 text-white px-6 py-3 rounded"
                 >
                   Save Result
                 </button>
 
               </div>
-
             </>
           )}
 

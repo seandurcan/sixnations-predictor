@@ -7,6 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model EmailVerification {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  token      String   @unique
+  expiresAt  DateTime
+  verifiedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+
 model User {
   id                    Int                    @id @default(autoincrement())
   firstName             String
@@ -33,6 +47,8 @@ model User {
   payments              Payment[]
   predictions           Prediction[]
   submissions           PredictionSubmission[]
+  sessions 		Session[]
+  emailVerifications 	EmailVerification[]
 
   @@index([email])
   @@index([paymentStatus])
@@ -288,4 +304,17 @@ enum ThemePreference {
   LIGHT
   DARK
   SYSTEM
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
 }

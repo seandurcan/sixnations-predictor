@@ -1,47 +1,52 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
 
   async function handleLogin(
     e: React.FormEvent
   ) {
-	console.log("Login clicked");
-
     e.preventDefault();
 
-    const response = await fetch(
-      "/api/login",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      }
-    );
+    const response =
+      await fetch(
+        "/api/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
 
     const result =
       await response.json();
 
-    alert(JSON.stringify(result));
+    alert(
+      JSON.stringify(result)
+    );
 
     if (result.success) {
-  localStorage.setItem(
-    "userId",
-    result.userId
-  );
+      localStorage.setItem(
+        "userId",
+        result.userId
+      );
 
-  window.location.href =
-    "/dashboard";
-}
+      window.location.href =
+        "/dashboard";
+    }
   }
 
   return (
@@ -59,7 +64,9 @@ export default function LoginPage() {
           placeholder="Email"
           value={email}
           onChange={(e) =>
-            setEmail(e.target.value)
+            setEmail(
+              e.target.value
+            )
           }
         />
 
@@ -69,7 +76,9 @@ export default function LoginPage() {
           placeholder="Password"
           value={password}
           onChange={(e) =>
-            setPassword(e.target.value)
+            setPassword(
+              e.target.value
+            )
           }
         />
 
@@ -79,6 +88,16 @@ export default function LoginPage() {
         >
           Login
         </button>
+
+        <div className="flex flex-col gap-2 text-sm">
+          /forgot-password
+            Forgot Password?
+          </Link>
+
+          /register
+            Create Account
+          </Link>
+        </div>
       </form>
     </main>
   );

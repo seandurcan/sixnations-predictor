@@ -1,52 +1,124 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
+import { sendEmailVerificationEmail } from "@/lib/email";
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request
+) {
   try {
-    const body = await request.json();
+    const body =
+      await request.json();
 
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        email: body.email,
-      },
-    });
-
-    if (existingUser) {
+    if (
+      body.password !==
+      body.confirmPassword
+    ) {
       return NextResponse.json(
-        { error: "Email already exists" },
-        { status: 400 }
+        {
+          success: false,
+          error:
+            "Passwords do not match",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    const passwordHash = await bcrypt.hash(
-      body.password,
-      12
-    );
+    const existingUser =
+      await prisma.user.findUnique({
+        where: {
+          email: body.email,
+        },
+      });
 
-    const userCount = await prisma.user.count();
+    if (existingUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Email already exists",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
-    const user = await prisma.user.create({
+    const passwordHash =
+      await bcrypt.hash(
+        body.password,
+        12
+      );
+
+    const userCount =
+      await prisma.user.count();
+
+    const user =
+      await prisma.user.create({
+        data: {
+          firstName:
+            body.firstName,
+          lastName:
+            body.lastName,
+          email:
+            body.email,
+          mobile:
+            body.mobile,
+          passwordHash,
+          registrationOrder:
+            userCount + 1,
+        },
+      });
+
+    const token =
+      crypto.randomUUID() +
+      crypto.randomUUID();
+
+    const expiresAt =
+      new Date(
+        Date.now() +
+          1000 * 60 * 60
+      );
+
+    await prisma.emailVerification.create({
       data: {
-        firstName: body.firstName,
-        lastName: body.lastName,
-        email: body.email,
-        mobile: body.mobile,
-        passwordHash,
-        registrationOrder: userCount + 1,
+        userId: user.id,
+        token,
+        expiresAt,
       },
     });
 
+    try {
+      await sendEmailVerificationEmail(
+        user.email,
+        token
+      );
+    } catch (emailError) {
+      console.error(
+        "Verification email failed:",
+        emailError
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      userId: user.id,
+      emailVerificationRequired: true,
     });
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
-      { error: "Registration failed" },
-      { status: 500 }
+      {
+        success: false,
+        error:
+          "Registration failed",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
