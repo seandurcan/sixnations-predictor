@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 export default function LoginPage() {
@@ -89,15 +88,27 @@ export default function LoginPage() {
           Login
         </button>
 
-        <div className="flex flex-col gap-2 text-sm">
-          /forgot-password
-            Forgot Password?
-          </Link>
+        <button
+          type="button"
+          className="text-blue-600 underline text-sm block"
+          onClick={() => {
+            window.location.href =
+              "/forgot-password";
+          }}
+        >
+          Forgot Password?
+        </button>
 
-          /register
-            Create Account
-          </Link>
-        </div>
+        <button
+          type="button"
+          className="text-blue-600 underline text-sm block"
+          onClick={() => {
+            window.location.href =
+              "/register";
+          }}
+        >
+          Create Account
+        </button>
       </form>
     </main>
   );
