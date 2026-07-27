@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
 import crypto from "crypto";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendPasswordResetEmail } from "@/lib/email";
 
 export async function POST(
   request: Request
@@ -20,7 +21,7 @@ export async function POST(
       return NextResponse.json({
         success: true,
         message:
-          "If an account exists for that email address, a reset link will be sent.",
+          "If an account exists for that email address, a reset link has been sent.",
       });
     }
 
@@ -43,18 +44,31 @@ export async function POST(
     });
 
     console.log(
-      "Password reset token:",
+      "GENERATED RESET TOKEN:",
       token
+    );
+
+    await sendPasswordResetEmail(
+      user.email,
+      token
+    );
+
+    console.log(
+      "PASSWORD RESET EMAIL SENT TO:",
+      user.email
     );
 
     return NextResponse.json({
       success: true,
       token,
       message:
-        "Password reset token created.",
+        "Password reset email sent.",
     });
   } catch (error) {
-    console.error(error);
+    console.error(
+      "FORGOT PASSWORD ERROR:",
+      error
+    );
 
     return NextResponse.json(
       {

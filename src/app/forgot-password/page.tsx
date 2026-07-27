@@ -11,10 +11,6 @@ export default function ForgotPasswordPage() {
   ) {
     e.preventDefault();
 
-    console.log(
-      "Forgot Password clicked"
-    );
-
     const response =
       await fetch(
         "/api/forgot-password",
@@ -32,6 +28,12 @@ export default function ForgotPasswordPage() {
 
     const result =
       await response.json();
+
+    if (result.success) {
+      window.location.href =
+        "/reset-password";
+      return;
+    }
 
     alert(
       JSON.stringify(result)
