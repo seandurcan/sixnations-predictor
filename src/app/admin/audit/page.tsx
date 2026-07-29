@@ -3,7 +3,10 @@
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
-import { formatIrishDate, formatIsoDate } from "@/lib/formatIrishDate";
+import {
+  formatIrishDate,
+  formatIsoDate,
+} from "@/lib/formatIrishDate";
 import { useEffect, useState } from "react";
 
 export default function AuditPage() {
@@ -61,9 +64,10 @@ export default function AuditPage() {
       console.error(
         "Audit history load failed:",
         {
-          timestamp: formatIsoDate(
-            new Date()
-          ),
+          timestamp:
+            formatIsoDate(
+              new Date()
+            ),
           error,
         }
       );
@@ -74,7 +78,7 @@ export default function AuditPage() {
 
   if (loading) {
     return (
-      <main className="p-8">
+      <main className="bg-white p-8 text-[var(--brand-navy)]">
         <PageHeader
           title="Audit History"
           subtitle="Loading audit records..."
@@ -88,7 +92,7 @@ export default function AuditPage() {
   }
 
   return (
-    <main className="p-8">
+    <main className="bg-white p-8 text-[var(--brand-navy)]">
       <PageHeader
         title="Audit History"
         subtitle="Track all administrative changes to tournament results"
@@ -102,26 +106,26 @@ export default function AuditPage() {
         <>
           <Card title="Audit History">
             <div className="overflow-x-auto">
-              <table className="w-full border">
+              <table className="w-full border border-[var(--brand-border)]">
                 <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border p-3">
+                  <tr className="bg-[var(--brand-soft-blue)] text-[var(--brand-navy)]">
+                    <th className="border border-[var(--brand-border)] p-3">
                       Date
                     </th>
 
-                    <th className="border p-3">
+                    <th className="border border-[var(--brand-border)] p-3">
                       Match
                     </th>
 
-                    <th className="border p-3">
+                    <th className="border border-[var(--brand-border)] p-3">
                       Previous Score
                     </th>
 
-                    <th className="border p-3">
+                    <th className="border border-[var(--brand-border)] p-3">
                       New Score
                     </th>
 
-                    <th className="border p-3">
+                    <th className="border border-[var(--brand-border)] p-3">
                       Admin
                     </th>
                   </tr>
@@ -134,19 +138,19 @@ export default function AuditPage() {
                         key={audit.id}
                         className="text-center"
                       >
-                        <td className="border p-3">
+                        <td className="border border-[var(--brand-border)] p-3 text-[var(--brand-blue)]">
                           {formatIrishDate(
                             audit.createdAt
                           )}
                         </td>
 
-                        <td className="border p-3">
+                        <td className="border border-[var(--brand-border)] p-3">
                           {audit.match
                             ? `${audit.match.homeTeam.shortCode} v ${audit.match.awayTeam.shortCode}`
                             : `Match ${audit.matchId}`}
                         </td>
 
-                        <td className="border p-3">
+                        <td className="border border-[var(--brand-border)] p-3 text-[var(--brand-muted)]">
                           {audit.previousHome ??
                             "-"}
                           {" - "}
@@ -154,13 +158,13 @@ export default function AuditPage() {
                             "-"}
                         </td>
 
-                        <td className="border p-3 font-semibold">
+                        <td className="border border-[var(--brand-border)] p-3 font-semibold text-[var(--brand-orange)]">
                           {audit.newHome}
                           {" - "}
                           {audit.newAway}
                         </td>
 
-                        <td className="border p-3">
+                        <td className="border border-[var(--brand-border)] p-3">
                           {audit.adminUser
                             ? `${audit.adminUser.firstName} ${audit.adminUser.lastName}`
                             : audit.adminUserId}
@@ -173,7 +177,7 @@ export default function AuditPage() {
             </div>
           </Card>
 
-          <div className="flex items-center justify-center gap-4 mt-6">
+          <div className="mt-6 flex items-center justify-center gap-4">
             <Button
               variant="secondary"
               disabled={page === 1}
@@ -184,7 +188,7 @@ export default function AuditPage() {
               Previous
             </Button>
 
-            <span>
+            <span className="text-[var(--brand-muted)]">
               Page {page} of {totalPages}
             </span>
 

@@ -1,8 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #ffffff;
+  --foreground: #0a1f4d;
+
+  --brand-lime: #9dff00;
+  --brand-lime-bright: #b7ff00;
+
+  --brand-blue: #007bff;
+  --brand-blue-bright: #1e90ff;
+
+  --brand-navy: #0a1f4d;
+
+  --brand-orange: #ff6a00;
+  --brand-orange-bright: #ff7a1a;
+
+  --brand-white: #ffffff;
+
+  --brand-border: rgba(10, 31, 77, 0.14);
+  --brand-muted: rgba(10, 31, 77, 0.68);
+  --brand-soft-blue: rgba(0, 123, 255, 0.1);
+  --brand-soft-lime: rgba(157, 255, 0, 0.18);
+  --brand-soft-orange: rgba(255, 106, 0, 0.12);
 }
 
 html {
@@ -20,115 +39,17 @@ a {
   text-decoration: none;
   transition:
     color 200ms ease-out,
-    transform 200ms ease-out,
     opacity 200ms ease-out;
 }
 
 a:hover {
-  transform: translateY(-1px);
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 a:focus-visible {
-  outline: 2px solid #22c55e;
+  outline: 2px solid var(--brand-blue);
   outline-offset: 3px;
   border-radius: 4px;
-}
-
-a::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 0;
-  height: 2px;
-  background: currentColor;
-  transition: width 200ms ease-out;
-}
-
-a:hover::after,
-a:focus-visible::after {
-  width: 100%;
-}
-
-img,
-picture img {
-  transition:
-    transform 300ms ease-out,
-    filter 300ms ease-out,
-    opacity 300ms ease-out,
-    box-shadow 300ms ease-out;
-}
-
-img:hover,
-picture img:hover {
-  transform: scale(1.03);
-  filter: brightness(1.03);
-}
-
-img:active,
-picture img:active {
-  transform: scale(0.99);
-}
-
-svg,
-[data-icon],
-.icon {
-  transition:
-    transform 220ms ease-out,
-    color 220ms ease-out,
-    opacity 220ms ease-out,
-    filter 220ms ease-out;
-}
-
-button:hover svg,
-a:hover svg,
-svg:hover,
-[data-icon]:hover,
-.icon:hover {
-  transform: translateY(-1px) scale(1.08);
-  opacity: 0.95;
-}
-
-button:active svg,
-a:active svg,
-svg:active,
-[data-icon]:active,
-.icon:active {
-  transform: scale(0.95);
-}
-
-video {
-  transition:
-    transform 300ms ease-out,
-    filter 300ms ease-out,
-    opacity 300ms ease-out,
-    box-shadow 300ms ease-out;
-}
-
-video:hover {
-  transform: scale(1.02);
-  filter: brightness(1.04);
-  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.18);
-}
-
-video:active {
-  transform: scale(0.99);
-}
-
-.card,
-[data-card] {
-  transition:
-    transform 300ms ease-out,
-    box-shadow 300ms ease-out,
-    border-color 300ms ease-out,
-    background-color 300ms ease-out;
-}
-
-.card:hover,
-[data-card]:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.12);
 }
 
 button {
@@ -140,6 +61,88 @@ select,
 textarea,
 button {
   font: inherit;
+}
+
+input,
+select,
+textarea {
+  color: var(--brand-navy);
+}
+
+::selection {
+  background: var(--brand-lime);
+  color: var(--brand-navy);
+}
+
+.brand-text-navy {
+  color: var(--brand-navy);
+}
+
+.brand-text-blue {
+  color: var(--brand-blue);
+}
+
+.brand-text-lime {
+  color: var(--brand-lime);
+}
+
+.brand-text-orange {
+  color: var(--brand-orange);
+}
+
+.brand-bg-navy {
+  background-color: var(--brand-navy);
+}
+
+.brand-bg-blue {
+  background-color: var(--brand-blue);
+}
+
+.brand-bg-lime {
+  background-color: var(--brand-lime);
+}
+
+.brand-bg-orange {
+  background-color: var(--brand-orange);
+}
+
+.brand-gradient-blue {
+  background: linear-gradient(
+    135deg,
+    var(--brand-blue),
+    var(--brand-blue-bright)
+  );
+}
+
+.brand-gradient-lime {
+  background: linear-gradient(
+    135deg,
+    var(--brand-lime),
+    var(--brand-lime-bright)
+  );
+}
+
+.brand-gradient-orange {
+  background: linear-gradient(
+    135deg,
+    var(--brand-orange),
+    var(--brand-orange-bright)
+  );
+}
+
+.brand-card {
+  background: var(--brand-white);
+  border: 1px solid var(--brand-border);
+  color: var(--brand-navy);
+}
+
+.brand-muted {
+  color: var(--brand-muted);
+}
+
+.brand-focus {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {

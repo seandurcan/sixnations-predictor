@@ -4,11 +4,110 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
 import Select from "@/components/ui/Select";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+type SortOption =
+  | "points"
+  | "difference"
+  | "exact"
+  | "error"
+  | "player";
+
+type LeaderboardEntry = {
+  id: number;
+  rank: number;
+  firstName: string | null;
+  lastName: string | null;
+  totalPoints: number;
+  differenceScore: number;
+  exactScores: number;
+  cumulativeError: number;
+  previousRank: number | null;
+  rankMovement: number | null;
+};
+
+type LeaderboardResponse = {
+  page: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+  data: LeaderboardEntry[];
+  success?: boolean;
+  error?: string;
+};
+
+const PAGE_SIZE = 10;
+
+function getPlayerName(
+  player: LeaderboardEntry
+) {
+  const fullName = [
+    player.firstName,
+    player.lastName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return fullName || "Unknown Player";
+}
+
+function getRankMedal(rank: number) {
+  switch (rank) {
+    case 1:
+      return "🥇";
+    case 2:
+      return "🥈";
+    case 3:
+      return "🥉";
+    default:
+      return "";
+  }
+}
+
+function getRowClasses(rank: number) {
+  switch (rank) {
+    case 1:
+      return "bg-yellow-50";
+    case 2:
+      return "bg-slate-50";
+    case 3:
+      return "bg-orange-50";
+    default:
+      return "";
+  }
+}
+
+function getSortIndicator(
+  selectedSort: SortOption,
+  column: SortOption
+) {
+  if (selectedSort !== column) {
+    return "";
+  }
+
+  switch (column) {
+    case "player":
+    case "difference":
+    case "error":
+      return " ▲";
+
+    case "points":
+    case "exact":
+      return " ▼";
+
+    default:
+      return "";
+  }
+}
 
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] =
-    useState<any[]>([]);
+    useState<LeaderboardEntry[]>([]);
 
   const [page, setPage] =
     useState(1);
@@ -16,95 +115,237 @@ export default function LeaderboardPage() {
   const [totalPages, setTotalPages] =
     useState(1);
 
-  const [sortBy, setSortBy] =
-    useState("points");
+  const [
+    totalRecords,
+    setTotalRecords,
+  ] = useState(0);
 
-  const pageSize = 10;
+  const [sortBy, setSortBy] =
+    useState<SortOption>("points");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState<string | null>(null);
 
   useEffect(() => {
-    loadLeaderboard(page);
-  }, [page]);
+    const controller =
+      new AbortController();
 
-  async function loadLeaderboard(
-    pageNumber: number
-  ) {
-    const response = await fetch(
-      `/api/leaderboard?page=${pageNumber}&pageSize=${pageSize}`
-    );
+    async function loadLeaderboard() {
+      setLoading(true);
+      setError(null);
 
-    const result =
-      await response.json();
+      try {
+        const response = await fetch(
+          `/api/leaderboard?page=${page}&pageSize=${PAGE_SIZE}`,
+          {
+            signal: controller.signal,
+            cache: "no-store",
+          }
+        );
 
-    setLeaderboard(result.data);
-    setTotalPages(result.totalPages);
-  }
+        const result =
+          (await response.json()) as
+            LeaderboardResponse;
 
-  const sortedLeaderboard =
-    useMemo(() => {
-      const data = [...leaderboard];
+        if (!response.ok) {
+          throw new Error(
+            result.error ||
+              "Failed to load the leaderboard."
+          );
+        }
 
-      switch (sortBy) {
-        case "player":
-          return data.sort((a, b) =>
-            `${a.firstName} ${a.lastName}`.localeCompare(
-              `${b.firstName} ${b.lastName}`
+        if (!Array.isArray(result.data)) {
+          throw new Error(
+            "The leaderboard returned invalid data."
+          );
+        }
+
+        const returnedTotalPages =
+          Math.max(
+            1,
+            Number(
+              result.totalPages ?? 1
             )
           );
 
-        case "points":
-          return data.sort(
-            (a, b) =>
-              b.totalPoints -
-              a.totalPoints
-          );
+        setLeaderboard(result.data);
 
-        case "difference":
-          return data.sort(
-            (a, b) =>
-              a.differenceScore -
-              b.differenceScore
-          );
+        setTotalPages(
+          returnedTotalPages
+        );
 
-        case "exact":
-          return data.sort(
-            (a, b) =>
-              b.exactScores -
-              a.exactScores
-          );
+        setTotalRecords(
+          Number(
+            result.totalRecords ??
+              result.data.length
+          )
+        );
 
-        case "error":
-          return data.sort(
-            (a, b) =>
-              a.cumulativeError -
-              b.cumulativeError
-          );
+        /*
+         * If records were removed while the user
+         * was viewing the final page, return them
+         * to the highest available page.
+         */
+        if (page > returnedTotalPages) {
+          setPage(returnedTotalPages);
+        }
+      } catch (loadError) {
+        if (
+          loadError instanceof DOMException &&
+          loadError.name === "AbortError"
+        ) {
+          return;
+        }
 
-        default:
-          return data;
+        console.error(
+          "Unable to load leaderboard:",
+          loadError
+        );
+
+        setLeaderboard([]);
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Failed to load the leaderboard."
+        );
+      } finally {
+        if (
+          !controller.signal.aborted
+        ) {
+          setLoading(false);
+        }
       }
+    }
+
+    void loadLeaderboard();
+
+    return () => {
+      controller.abort();
+    };
+  }, [page]);
+
+  const sortedLeaderboard =
+    useMemo(() => {
+      const data = [
+        ...leaderboard,
+      ];
+
+      data.sort((a, b) => {
+        switch (sortBy) {
+          case "player":
+            return (
+              getPlayerName(a).localeCompare(
+                getPlayerName(b),
+                "en",
+                {
+                  sensitivity: "base",
+                }
+              ) || a.rank - b.rank
+            );
+
+          case "points":
+            return (
+              b.totalPoints -
+                a.totalPoints ||
+              a.rank - b.rank
+            );
+
+          case "difference":
+            return (
+              a.differenceScore -
+                b.differenceScore ||
+              a.rank - b.rank
+            );
+
+          case "exact":
+            return (
+              b.exactScores -
+                a.exactScores ||
+              a.rank - b.rank
+            );
+
+          case "error":
+            return (
+              a.cumulativeError -
+                b.cumulativeError ||
+              a.rank - b.rank
+            );
+
+          default:
+            return a.rank - b.rank;
+        }
+      });
+
+      return data;
     }, [leaderboard, sortBy]);
 
   function renderRankMovement(
-    user: any
+    player: LeaderboardEntry
   ) {
+    const movement =
+      player.rankMovement;
+
     if (
-      user.rankMovement === undefined ||
-      user.rankMovement === null
+      movement === undefined ||
+      movement === null
     ) {
-      return "-";
+      return (
+        <span
+          className="text-slate-400"
+          title="No previous ranking"
+        >
+          —
+        </span>
+      );
     }
 
-    if (user.rankMovement > 0) {
-      return `↑ ${user.rankMovement}`;
+    if (movement > 0) {
+      return (
+        <span
+          className="font-semibold text-green-600"
+          title={`Moved up ${movement} place${
+            movement === 1 ? "" : "s"
+          }`}
+        >
+          ↑ {movement}
+        </span>
+      );
     }
 
-    if (user.rankMovement < 0) {
-      return `↓ ${Math.abs(
-        user.rankMovement
-      )}`;
+    if (movement < 0) {
+      const places =
+        Math.abs(movement);
+
+      return (
+        <span
+          className="font-semibold text-red-600"
+          title={`Moved down ${places} place${
+            places === 1 ? "" : "s"
+          }`}
+        >
+          ↓ {places}
+        </span>
+      );
     }
 
-    return "→";
+    return (
+      <span
+        className="text-slate-500"
+        title="Rank unchanged"
+      >
+        →
+      </span>
+    );
+  }
+
+  function handleSortChange(
+    value: string
+  ) {
+    setSortBy(value as SortOption);
   }
 
   return (
@@ -115,18 +356,24 @@ export default function LeaderboardPage() {
       />
 
       <p className="mb-6 text-slate-500">
-        Total Players: {leaderboard.length}
+        Total Players: {totalRecords}
       </p>
 
-      <div className="mb-6 flex items-center gap-4">
-        <label className="font-semibold">
+      <div className="mb-6 flex flex-wrap items-center gap-4">
+        <label
+          htmlFor="leaderboard-sort"
+          className="font-semibold text-slate-700"
+        >
           Sort By
         </label>
 
         <Select
+          id="leaderboard-sort"
           value={sortBy}
-          onChange={(e) =>
-            setSortBy(e.target.value)
+          onChange={(event) =>
+            handleSortChange(
+              event.target.value
+            )
           }
         >
           <option value="points">
@@ -142,7 +389,7 @@ export default function LeaderboardPage() {
           </option>
 
           <option value="error">
-            Points Differential
+            Cumulative Error
           </option>
 
           <option value="player">
@@ -152,173 +399,275 @@ export default function LeaderboardPage() {
       </div>
 
       <Card title="Leaderboard">
-        <div className="overflow-x-auto">
-          <table className="w-full border">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border p-3">
-                  Rank
-                </th>
+        {loading && (
+          <div
+            className="py-12 text-center text-slate-500"
+            role="status"
+          >
+            Loading leaderboard...
+          </div>
+        )}
 
-                <th className="border p-3">
-                  Last Change
-                </th>
+        {!loading && error && (
+          <div
+            className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700"
+            role="alert"
+          >
+            {error}
+          </div>
+        )}
 
-                <th
-                  className="border p-3 cursor-pointer hover:bg-gray-50"
-                  onClick={() =>
-                    setSortBy("player")
-                  }
-                >
-                  Player{" "}
-                  {sortBy ===
-                    "player" && "↓"}
-                </th>
+        {!loading &&
+          !error &&
+          sortedLeaderboard.length ===
+            0 && (
+            <div className="py-12 text-center text-slate-500">
+              No leaderboard entries are
+              available.
+            </div>
+          )}
 
-                <th
-                  className="border p-3 cursor-pointer hover:bg-gray-50"
-                  onClick={() =>
-                    setSortBy("points")
-                  }
-                >
-                  Points{" "}
-                  {sortBy ===
-                    "points" && "↓"}
-                </th>
+        {!loading &&
+          !error &&
+          sortedLeaderboard.length >
+            0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-slate-200">
+                <thead>
+                  <tr className="bg-slate-100">
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-3"
+                    >
+                      Rank
+                    </th>
 
-                <th
-                  className="border p-3 cursor-pointer hover:bg-gray-50"
-                  onClick={() =>
-                    setSortBy(
-                      "difference"
-                    )
-                  }
-                >
-                  Difference Score{" "}
-                  {sortBy ===
-                    "difference" &&
-                    "↓"}
-                </th>
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-3"
+                    >
+                      Last Change
+                    </th>
 
-                <th
-                  className="border p-3 cursor-pointer hover:bg-gray-50"
-                  onClick={() =>
-                    setSortBy("exact")
-                  }
-                >
-                  Exact Scores{" "}
-                  {sortBy ===
-                    "exact" && "↓"}
-                </th>
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-0"
+                    >
+                      <button
+                        type="button"
+                        className="w-full p-3 transition-colors hover:bg-slate-50"
+                        onClick={() =>
+                          setSortBy(
+                            "player"
+                          )
+                        }
+                      >
+                        Player
+                        {getSortIndicator(
+                          sortBy,
+                          "player"
+                        )}
+                      </button>
+                    </th>
 
-                <th
-                  className="border p-3 cursor-pointer hover:bg-gray-50"
-                  onClick={() =>
-                    setSortBy("error")
-                  }
-                >
-                  Points Differential{" "}
-                  {sortBy ===
-                    "error" && "↓"}
-                </th>
-              </tr>
-            </thead>
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-0"
+                    >
+                      <button
+                        type="button"
+                        className="w-full p-3 transition-colors hover:bg-slate-50"
+                        onClick={() =>
+                          setSortBy(
+                            "points"
+                          )
+                        }
+                      >
+                        Points
+                        {getSortIndicator(
+                          sortBy,
+                          "points"
+                        )}
+                      </button>
+                    </th>
 
-            <tbody>
-              {sortedLeaderboard.map(
-                (user, index) => (
-                  <tr
-                    key={user.id}
-                    className={`text-center ${
-                      index === 0
-                        ? "bg-yellow-50"
-                        : index === 1
-                        ? "bg-slate-50"
-                        : index === 2
-                        ? "bg-orange-50"
-                        : ""
-                    }`}
-                  >
-                    <td className="border p-3">
-                      {index === 0 &&
-                        "🥇 "}
-                      {index === 1 &&
-                        "🥈 "}
-                      {index === 2 &&
-                        "🥉 "}
-                      {user.rank}
-                    </td>
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-0"
+                    >
+                      <button
+                        type="button"
+                        className="w-full p-3 transition-colors hover:bg-slate-50"
+                        onClick={() =>
+                          setSortBy(
+                            "difference"
+                          )
+                        }
+                      >
+                        Difference Score
+                        {getSortIndicator(
+                          sortBy,
+                          "difference"
+                        )}
+                      </button>
+                    </th>
 
-                    <td className="border p-3">
-                      {renderRankMovement(
-                        user
-                      )}
-                    </td>
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-0"
+                    >
+                      <button
+                        type="button"
+                        className="w-full p-3 transition-colors hover:bg-slate-50"
+                        onClick={() =>
+                          setSortBy(
+                            "exact"
+                          )
+                        }
+                      >
+                        Exact Scores
+                        {getSortIndicator(
+                          sortBy,
+                          "exact"
+                        )}
+                      </button>
+                    </th>
 
-                    <td className="border p-3">
-                      {user.firstName}
-                      {" "}
-                      {user.lastName}
-                    </td>
-
-                    <td className="border p-3 font-bold">
-                      {user.totalPoints}
-                    </td>
-
-                    <td className="border p-3">
-                      {user.differenceScore}
-                    </td>
-
-                    <td className="border p-3">
-                      {user.exactScores}
-                    </td>
-
-                    <td className="border p-3">
-                      {user.cumulativeError}
-                    </td>
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-0"
+                    >
+                      <button
+                        type="button"
+                        className="w-full p-3 transition-colors hover:bg-slate-50"
+                        onClick={() =>
+                          setSortBy(
+                            "error"
+                          )
+                        }
+                      >
+                        Cumulative Error
+                        {getSortIndicator(
+                          sortBy,
+                          "error"
+                        )}
+                      </button>
+                    </th>
                   </tr>
-                )
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+
+                <tbody>
+                  {sortedLeaderboard.map(
+                    (player) => (
+                      <tr
+                        key={player.id}
+                        className={`text-center ${getRowClasses(
+                          player.rank
+                        )}`}
+                      >
+                        <td className="border border-slate-200 p-3 font-semibold">
+                          {getRankMedal(
+                            player.rank
+                          )}{" "}
+                          {player.rank}
+                        </td>
+
+                        <td className="border border-slate-200 p-3">
+                          {renderRankMovement(
+                            player
+                          )}
+                        </td>
+
+                        <td className="border border-slate-200 p-3">
+                          {getPlayerName(
+                            player
+                          )}
+                        </td>
+
+                        <td className="border border-slate-200 p-3 font-bold">
+                          {
+                            player.totalPoints
+                          }
+                        </td>
+
+                        <td className="border border-slate-200 p-3">
+                          {
+                            player.differenceScore
+                          }
+                        </td>
+
+                        <td className="border border-slate-200 p-3">
+                          {
+                            player.exactScores
+                          }
+                        </td>
+
+                        <td className="border border-slate-200 p-3">
+                          {
+                            player.cumulativeError
+                          }
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
       </Card>
 
-      <div className="mt-6 text-center text-sm text-slate-500">
-        Showing {sortedLeaderboard.length} players
-        {" • "}
-        Total Players: {leaderboard.length}
-        {" • "}
-        Page {page} of {totalPages}
-      </div>
+      {!loading && !error && (
+        <>
+          <div className="mt-6 text-center text-sm text-slate-500">
+            Showing{" "}
+            {sortedLeaderboard.length} of{" "}
+            {totalRecords} players
+            {" • "}
+            Page {page} of {totalPages}
+          </div>
 
-      <div className="flex items-center justify-center gap-4 mt-6">
-        <Button
-          variant="secondary"
-          disabled={page === 1}
-          onClick={() =>
-            setPage(page - 1)
-          }
-        >
-          Previous
-        </Button>
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <Button
+              variant="secondary"
+              disabled={
+                page <= 1 || loading
+              }
+              onClick={() =>
+                setPage((current) =>
+                  Math.max(
+                    1,
+                    current - 1
+                  )
+                )
+              }
+            >
+              Previous
+            </Button>
 
-        <span>
-          Page {page} of {totalPages}
-        </span>
+            <span className="text-sm font-medium text-slate-700">
+              Page {page} of {totalPages}
+            </span>
 
-        <Button
-          variant="secondary"
-          disabled={
-            page === totalPages
-          }
-          onClick={() =>
-            setPage(page + 1)
-          }
-        >
-          Next
-        </Button>
-      </div>
+            <Button
+              variant="secondary"
+              disabled={
+                page >= totalPages ||
+                loading
+              }
+              onClick={() =>
+                setPage((current) =>
+                  Math.min(
+                    totalPages,
+                    current + 1
+                  )
+                )
+              }
+            >
+              Next
+            </Button>
+          </div>
+        </>
+      )}
     </main>
   );
 }

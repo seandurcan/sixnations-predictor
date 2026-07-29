@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import CountdownTimer from "@/components/ui/CountdownTimer";
 import PageHeader from "@/components/ui/PageHeader";
@@ -100,11 +101,22 @@ export default function DashboardPage() {
           (m: any) => !m.completed
         );
 
+      const sortedUpcomingMatches =
+        [...upcomingMatches].sort(
+          (a: any, b: any) =>
+            new Date(
+              a.kickoffTime
+            ).getTime() -
+            new Date(
+              b.kickoffTime
+            ).getTime()
+        );
+
       if (
-        upcomingMatches.length > 0
+        sortedUpcomingMatches.length > 0
       ) {
         setNextMatch(
-          upcomingMatches[0]
+          sortedUpcomingMatches[0]
         );
       }
 
@@ -194,9 +206,23 @@ export default function DashboardPage() {
     return "→";
   }
 
+  function getWelcomeSubtitle() {
+    if (!userRow) {
+      return `Welcome ${
+        user?.firstName ?? "Player"
+      }`;
+    }
+
+    return `Welcome ${
+      user?.firstName ?? "Player"
+    } · Ranked #${userRow.rank ?? "-"} of ${
+      leaderboard.length
+    } players`;
+  }
+
   if (loading) {
     return (
-      <main className="p-8">
+      <main className="bg-white p-8 text-[var(--brand-navy)]">
         <PageHeader
           title="Dashboard"
           subtitle="Loading your dashboard..."
@@ -210,21 +236,63 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="p-8">
+    <main className="bg-white p-8 text-[var(--brand-navy)]">
       <PageHeader
         title="Dashboard"
-        subtitle={`Welcome ${user?.firstName ?? "Player"}`}
+        subtitle={getWelcomeSubtitle()}
       />
+
+      <div className="mb-8 grid gap-3 sm:grid-cols-3">
+        <Button
+          fullWidth
+          onClick={() => {
+            window.location.href =
+              "/predictions";
+          }}
+        >
+          Make Predictions
+        </Button>
+
+        <Button
+          fullWidth
+          variant="secondary"
+          onClick={() => {
+            window.location.href =
+              "/leaderboard";
+          }}
+        >
+          View Leaderboard
+        </Button>
+
+        <Button
+          fullWidth
+          variant="secondary"
+          onClick={() => {
+            window.location.href =
+              "/";
+          }}
+        >
+          View Fixtures
+        </Button>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Current Rank"
           value={`#${userRow?.rank ?? "-"}`}
+          tone="navy"
         />
 
         <StatCard
           title="Rank Movement"
           value={renderMovement()}
+          tone={
+            userRow?.rankMovement > 0
+              ? "lime"
+              : userRow?.rankMovement < 0
+                ? "orange"
+                : "navy"
+          }
         />
 
         <StatCard
@@ -232,6 +300,7 @@ export default function DashboardPage() {
           value={
             userRow?.totalPoints ?? 0
           }
+          tone="blue"
         />
 
         <StatCard
@@ -239,34 +308,38 @@ export default function DashboardPage() {
           value={
             userRow?.differenceScore ?? 0
           }
+          tone="navy"
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3 mt-6">
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
         <StatCard
           title="Exact Scores"
           value={
             userRow?.exactScores ?? 0
           }
+          tone="lime"
         />
 
         <StatCard
           title="Prediction Progress"
           value={`${predictionCount} / ${matchCount}`}
+          tone="orange"
         />
 
         <StatCard
           title="Players"
           value={leaderboard.length}
+          tone="blue"
         />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 mt-8">
+      <div className="mt-8 grid gap-6 md:grid-cols-2">
         <Card title="Next Match">
           {nextMatch ? (
             <div className="space-y-4">
               <div>
-                <p className="text-xl font-semibold">
+                <p className="text-xl font-semibold text-[var(--brand-navy)]">
                   {
                     nextMatch.homeTeam
                       .name
@@ -278,12 +351,12 @@ export default function DashboardPage() {
                   }
                 </p>
 
-                <p className="mt-2">
+                <p className="mt-2 text-[var(--brand-muted)]">
                   Round{" "}
                   {nextMatch.round}
                 </p>
 
-                <p className="text-slate-600">
+                <p className="font-semibold text-[var(--brand-blue)]">
                   {formatIrishDate(
                     nextMatch.kickoffTime
                   )}
@@ -296,6 +369,16 @@ export default function DashboardPage() {
                 }
                 label="Time until kick-off"
               />
+
+              <Button
+                fullWidth
+                onClick={() => {
+                  window.location.href =
+                    "/predictions";
+                }}
+              >
+                Predict This Match
+              </Button>
             </div>
           ) : (
             <p>
@@ -307,7 +390,7 @@ export default function DashboardPage() {
         <Card title="Latest Result">
           {lastMatch ? (
             <>
-              <p className="text-xl font-semibold">
+              <p className="text-xl font-semibold text-[var(--brand-navy)]">
                 {
                   lastMatch.homeTeam
                     .name
@@ -326,19 +409,23 @@ export default function DashboardPage() {
               </p>
 
               {lastPrediction && (
-                <div className="mt-4">
+                <div className="mt-4 space-y-2 text-[var(--brand-muted)]">
                   <p>
                     Points Earned:{" "}
-                    {
-                      lastPrediction.pointsAwarded
-                    }
+                    <span className="font-semibold text-[var(--brand-blue)]">
+                      {
+                        lastPrediction.pointsAwarded
+                      }
+                    </span>
                   </p>
 
                   <p>
                     Difference Score:{" "}
-                    {
-                      lastPrediction.differenceScore
-                    }
+                    <span className="font-semibold text-[var(--brand-orange)]">
+                      {
+                        lastPrediction.differenceScore
+                      }
+                    </span>
                   </p>
                 </div>
               )}

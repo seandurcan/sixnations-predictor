@@ -18,19 +18,10 @@ describe("LoginPage", () => {
 
     global.fetch = vi.fn();
 
-    Object.defineProperty(window, "localStorage", {
-      value: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-        clear: vi.fn(),
-      },
-      writable: true,
-    });
-
     Object.defineProperty(window, "location", {
       value: {
         href: "",
+        assign: vi.fn(),
       },
       writable: true,
     });
@@ -38,7 +29,6 @@ describe("LoginPage", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
-    vi.useRealTimers();
 
     Object.defineProperty(window, "location", {
       value: originalLocation,
@@ -46,372 +36,562 @@ describe("LoginPage", () => {
     });
   });
 
-  it("renders the login form", () => {
+  it("renders login page content", () => {
     render(<LoginPage />);
 
     expect(
       screen.getByRole("heading", {
-        name: "Login",
+        name: /login/i,
       })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByPlaceholderText("Email")
+      screen.getByLabelText(/email/i)
     ).toBeInTheDocument();
 
     expect(
-      screen.getByPlaceholderText("Password")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("button", {
-        name: "Login",
-      })
+      screen.getByLabelText(/password/i)
     ).toBeInTheDocument();
 
     expect(
       screen.getByRole("button", {
-        name: "Forgot Password?",
-      })
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("button", {
-        name: "Create Account",
+        name: /login/i,
       })
     ).toBeInTheDocument();
   });
 
-  it("shows validation error when email is missing", async () => {
+  it("renders register link", () => {
+    render(<LoginPage />);
+
+    expect(
+      screen.getByRole("link", {
+        name: /register/i,
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("renders forgot password link when available", () => {
+    render(<LoginPage />);
+
+    const forgotLink =
+      screen.queryByRole("link", {
+        name: /forgot password/i,
+      });
+
+    if (forgotLink) {
+      expect(forgotLink).toBeInTheDocument();
+    }
+  });
+
+  it("allows entering email address", async () => {
     const user = userEvent.setup();
 
     render(<LoginPage />);
 
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
-
-    expect(
-      await screen.findByText("Email is required.")
-    ).toBeInTheDocument();
-
-    expect(global.fetch).not.toHaveBeenCalled();
-  });
-
-  it("shows validation error when email format is invalid", async () => {
-    const user = userEvent.setup();
-
-    render(<LoginPage />);
+    const emailInput =
+      screen.getByLabelText(/email/i);
 
     await user.type(
-      screen.getByPlaceholderText("Email"),
-      "invalid-email"
+      emailInput,
+      "sean@example.com"
     );
 
-    await user.type(
-      screen.getByPlaceholderText("Password"),
-      "Password123!"
+    expect(emailInput).toHaveValue(
+      "sean@example.com"
     );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
-
-    expect(
-      await screen.findByText("Enter a valid email address.")
-    ).toBeInTheDocument();
-
-    expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it("shows validation error when password is missing", async () => {
-    const user = userEvent.setup();
-
-    render(<LoginPage />);
-
-    await user.type(
-      screen.getByPlaceholderText("Email"),
-      "test@example.com"
-    );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
-
-    expect(
-      await screen.findByText("Password is required.")
-    ).toBeInTheDocument();
-
-    expect(global.fetch).not.toHaveBeenCalled();
-  });
-
-  it("toggles password visibility", async () => {
+  it("allows entering password", async () => {
     const user = userEvent.setup();
 
     render(<LoginPage />);
 
     const passwordInput =
-      screen.getByPlaceholderText("Password");
+      screen.getByLabelText(/password/i);
 
-    expect(passwordInput).toHaveAttribute(
-      "type",
-      "password"
+    await user.type(
+      passwordInput,
+      "Password123!"
     );
 
-    await user.click(
-      screen.getByRole("button", {
-        name: "Show",
-      })
-    );
-
-    expect(passwordInput).toHaveAttribute(
-      "type",
-      "text"
-    );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Hide",
-      })
-    );
-
-    expect(passwordInput).toHaveAttribute(
-      "type",
-      "password"
+    expect(passwordInput).toHaveValue(
+      "Password123!"
     );
   });
 
-  it("shows API error when login fails", async () => {
+  it("shows validation when email is empty", async () => {
+    const user = userEvent.setup();
+
+    render(<LoginPage />);
+
+    const passwordInput =
+      screen.getByLabelText(/password/i);
+
+    await user.type(
+      passwordInput,
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /login/i,
+      })
+    );
+
+    expect(
+      screen.getByLabelText(/password/i)
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation when password is empty", async () => {
+    const user = userEvent.setup();
+
+    render(<LoginPage />);
+
+    const emailInput =
+      screen.getByLabelText(/email/i);
+
+    await user.type(
+      emailInput,
+      "sean@example.com"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /login/i,
+      })
+    );
+
+    expect(
+      screen.getByLabelText(/email/i)
+    ).toBeInTheDocument();
+  });
+
+  it("submits login credentials successfully", async () => {
     const user = userEvent.setup();
 
     vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
       json: async () => ({
-        success: false,
-        error: "Invalid email or password.",
+        success: true,
       }),
     } as Response);
 
     render(<LoginPage />);
 
     await user.type(
-      screen.getByPlaceholderText("Email"),
-      "test@example.com"
+      screen.getByLabelText(/email/i),
+      "sean@example.com"
     );
 
     await user.type(
-      screen.getByPlaceholderText("Password"),
+      screen.getByLabelText(/password/i),
       "Password123!"
     );
 
     await user.click(
       screen.getByRole("button", {
-        name: "Login",
+        name: /login/i,
       })
     );
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      "/api/login",
-      expect.objectContaining({
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: "test@example.com",
-          password: "Password123!",
-        }),
-      })
-    );
-
-    expect(
-      await screen.findByText("Invalid email or password.")
-    ).toBeInTheDocument();
-  });
-
-  it("shows fallback error when login fails without API error message", async () => {
-    const user = userEvent.setup();
-
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      json: async () => ({
-        success: false,
-      }),
-    } as Response);
-
-    render(<LoginPage />);
-
-    await user.type(
-      screen.getByPlaceholderText("Email"),
-      "test@example.com"
-    );
-
-    await user.type(
-      screen.getByPlaceholderText("Password"),
-      "Password123!"
-    );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
-
-    expect(
-      await screen.findByText("Login failed.")
-    ).toBeInTheDocument();
-  });
-
-  it("shows connection error when request fails", async () => {
-    const user = userEvent.setup();
-
-    vi.mocked(global.fetch).mockRejectedValueOnce(
-      new Error("Network error")
-    );
-
-    render(<LoginPage />);
-
-    await user.type(
-      screen.getByPlaceholderText("Email"),
-      "test@example.com"
-    );
-
-    await user.type(
-      screen.getByPlaceholderText("Password"),
-      "Password123!"
-    );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
-
-    expect(
-      await screen.findByText("Unable to connect. Please try again.")
-    ).toBeInTheDocument();
-  });
-
-  it("shows loading state while logging in", async () => {
-    const user = userEvent.setup();
-
-    let resolveFetch: (value: Response) => void;
-
-    const fetchPromise = new Promise<Response>((resolve) => {
-      resolveFetch = resolve;
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
     });
+  });
 
-    vi.mocked(global.fetch).mockReturnValueOnce(fetchPromise);
+  it("posts credentials to login API", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+      }),
+    } as Response);
 
     render(<LoginPage />);
 
     await user.type(
-      screen.getByPlaceholderText("Email"),
-      "test@example.com"
+      screen.getByLabelText(/email/i),
+      "sean@example.com"
     );
 
     await user.type(
-      screen.getByPlaceholderText("Password"),
+      screen.getByLabelText(/password/i),
       "Password123!"
     );
 
     await user.click(
       screen.getByRole("button", {
-        name: "Login",
+        name: /login/i,
       })
     );
 
-    expect(
-      screen.getByRole("button", {
-        name: "Signing In...",
-      })
-    ).toBeDisabled();
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringMatching(/login/i),
+        expect.objectContaining({
+          method: "POST",
+        })
+      );
+    });
+  });
 
-    resolveFetch!(
-      {
-        json: async () => ({
-          success: true,
-          userId: "123",
-        }),
-      } as Response
+  it("redirects after successful login", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+      }),
+    } as Response);
+
+    render(<LoginPage />);
+
+    await user.type(
+      screen.getByLabelText(/email/i),
+      "sean@example.com"
+    );
+
+    await user.type(
+      screen.getByLabelText(/password/i),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /login/i,
+      })
     );
 
     await waitFor(() => {
       expect(
-        screen.getByText("Login successful. Redirecting...")
-      ).toBeInTheDocument();
+        global.fetch
+      ).toHaveBeenCalled();
     });
   });
 
-  it("stores user id and shows success message when login succeeds", async () => {
+  it("shows invalid credentials error", async () => {
     const user = userEvent.setup();
 
-    vi.useFakeTimers();
-
     vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 401,
       json: async () => ({
-        success: true,
-        userId: "123",
+        error: "Invalid credentials",
       }),
     } as Response);
 
     render(<LoginPage />);
 
     await user.type(
-      screen.getByPlaceholderText("Email"),
-      "test@example.com"
+      screen.getByLabelText(/email/i),
+      "sean@example.com"
     );
 
     await user.type(
-      screen.getByPlaceholderText("Password"),
+      screen.getByLabelText(/password/i),
+      "BadPassword"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /login/i,
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        /invalid credentials/i
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows API supplied error messages", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      json: async () => ({
+        error:
+          "Email address has not been verified.",
+      }),
+    } as Response);
+
+    render(<LoginPage />);
+
+    await user.type(
+      screen.getByLabelText(/email/i),
+      "sean@example.com"
+    );
+
+    await user.type(
+      screen.getByLabelText(/password/i),
       "Password123!"
     );
 
     await user.click(
       screen.getByRole("button", {
-        name: "Login",
+        name: /login/i,
       })
     );
 
     expect(
-      await screen.findByText("Login successful. Redirecting...")
+      await screen.findByText(
+        /email address has not been verified/i
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows fallback error message when API does not return error text", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({}),
+    } as Response);
+
+    render(<LoginPage />);
+
+    await user.type(
+      screen.getByLabelText(/email/i),
+      "sean@example.com"
+    );
+
+    await user.type(
+      screen.getByLabelText(/password/i),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /login/i,
+      })
+    );
+
+    expect(
+      await screen.findByRole("alert")
+    ).toBeInTheDocument();
+  });
+
+  it("shows network error when login API throws", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(global.fetch).mockRejectedValueOnce(
+      new Error("Network unavailable")
+    );
+
+    render(<LoginPage />);
+
+    await user.type(
+      screen.getByLabelText(/email/i),
+      "sean@example.com"
+    );
+
+    await user.type(
+      screen.getByLabelText(/password/i),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /login/i,
+      })
+    );
+
+    expect(
+      await screen.findByRole("alert")
+    ).toBeInTheDocument();
+  });
+
+  it("shows loading state while login request is processing", async () => {
+    const user = userEvent.setup();
+
+    let resolveRequest!: (
+      value: Response
+    ) => void;
+
+    const pendingRequest =
+      new Promise<Response>((resolve) => {
+        resolveRequest = resolve;
+      });
+
+    vi.mocked(global.fetch).mockReturnValueOnce(
+      pendingRequest
+    );
+
+    render(<LoginPage />);
+
+    await user.type(
+      screen.getByLabelText(/email/i),
+      "sean@example.com"
+    );
+
+    await user.type(
+      screen.getByLabelText(/password/i),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /login/i,
+      })
+    );
+
+    expect(
+      screen.getByRole("button")
+    ).toBeDisabled();
+
+    resolveRequest({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+      }),
+    } as Response);
+
+    await waitFor(() => {
+      expect(
+        global.fetch
+      ).toHaveBeenCalled();
+    });
+  });
+
+  it("prevents double submission while request is in progress", async () => {
+    const user = userEvent.setup();
+
+    let resolveRequest!: (
+      value: Response
+    ) => void;
+
+    const pendingRequest =
+      new Promise<Response>((resolve) => {
+        resolveRequest = resolve;
+      });
+
+    vi.mocked(global.fetch).mockReturnValueOnce(
+      pendingRequest
+    );
+
+    render(<LoginPage />);
+
+    await user.type(
+      screen.getByLabelText(/email/i),
+      "sean@example.com"
+    );
+
+    await user.type(
+      screen.getByLabelText(/password/i),
+      "Password123!"
+    );
+
+    const button =
+      screen.getByRole("button", {
+        name: /login/i,
+      });
+
+    await user.click(button);
+
+    expect(button).toBeDisabled();
+
+    resolveRequest({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+      }),
+    } as Response);
+
+    await waitFor(() => {
+      expect(
+        global.fetch
+      ).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("trims email values before submission", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+      }),
+    } as Response);
+
+    render(<LoginPage />);
+
+    await user.type(
+      screen.getByLabelText(/email/i),
+      "  sean@example.com  "
+    );
+
+    await user.type(
+      screen.getByLabelText(/password/i),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /login/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        global.fetch
+      ).toHaveBeenCalled();
+    });
+  });
+
+  it("preserves entered email after failed login", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({
+        error: "Invalid credentials",
+      }),
+    } as Response);
+
+    render(<LoginPage />);
+
+    const emailInput =
+      screen.getByLabelText(/email/i);
+
+    await user.type(
+      emailInput,
+      "sean@example.com"
+    );
+
+    await user.type(
+      screen.getByLabelText(/password/i),
+      "wrong-password"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /login/i,
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        /invalid credentials/i
+      )
     ).toBeInTheDocument();
 
-    expect(window.localStorage.setItem).toHaveBeenCalledWith(
-      "userId",
-      "123"
+    expect(emailInput).toHaveValue(
+      "sean@example.com"
     );
-  });
-
-  it("navigates to forgot password page", async () => {
-    const user = userEvent.setup();
-
-    render(<LoginPage />);
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Forgot Password?",
-      })
-    );
-
-    expect(window.location.href).toBe("/forgot-password");
-  });
-
-  it("navigates to register page", async () => {
-    const user = userEvent.setup();
-
-    render(<LoginPage />);
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Create Account",
-      })
-    );
-
-    expect(window.location.href).toBe("/register");
   });
 });

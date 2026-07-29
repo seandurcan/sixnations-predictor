@@ -1,9 +1,15 @@
 "use client";
 
+import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import PageHeader from "@/components/ui/PageHeader";
+import StatusBadge from "@/components/ui/StatusBadge";
+import {
+  formatIrishDate,
+  formatIsoDate,
+} from "@/lib/formatIrishDate";
 import { useEffect, useState } from "react";
 
 export default function AdminPage() {
@@ -24,6 +30,15 @@ export default function AdminPage() {
 
   const [awayScore, setAwayScore] =
     useState("");
+
+  const [successMessage, setSuccessMessage] =
+    useState("");
+
+  const [errorMessage, setErrorMessage] =
+    useState("");
+
+  const [saving, setSaving] =
+    useState(false);
 
   useEffect(() => {
     initialise();
@@ -63,7 +78,16 @@ export default function AdminPage() {
 
       setLoading(false);
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Admin results page load failed:",
+        {
+          timestamp:
+            formatIsoDate(
+              new Date()
+            ),
+          error,
+        }
+      );
 
       window.location.href =
         "/login";
@@ -94,14 +118,25 @@ export default function AdminPage() {
     const data =
       await response.json();
 
-    setMatches(data);
+    const sortedData =
+      [...data].sort(
+        (a: any, b: any) =>
+          new Date(
+            a.kickoffTime
+          ).getTime() -
+          new Date(
+            b.kickoffTime
+          ).getTime()
+      );
+
+    setMatches(sortedData);
 
     if (
-      data.length > 0 &&
+      sortedData.length > 0 &&
       !selectedMatchId
     ) {
       setSelectedMatchId(
-        data[0].id
+        sortedData[0].id
       );
     }
   }
@@ -110,6 +145,10 @@ export default function AdminPage() {
     if (!selectedMatchId) {
       return;
     }
+
+    setSuccessMessage("");
+    setErrorMessage("");
+    setSaving(true);
 
     const response = await fetch(
       "/api/admin/results",
@@ -130,6 +169,8 @@ export default function AdminPage() {
       }
     );
 
+    setSaving(false);
+
     if (
       response.status === 401
     ) {
@@ -141,7 +182,7 @@ export default function AdminPage() {
     if (
       response.status === 403
     ) {
-      alert(
+      setErrorMessage(
         "Administrator access required."
       );
 
@@ -154,20 +195,44 @@ export default function AdminPage() {
       await response.json();
 
     if (result.success) {
-      alert("Result saved");
+      setSuccessMessage(
+        "Result saved successfully."
+      );
 
       setHomeScore("");
       setAwayScore("");
 
       loadMatches();
+    } else {
+      setErrorMessage(
+        result.error ??
+          "Failed to save result."
+      );
     }
+  }
+
+  function getMatchStatus(
+    match: any
+  ) {
+    if (match.completed) {
+      return "COMPLETE";
+    }
+
+    return "OPEN";
   }
 
   if (loading) {
     return (
-      <div className="p-8">
-        Loading...
-      </div>
+      <main className="bg-white p-8 text-[var(--brand-navy)]">
+        <PageHeader
+          title="Admin Results Entry"
+          subtitle="Loading result management..."
+        />
+
+        <Card>
+          Loading...
+        </Card>
+      </main>
     );
   }
 
@@ -177,25 +242,46 @@ export default function AdminPage() {
 
   const selectedMatch =
     matches.find(
-      (m) =>
-        m.id ===
+      (match) =>
+        match.id ===
         selectedMatchId
     );
 
   return (
-    <main className="p-8">
+    <main className="bg-white p-8 text-[var(--brand-navy)]">
       <PageHeader
         title="Admin Results Entry"
         subtitle="Manage match results and tournament scoring"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {successMessage && (
+        <Alert
+          variant="success"
+          title="Result Saved"
+          className="mb-4"
+        >
+          {successMessage}
+        </Alert>
+      )}
+
+      {errorMessage && (
+        <Alert
+          variant="error"
+          title="Save Failed"
+          className="mb-4"
+        >
+          {errorMessage}
+        </Alert>
+      )}
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <Card title="Fixtures">
-          <div className="space-y-2 max-h-[700px] overflow-y-auto">
+          <div className="max-h-[700px] space-y-2 overflow-y-auto">
             {matches.map(
               (match) => (
-                <div
+                <button
                   key={match.id}
+                  type="button"
                   onClick={() => {
                     setSelectedMatchId(
                       match.id
@@ -210,39 +296,67 @@ export default function AdminPage() {
                       match.actualAwayScore?.toString() ??
                         ""
                     );
+
+                    setSuccessMessage("");
+                    setErrorMessage("");
                   }}
-                  className={`p-3 border rounded cursor-pointer hover:bg-gray-100 ${
+                  className={`w-full cursor-pointer rounded border p-3 text-left transition-colors hover:bg-[var(--brand-soft-lime)] ${
                     selectedMatchId ===
                     match.id
-                      ? "bg-blue-100 border-blue-500"
-                      : ""
+                      ? "border-[var(--brand-blue)] bg-[var(--brand-soft-blue)]"
+                      : "border-[var(--brand-border)]"
                   }`}
                 >
-                  <div className="font-semibold">
-                    R
-                    {match.round}
-                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-[var(--brand-navy)]">
+                        Round{" "}
+                        {match.round}
+                      </div>
 
-                  <div>
-                    {
-                      match
-                        .homeTeam
-                        .shortCode
-                    }
-                    {" v "}
-                    {
-                      match
-                        .awayTeam
-                        .shortCode
-                    }
-                  </div>
+                      <div className="mt-1">
+                        {
+                          match
+                            .homeTeam
+                            .shortCode
+                        }
+                        {" v "}
+                        {
+                          match
+                            .awayTeam
+                            .shortCode
+                        }
+                      </div>
 
-                  {match.completed && (
-                    <div className="text-green-600 text-sm">
-                      Result Entered
+                      {match.kickoffTime && (
+                        <div className="mt-1 text-sm text-[var(--brand-muted)]">
+                          {formatIrishDate(
+                            match.kickoffTime
+                          )}
+                        </div>
+                      )}
+
+                      {match.completed && (
+                        <div className="mt-2 text-sm font-semibold text-[var(--brand-blue)]">
+                          Result:{" "}
+                          {
+                            match.actualHomeScore
+                          }
+                          {" - "}
+                          {
+                            match.actualAwayScore
+                          }
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+
+                    <StatusBadge
+                      status={getMatchStatus(
+                        match
+                      )}
+                    />
+                  </div>
+                </button>
               )
             )}
           </div>
@@ -252,30 +366,51 @@ export default function AdminPage() {
           title="Result Entry"
           className="md:col-span-2"
         >
-          {selectedMatch && (
+          {selectedMatch ? (
             <>
-              <h2 className="text-2xl font-bold mb-6">
-                {
-                  selectedMatch
-                    .homeTeam
-                    .name
-                }
-                {" vs "}
-                {
-                  selectedMatch
-                    .awayTeam
-                    .name
-                }
-              </h2>
+              <div className="mb-6 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-soft-blue)] p-4">
+                <h2 className="text-2xl font-bold text-[var(--brand-navy)]">
+                  {
+                    selectedMatch
+                      .homeTeam
+                      .name
+                  }
+                  {" vs "}
+                  {
+                    selectedMatch
+                      .awayTeam
+                      .name
+                  }
+                </h2>
+
+                {selectedMatch.kickoffTime && (
+                  <p className="mt-2 text-[var(--brand-muted)]">
+                    Kick-off:{" "}
+                    <span className="font-semibold text-[var(--brand-blue)]">
+                      {formatIrishDate(
+                        selectedMatch.kickoffTime
+                      )}
+                    </span>
+                  </p>
+                )}
+
+                <div className="mt-3">
+                  <StatusBadge
+                    status={getMatchStatus(
+                      selectedMatch
+                    )}
+                  />
+                </div>
+              </div>
 
               <div className="space-y-4">
                 <Input
                   type="number"
                   placeholder={`${selectedMatch.homeTeam.name} Score`}
                   value={homeScore}
-                  onChange={(e) =>
+                  onChange={(event) =>
                     setHomeScore(
-                      e.target.value
+                      event.target.value
                     )
                   }
                 />
@@ -284,9 +419,9 @@ export default function AdminPage() {
                   type="number"
                   placeholder={`${selectedMatch.awayTeam.name} Score`}
                   value={awayScore}
-                  onChange={(e) =>
+                  onChange={(event) =>
                     setAwayScore(
-                      e.target.value
+                      event.target.value
                     )
                   }
                 />
@@ -295,11 +430,18 @@ export default function AdminPage() {
                   onClick={
                     saveResult
                   }
+                  disabled={saving}
                 >
-                  Save Result
+                  {saving
+                    ? "Saving Result..."
+                    : "Save Result"}
                 </Button>
               </div>
             </>
+          ) : (
+            <p className="text-[var(--brand-muted)]">
+              Select a fixture to enter a result.
+            </p>
           )}
         </Card>
       </div>

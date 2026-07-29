@@ -22,21 +22,21 @@ export default function Alert({
   const variants = {
     info: {
       container:
-        "bg-blue-50 border-blue-200 text-blue-800",
+        "bg-[var(--brand-soft-blue)] border-[rgba(0,123,255,0.35)] text-[var(--brand-navy)]",
       title:
-        "text-blue-900",
+        "text-[var(--brand-blue)]",
     },
     success: {
       container:
-        "bg-green-50 border-green-200 text-green-800",
+        "bg-[var(--brand-soft-lime)] border-[rgba(157,255,0,0.75)] text-[var(--brand-navy)]",
       title:
-        "text-green-900",
+        "text-[var(--brand-navy)]",
     },
     warning: {
       container:
-        "bg-amber-50 border-amber-200 text-amber-800",
+        "bg-[var(--brand-soft-orange)] border-[rgba(255,106,0,0.45)] text-[var(--brand-navy)]",
       title:
-        "text-amber-900",
+        "text-[var(--brand-orange)]",
     },
     error: {
       container:

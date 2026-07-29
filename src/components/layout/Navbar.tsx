@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -269,10 +270,6 @@ export default function NavBar() {
   }
 
   function isActive(href: string) {
-    /*
-     * The home and admin-root links should only be
-     * active when their exact routes are displayed.
-     */
     if (
       href === "/" ||
       href === "/admin"
@@ -290,10 +287,10 @@ export default function NavBar() {
     const active = isActive(href);
 
     return [
-      "rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+      "rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200",
       active
-        ? "bg-green-100 text-green-700"
-        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+        ? "bg-blue-50 text-blue-600"
+        : "text-slate-700 hover:bg-lime-50 hover:text-slate-900",
     ].join(" ");
   }
 
@@ -303,10 +300,10 @@ export default function NavBar() {
     const active = isActive(href);
 
     return [
-      "flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-all duration-200",
+      "flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-colors duration-200",
       active
-        ? "bg-green-100 text-green-700"
-        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
+        ? "bg-blue-50 text-blue-600"
+        : "text-slate-700 hover:bg-lime-50 hover:text-slate-900",
     ].join(" ");
   }
 
@@ -316,10 +313,10 @@ export default function NavBar() {
     const active = isActive(href);
 
     return [
-      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200",
       active
-        ? "bg-green-100 text-green-700"
-        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
+        ? "bg-blue-50 text-blue-600"
+        : "text-slate-700 hover:bg-lime-50 hover:text-slate-900",
     ].join(" ");
   }
 
@@ -373,13 +370,23 @@ export default function NavBar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         <Link
           href="/"
           onClick={closeMenus}
-          className="text-lg font-bold text-slate-900 transition-colors hover:text-green-700"
+          className="flex items-center"
+          aria-label="Perfect XV home page"
         >
-          Six Nations Predictor
+          <span className="relative block h-25 w-25 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <Image
+              src="/images/logo.jpeg"
+              alt="Perfect XV logo"
+              fill
+              sizes="64px"
+              className="object-cover"
+              priority
+            />
+          </span>
         </Link>
 
         <nav
@@ -450,12 +457,12 @@ export default function NavBar() {
                     (current) => !current
                   )
                 }
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-all hover:bg-slate-100 hover:text-slate-900"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-lime-50 hover:text-slate-900"
                 aria-haspopup="menu"
                 aria-expanded={profileOpen}
                 aria-controls="desktop-profile-menu"
               >
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-sm font-bold text-green-700">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-lime-300 text-sm font-bold text-slate-900">
                   {getInitials()}
                 </span>
 
@@ -479,7 +486,7 @@ export default function NavBar() {
                 >
                   <div className="border-b border-slate-100 px-3 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-sm font-bold text-green-700">
+                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-lime-300 text-sm font-bold text-slate-900">
                         {getInitials()}
                       </span>
 
@@ -497,7 +504,7 @@ export default function NavBar() {
                     </div>
 
                     {user?.role && (
-                      <p className="mt-3 inline-flex rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                      <p className="mt-3 inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600">
                         {user.role}
                       </p>
                     )}
@@ -563,17 +570,13 @@ export default function NavBar() {
                             "/admin"
                           )}
                           onClick={() =>
-                            setProfileOpen(
-                              false
-                            )
+                            setProfileOpen(false)
                           }
                         >
                           <span aria-hidden="true">
                             🛠️
                           </span>
-                          <span>
-                            Admin Results
-                          </span>
+                          <span>Admin Results</span>
                         </Link>
 
                         <Link
@@ -583,17 +586,13 @@ export default function NavBar() {
                             "/admin/dashboard"
                           )}
                           onClick={() =>
-                            setProfileOpen(
-                              false
-                            )
+                            setProfileOpen(false)
                           }
                         >
                           <span aria-hidden="true">
                             📈
                           </span>
-                          <span>
-                            Admin Dashboard
-                          </span>
+                          <span>Admin Dashboard</span>
                         </Link>
 
                         <Link
@@ -603,9 +602,7 @@ export default function NavBar() {
                             "/admin/audit"
                           )}
                           onClick={() =>
-                            setProfileOpen(
-                              false
-                            )
+                            setProfileOpen(false)
                           }
                         >
                           <span aria-hidden="true">
@@ -623,7 +620,7 @@ export default function NavBar() {
                       role="menuitem"
                       onClick={handleLogout}
                       disabled={loggingOut}
-                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-600 transition-all hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-orange-600 transition-colors hover:bg-orange-50 hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <span aria-hidden="true">
                         🚪
@@ -644,7 +641,7 @@ export default function NavBar() {
 
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-all hover:bg-slate-100 lg:hidden"
+          className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-lime-50 lg:hidden"
           aria-label="Toggle navigation menu"
           aria-expanded={menuOpen}
           aria-controls="mobile-navigation"
@@ -721,13 +718,13 @@ export default function NavBar() {
                       (current) => !current
                     )
                   }
-                  className="flex w-full items-center justify-between rounded-lg bg-slate-50 px-3 py-3 text-left transition-all hover:bg-slate-100"
+                  className="flex w-full items-center justify-between rounded-lg bg-lime-50 px-3 py-3 text-left transition-colors hover:bg-lime-100"
                   aria-haspopup="menu"
                   aria-expanded={profileOpen}
                   aria-controls="mobile-profile-menu"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-sm font-bold text-green-700">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-lime-300 text-sm font-bold text-slate-900">
                       {getInitials()}
                     </span>
 
@@ -761,7 +758,7 @@ export default function NavBar() {
                     className="mt-3 space-y-2 rounded-lg border border-slate-200 bg-white p-2"
                   >
                     {user?.role && (
-                      <p className="mx-1 mb-2 inline-flex rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                      <p className="mx-1 mb-2 inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600">
                         {user.role}
                       </p>
                     )}
@@ -823,9 +820,7 @@ export default function NavBar() {
                           <span aria-hidden="true">
                             🛠️
                           </span>
-                          <span>
-                            Admin Results
-                          </span>
+                          <span>Admin Results</span>
                         </Link>
 
                         <Link
@@ -839,9 +834,7 @@ export default function NavBar() {
                           <span aria-hidden="true">
                             📈
                           </span>
-                          <span>
-                            Admin Dashboard
-                          </span>
+                          <span>Admin Dashboard</span>
                         </Link>
 
                         <Link
@@ -867,7 +860,7 @@ export default function NavBar() {
                       role="menuitem"
                       onClick={handleLogout}
                       disabled={loggingOut}
-                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base font-medium text-red-600 transition-all duration-200 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base font-medium text-orange-600 transition-colors duration-200 hover:bg-orange-50 hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <span aria-hidden="true">
                         🚪

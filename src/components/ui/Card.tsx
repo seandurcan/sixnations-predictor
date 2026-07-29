@@ -13,10 +13,10 @@ export default function Card({
 }: CardProps) {
   return (
     <div
-      className={`bg-white border border-slate-200 rounded-xl shadow-sm p-6 transition-shadow duration-200 hover:shadow-md ${className}`}
+      className={`bg-white border border-[var(--brand-border)] rounded-xl shadow-sm p-6 transition-shadow duration-200 hover:shadow-md ${className}`}
     >
       {title && (
-        <h2 className="text-xl font-bold mb-4">
+        <h2 className="text-xl font-bold mb-4 text-[var(--brand-navy)]">
           {title}
         </h2>
       )}
@@ -25,3 +25,4 @@ export default function Card({
     </div>
   );
 }
+``
