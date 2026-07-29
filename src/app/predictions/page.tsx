@@ -1,40 +1,33 @@
 "use client";
 
+import Alert from "@/components/ui/Alert";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import PageHeader from "@/components/ui/PageHeader";
 import { useEffect, useState } from "react";
 
 export default function PredictionsPage() {
-  const [user, setUser] =
-    useState<any>(null);
-
-  const [matches, setMatches] =
-    useState<any[]>([]);
-
+  const [user, setUser] = useState<any>(null);
+  const [matches, setMatches] = useState<any[]>([]);
   const [savedPredictions, setSavedPredictions] =
     useState<any[]>([]);
-
   const [currentMatchId, setCurrentMatchId] =
     useState<number | null>(null);
-
   const [homeScore, setHomeScore] =
     useState("");
-
   const [awayScore, setAwayScore] =
     useState("");
-
   const [editing, setEditing] =
     useState(false);
-
   const [
     editingPredictionId,
     setEditingPredictionId,
   ] = useState<number | null>(null);
-
   const [lockMessage, setLockMessage] =
     useState("");
-
   const [isLocked, setIsLocked] =
     useState(false);
-
   const [loading, setLoading] =
     useState(true);
 
@@ -79,6 +72,7 @@ export default function PredictionsPage() {
         await predictionsResponse.json();
 
       setMatches(matchesData);
+
       setSavedPredictions(
         predictionsData
       );
@@ -289,17 +283,10 @@ export default function PredictionsPage() {
 
   return (
     <main className="p-8">
-
-      <h1 className="text-4xl font-bold mb-2">
-        Predictions
-      </h1>
-
-      <p className="mb-6">
-        Welcome{" "}
-        <strong>
-          {user?.firstName}
-        </strong>
-      </p>
+      <PageHeader
+        title="Predictions"
+        subtitle={`Welcome ${user?.firstName ?? ""}`}
+      />
 
       <p className="mb-4">
         Completed:{" "}
@@ -309,33 +296,30 @@ export default function PredictionsPage() {
       </p>
 
       {editing && (
-        <div className="mb-4 p-3 bg-yellow-100 rounded">
+        <Alert
+          variant="warning"
+          className="mb-4"
+        >
           Editing Prediction
-        </div>
+        </Alert>
       )}
 
       {lockMessage && (
-        <div className="mb-4 p-4 rounded border border-red-500 bg-red-100">
-
-          <div className="font-bold text-red-700">
-            🔒 Prediction Locked
-          </div>
-
-          <div className="mt-2 text-red-700">
-            {lockMessage}
-          </div>
-
-        </div>
+        <Alert
+          variant="error"
+          title="🔒 Prediction Locked"
+          className="mb-4"
+        >
+          {lockMessage}
+        </Alert>
       )}
 
       {isLocked &&
         existingPrediction && (
-          <div className="mb-4 border rounded p-4 bg-gray-50">
-
-            <h3 className="font-bold mb-2">
-              Your Existing Prediction
-            </h3>
-
+          <Card
+            title="Your Existing Prediction"
+            className="mb-4 bg-gray-50"
+          >
             <p>
               {
                 existingPrediction.predictedHomeScore
@@ -345,64 +329,50 @@ export default function PredictionsPage() {
                 existingPrediction.predictedAwayScore
               }
             </p>
-
-          </div>
+          </Card>
         )}
 
       <div className="grid gap-6 md:grid-cols-2">
+        <Card
+          title={`${currentMatch.homeTeam.name} vs ${currentMatch.awayTeam.name}`}
+        >
+          <div className="space-y-4">
+            <Input
+              type="number"
+              disabled={isLocked}
+              placeholder={`${currentMatch.homeTeam.name} Score`}
+              value={homeScore}
+              onChange={(e) =>
+                setHomeScore(
+                  e.target.value
+                )
+              }
+            />
 
-        <div className="border rounded p-6 space-y-4">
+            <Input
+              type="number"
+              disabled={isLocked}
+              placeholder={`${currentMatch.awayTeam.name} Score`}
+              value={awayScore}
+              onChange={(e) =>
+                setAwayScore(
+                  e.target.value
+                )
+              }
+            />
 
-          <h2 className="text-xl font-bold">
-            {currentMatch.homeTeam.name}
-            {" vs "}
-            {currentMatch.awayTeam.name}
-          </h2>
+            <Button
+              disabled={isLocked}
+              onClick={
+                savePrediction
+              }
+            >
+              Save Prediction
+            </Button>
+          </div>
+        </Card>
 
-          <input
-            type="number"
-            disabled={isLocked}
-            className="border p-2 w-full disabled:bg-gray-100 disabled:text-gray-500"
-            placeholder={`${currentMatch.homeTeam.name} Score`}
-            value={homeScore}
-            onChange={(e) =>
-              setHomeScore(
-                e.target.value
-              )
-            }
-          />
-
-          <input
-            type="number"
-            disabled={isLocked}
-            className="border p-2 w-full disabled:bg-gray-100 disabled:text-gray-500"
-            placeholder={`${currentMatch.awayTeam.name} Score`}
-            value={awayScore}
-            onChange={(e) =>
-              setAwayScore(
-                e.target.value
-              )
-            }
-          />
-
-          <button
-            disabled={isLocked}
-            onClick={
-              savePrediction
-            }
-            className="bg-green-600 text-white px-4 py-2 rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            Save Prediction
-          </button>
-
-        </div>
-
-        <div className="border rounded p-6">
-
-          <h2 className="font-bold mb-4">
-            Your Predictions
-          </h2>
-
+        <Card title="Your Predictions">
           {savedPredictions.map(
             (prediction) => (
               <div
@@ -438,11 +408,8 @@ export default function PredictionsPage() {
               </div>
             )
           )}
-
-        </div>
-
+        </Card>
       </div>
-
     </main>
   );
 }

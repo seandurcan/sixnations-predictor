@@ -1,5 +1,9 @@
 "use client";
 
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import PageHeader from "@/components/ui/PageHeader";
+import Select from "@/components/ui/Select";
 import { useEffect, useMemo, useState } from "react";
 
 export default function LeaderboardPage() {
@@ -105,19 +109,21 @@ export default function LeaderboardPage() {
 
   return (
     <main className="p-8">
+      <PageHeader
+        title="Leaderboard"
+        subtitle="Current tournament standings"
+      />
 
-      <h1 className="text-4xl font-bold mb-6">
-        Leaderboard
-      </h1>
+      <p className="mb-6 text-slate-500">
+        Total Players: {leaderboard.length}
+      </p>
 
       <div className="mb-6 flex items-center gap-4">
-
         <label className="font-semibold">
           Sort By
         </label>
 
-        <select
-          className="border p-2 rounded"
+        <Select
           value={sortBy}
           onChange={(e) =>
             setSortBy(e.target.value)
@@ -136,137 +142,183 @@ export default function LeaderboardPage() {
           </option>
 
           <option value="error">
-            Cumulative Error
+            Points Differential
           </option>
 
           <option value="player">
             Player Name
           </option>
-        </select>
-
+        </Select>
       </div>
 
-      <div className="overflow-x-auto">
+      <Card title="Leaderboard">
+        <div className="overflow-x-auto">
+          <table className="w-full border">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border p-3">
+                  Rank
+                </th>
 
-        <table className="w-full border">
+                <th className="border p-3">
+                  Last Change
+                </th>
 
-          <thead>
-
-            <tr className="bg-gray-100">
-
-              <th className="border p-3">
-                Rank
-              </th>
-
-              <th className="border p-3">
-                Last Change
-              </th>
-
-              <th className="border p-3">
-                Player
-              </th>
-
-              <th className="border p-3">
-                Points
-              </th>
-
-              <th className="border p-3">
-                Difference Score
-              </th>
-
-              <th className="border p-3">
-                Exact Scores
-              </th>
-
-              <th className="border p-3">
-                Error
-              </th>
-
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            {sortedLeaderboard.map(
-              (user) => (
-                <tr
-                  key={user.id}
-                  className="text-center"
+                <th
+                  className="border p-3 cursor-pointer hover:bg-gray-50"
+                  onClick={() =>
+                    setSortBy("player")
+                  }
                 >
+                  Player{" "}
+                  {sortBy ===
+                    "player" && "↓"}
+                </th>
 
-                  <td className="border p-3">
-                    {user.rank}
-                  </td>
+                <th
+                  className="border p-3 cursor-pointer hover:bg-gray-50"
+                  onClick={() =>
+                    setSortBy("points")
+                  }
+                >
+                  Points{" "}
+                  {sortBy ===
+                    "points" && "↓"}
+                </th>
 
-                  <td className="border p-3">
-                    {renderRankMovement(
-                      user
-                    )}
-                  </td>
+                <th
+                  className="border p-3 cursor-pointer hover:bg-gray-50"
+                  onClick={() =>
+                    setSortBy(
+                      "difference"
+                    )
+                  }
+                >
+                  Difference Score{" "}
+                  {sortBy ===
+                    "difference" &&
+                    "↓"}
+                </th>
 
-                  <td className="border p-3">
-                    {user.firstName}
-                    {" "}
-                    {user.lastName}
-                  </td>
+                <th
+                  className="border p-3 cursor-pointer hover:bg-gray-50"
+                  onClick={() =>
+                    setSortBy("exact")
+                  }
+                >
+                  Exact Scores{" "}
+                  {sortBy ===
+                    "exact" && "↓"}
+                </th>
 
-                  <td className="border p-3 font-bold">
-                    {user.totalPoints}
-                  </td>
+                <th
+                  className="border p-3 cursor-pointer hover:bg-gray-50"
+                  onClick={() =>
+                    setSortBy("error")
+                  }
+                >
+                  Points Differential{" "}
+                  {sortBy ===
+                    "error" && "↓"}
+                </th>
+              </tr>
+            </thead>
 
-                  <td className="border p-3">
-                    {user.differenceScore}
-                  </td>
+            <tbody>
+              {sortedLeaderboard.map(
+                (user, index) => (
+                  <tr
+                    key={user.id}
+                    className={`text-center ${
+                      index === 0
+                        ? "bg-yellow-50"
+                        : index === 1
+                        ? "bg-slate-50"
+                        : index === 2
+                        ? "bg-orange-50"
+                        : ""
+                    }`}
+                  >
+                    <td className="border p-3">
+                      {index === 0 &&
+                        "🥇 "}
+                      {index === 1 &&
+                        "🥈 "}
+                      {index === 2 &&
+                        "🥉 "}
+                      {user.rank}
+                    </td>
 
-                  <td className="border p-3">
-                    {user.exactScores}
-                  </td>
+                    <td className="border p-3">
+                      {renderRankMovement(
+                        user
+                      )}
+                    </td>
 
-                  <td className="border p-3">
-                    {user.cumulativeError}
-                  </td>
+                    <td className="border p-3">
+                      {user.firstName}
+                      {" "}
+                      {user.lastName}
+                    </td>
 
-                </tr>
-              )
-            )}
+                    <td className="border p-3 font-bold">
+                      {user.totalPoints}
+                    </td>
 
-          </tbody>
+                    <td className="border p-3">
+                      {user.differenceScore}
+                    </td>
 
-        </table>
+                    <td className="border p-3">
+                      {user.exactScores}
+                    </td>
 
+                    <td className="border p-3">
+                      {user.cumulativeError}
+                    </td>
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <div className="mt-6 text-center text-sm text-slate-500">
+        Showing {sortedLeaderboard.length} players
+        {" • "}
+        Total Players: {leaderboard.length}
+        {" • "}
+        Page {page} of {totalPages}
       </div>
 
       <div className="flex items-center justify-center gap-4 mt-6">
-
-        <button
+        <Button
+          variant="secondary"
           disabled={page === 1}
           onClick={() =>
             setPage(page - 1)
           }
-          className="bg-gray-200 px-4 py-2 rounded disabled:opacity-50"
         >
           Previous
-        </button>
+        </Button>
 
         <span>
           Page {page} of {totalPages}
         </span>
 
-        <button
+        <Button
+          variant="secondary"
           disabled={
             page === totalPages
           }
           onClick={() =>
             setPage(page + 1)
           }
-          className="bg-gray-200 px-4 py-2 rounded disabled:opacity-50"
         >
           Next
-        </button>
-
+        </Button>
       </div>
-
     </main>
   );
 }

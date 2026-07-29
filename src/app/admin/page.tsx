@@ -1,5 +1,9 @@
 "use client";
 
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import PageHeader from "@/components/ui/PageHeader";
 import { useEffect, useState } from "react";
 
 export default function AdminPage() {
@@ -140,6 +144,7 @@ export default function AdminPage() {
       alert(
         "Administrator access required."
       );
+
       window.location.href =
         "/dashboard";
       return;
@@ -179,21 +184,14 @@ export default function AdminPage() {
 
   return (
     <main className="p-8">
-
-      <h1 className="text-4xl font-bold mb-6">
-        Admin Results Entry
-      </h1>
+      <PageHeader
+        title="Admin Results Entry"
+        subtitle="Manage match results and tournament scoring"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        <div className="border rounded p-4">
-
-          <h2 className="font-bold mb-4">
-            Fixtures
-          </h2>
-
+        <Card title="Fixtures">
           <div className="space-y-2 max-h-[700px] overflow-y-auto">
-
             {matches.map(
               (match) => (
                 <div
@@ -241,24 +239,22 @@ export default function AdminPage() {
 
                   {match.completed && (
                     <div className="text-green-600 text-sm">
-                      Result
-                      Entered
+                      Result Entered
                     </div>
                   )}
                 </div>
               )
             )}
-
           </div>
+        </Card>
 
-        </div>
-
-        <div className="md:col-span-2 border rounded p-6">
-
+        <Card
+          title="Result Entry"
+          className="md:col-span-2"
+        >
           {selectedMatch && (
             <>
               <h2 className="text-2xl font-bold mb-6">
-
                 {
                   selectedMatch
                     .homeTeam
@@ -270,14 +266,11 @@ export default function AdminPage() {
                     .awayTeam
                     .name
                 }
-
               </h2>
 
               <div className="space-y-4">
-
-                <input
+                <Input
                   type="number"
-                  className="border p-3 w-full"
                   placeholder={`${selectedMatch.homeTeam.name} Score`}
                   value={homeScore}
                   onChange={(e) =>
@@ -287,9 +280,8 @@ export default function AdminPage() {
                   }
                 />
 
-                <input
+                <Input
                   type="number"
-                  className="border p-3 w-full"
                   placeholder={`${selectedMatch.awayTeam.name} Score`}
                   value={awayScore}
                   onChange={(e) =>
@@ -299,23 +291,18 @@ export default function AdminPage() {
                   }
                 />
 
-                <button
+                <Button
                   onClick={
                     saveResult
                   }
-                  className="bg-blue-600 text-white px-6 py-3 rounded"
                 >
                   Save Result
-                </button>
-
+                </Button>
               </div>
             </>
           )}
-
-        </div>
-
+        </Card>
       </div>
-
     </main>
   );
 }

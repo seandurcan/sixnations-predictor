@@ -1,26 +1,154 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+a {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    color 200ms ease-out,
+    transform 200ms ease-out,
+    opacity 200ms ease-out;
+}
+
+a:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+a:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 2px;
+  background: currentColor;
+  transition: width 200ms ease-out;
+}
+
+a:hover::after,
+a:focus-visible::after {
+  width: 100%;
+}
+
+img,
+picture img {
+  transition:
+    transform 300ms ease-out,
+    filter 300ms ease-out,
+    opacity 300ms ease-out,
+    box-shadow 300ms ease-out;
+}
+
+img:hover,
+picture img:hover {
+  transform: scale(1.03);
+  filter: brightness(1.03);
+}
+
+img:active,
+picture img:active {
+  transform: scale(0.99);
+}
+
+svg,
+[data-icon],
+.icon {
+  transition:
+    transform 220ms ease-out,
+    color 220ms ease-out,
+    opacity 220ms ease-out,
+    filter 220ms ease-out;
+}
+
+button:hover svg,
+a:hover svg,
+svg:hover,
+[data-icon]:hover,
+.icon:hover {
+  transform: translateY(-1px) scale(1.08);
+  opacity: 0.95;
+}
+
+button:active svg,
+a:active svg,
+svg:active,
+[data-icon]:active,
+.icon:active {
+  transform: scale(0.95);
+}
+
+video {
+  transition:
+    transform 300ms ease-out,
+    filter 300ms ease-out,
+    opacity 300ms ease-out,
+    box-shadow 300ms ease-out;
+}
+
+video:hover {
+  transform: scale(1.02);
+  filter: brightness(1.04);
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.18);
+}
+
+video:active {
+  transform: scale(0.99);
+}
+
+.card,
+[data-card] {
+  transition:
+    transform 300ms ease-out,
+    box-shadow 300ms ease-out,
+    border-color 300ms ease-out,
+    background-color 300ms ease-out;
+}
+
+.card:hover,
+[data-card]:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.12);
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

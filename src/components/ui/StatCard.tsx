@@ -1,43 +1,34 @@
+import Card from "@/components/ui/Card";
+
 type StatCardProps = {
-  label: string;
+  title: string;
   value: string | number;
+  subtitle?: string;
+  className?: string;
 };
 
 export default function StatCard({
-  label,
+  title,
   value,
+  subtitle,
+  className = "",
 }: StatCardProps) {
   return (
-    <div
-      className="
-        bg-white
-        rounded-xl
-        border
-        border-slate-200
-        shadow-sm
-        p-6
-      "
+    <Card
+      title={title}
+      className={className}
     >
-      <div
-        className="
-          text-sm
-          font-medium
-          text-slate-500
-        "
-      >
-        {label}
-      </div>
+      <div className="space-y-2">
+        <div className="text-4xl font-bold">
+          {value}
+        </div>
 
-      <div
-        className="
-          mt-3
-          text-4xl
-          font-bold
-          text-[#012169]
-        "
-      >
-        {value}
+        {subtitle && (
+          <div className="text-sm text-slate-500">
+            {subtitle}
+          </div>
+        )}
       </div>
-    </div>
+    </Card>
   );
 }

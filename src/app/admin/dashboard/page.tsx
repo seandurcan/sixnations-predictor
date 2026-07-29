@@ -1,5 +1,10 @@
 "use client";
 
+import Card from "@/components/ui/Card";
+import PageHeader from "@/components/ui/PageHeader";
+import StatCard from "@/components/ui/StatCard";
+import StatusBadge from "@/components/ui/StatusBadge";
+import { formatIrishDate, formatIsoDate } from "@/lib/formatIrishDate";
 import { useEffect, useState } from "react";
 
 export default function AdminDashboardPage() {
@@ -37,7 +42,15 @@ export default function AdminDashboardPage() {
 
       setData(result);
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Admin dashboard load failed:",
+        {
+          timestamp: formatIsoDate(
+            new Date()
+          ),
+          error,
+        }
+      );
     } finally {
       setLoading(false);
     }
@@ -45,17 +58,31 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-8">
-        Loading dashboard...
-      </div>
+      <main className="min-h-screen bg-slate-50 p-8">
+        <PageHeader
+          title="Admin Dashboard"
+          subtitle="Loading tournament overview..."
+        />
+
+        <Card>
+          Loading dashboard...
+        </Card>
+      </main>
     );
   }
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-slate-50 p-8">
-        Failed to load dashboard.
-      </div>
+      <main className="min-h-screen bg-slate-50 p-8">
+        <PageHeader
+          title="Admin Dashboard"
+          subtitle="Tournament overview and administration"
+        />
+
+        <Card>
+          Failed to load dashboard.
+        </Card>
+      </main>
     );
   }
 
@@ -64,75 +91,37 @@ export default function AdminDashboardPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 p-8 space-y-8">
-
-      <div>
-        <h1 className="text-4xl font-bold text-slate-900">
-          Admin Dashboard
-        </h1>
-
-        <p className="text-slate-500 mt-2">
-          Tournament overview and administration
-        </p>
-      </div>
+      <PageHeader
+        title="Admin Dashboard"
+        subtitle="Tournament overview and administration"
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Registered Users"
+          value={metrics.userCount}
+        />
 
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h2 className="text-sm font-medium text-slate-500">
-            Registered Users
-          </h2>
+        <StatCard
+          title="Verified Users"
+          value={metrics.verifiedUserCount}
+        />
 
-          <p className="text-4xl font-bold mt-3">
-            {metrics.userCount}
-          </p>
-        </div>
+        <StatCard
+          title="Predictions"
+          value={metrics.predictionCount}
+        />
 
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h2 className="text-sm font-medium text-slate-500">
-            Verified Users
-          </h2>
-
-          <p className="text-4xl font-bold mt-3">
-            {metrics.verifiedUserCount}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h2 className="text-sm font-medium text-slate-500">
-            Predictions
-          </h2>
-
-          <p className="text-4xl font-bold mt-3">
-            {metrics.predictionCount}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h2 className="text-sm font-medium text-slate-500">
-            Fixtures Complete
-          </h2>
-
-          <p className="text-4xl font-bold mt-3">
-            {metrics.completedFixtures}
-          </p>
-
-          <p className="text-slate-500 mt-1">
-            of {metrics.totalFixtures}
-          </p>
-        </div>
-
+        <StatCard
+          title="Fixtures Complete"
+          value={metrics.completedFixtures}
+          subtitle={`of ${metrics.totalFixtures}`}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-
-          <h2 className="text-2xl font-bold mb-4">
-            Tournament Status
-          </h2>
-
+        <Card title="Tournament Status">
           <div className="space-y-3">
-
             <p>
               <strong>Name:</strong>{" "}
               {data.tournament?.name}
@@ -145,24 +134,12 @@ export default function AdminDashboardPage() {
 
             <p>
               <strong>Status:</strong>{" "}
-
-              <span
-                className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold ${
-                  data.tournament?.status ===
-                  "OPEN"
-                    ? "bg-green-100 text-green-700"
-                    : data.tournament?.status ===
-                        "LOCKED"
-                      ? "bg-amber-100 text-amber-700"
-                      : "bg-blue-100 text-blue-700"
-                }`}
-              >
-                {
+              <StatusBadge
+                status={
                   data.tournament
                     ?.status
                 }
-              </span>
-
+              />
             </p>
 
             <p>
@@ -173,17 +150,10 @@ export default function AdminDashboardPage() {
                 metrics.remainingFixtures
               }
             </p>
-
           </div>
+        </Card>
 
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-
-          <h2 className="text-2xl font-bold mb-4">
-            Current Leader
-          </h2>
-
+        <Card title="Current Leader">
           {data.currentLeader ? (
             <>
               <p className="text-2xl font-semibold">
@@ -222,23 +192,14 @@ export default function AdminDashboardPage() {
               No leaderboard data available.
             </p>
           )}
-
-        </div>
-
+        </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-
-          <h2 className="text-2xl font-bold mb-4">
-            Top 10 Leaderboard
-          </h2>
-
+        <Card title="Top 10 Leaderboard">
           {data.leaderboard?.length >
           0 ? (
             <div className="space-y-3">
-
               {data.leaderboard.map(
                 (
                   user: any,
@@ -274,23 +235,19 @@ export default function AdminDashboardPage() {
                   </div>
                 )
               )}
-
             </div>
           ) : (
             <p>
               No leaderboard data available.
             </p>
           )}
-
-        </div>
+        </Card>
 
         {data.winner ? (
-          <div className="bg-green-50 rounded-xl border border-green-200 p-6">
-
-            <h2 className="text-2xl font-bold mb-4">
-              Tournament Winner
-            </h2>
-
+          <Card
+            title="Tournament Winner"
+            className="bg-green-50 border-green-200"
+          >
             <p className="text-xl font-semibold">
               {
                 data.winner.user
@@ -311,30 +268,17 @@ export default function AdminDashboardPage() {
                 }
               </strong>
             </p>
-
-          </div>
+          </Card>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-
-            <h2 className="text-2xl font-bold mb-4">
-              Tournament Winner
-            </h2>
-
+          <Card title="Tournament Winner">
             <p>
               Tournament not yet completed.
             </p>
-
-          </div>
+          </Card>
         )}
-
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border p-6">
-
-        <h2 className="text-2xl font-bold mb-4">
-          Recent Audit Activity
-        </h2>
-
+      <Card title="Recent Audit Activity">
         {data.recentAudits?.length ===
         0 ? (
           <p>
@@ -342,14 +286,12 @@ export default function AdminDashboardPage() {
           </p>
         ) : (
           <div className="space-y-4">
-
             {data.recentAudits.map(
               (audit: any) => (
                 <div
                   key={audit.id}
                   className="border-b pb-4"
                 >
-
                   <div className="font-semibold">
                     {audit.match
                       ? `${audit.match.homeTeam.shortCode} v ${audit.match.awayTeam.shortCode}`
@@ -384,20 +326,16 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <div className="text-sm text-slate-400">
-                    {new Date(
+                    {formatIrishDate(
                       audit.createdAt
-                    ).toLocaleString()}
+                    )}
                   </div>
-
                 </div>
               )
             )}
-
           </div>
         )}
-
-      </div>
-
+      </Card>
     </main>
   );
 }

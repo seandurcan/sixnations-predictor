@@ -1,5 +1,13 @@
 "use client";
 
+import Card from "@/components/ui/Card";
+import CountdownTimer from "@/components/ui/CountdownTimer";
+import PageHeader from "@/components/ui/PageHeader";
+import StatCard from "@/components/ui/StatCard";
+import {
+  formatIrishDate,
+  formatIsoDate,
+} from "@/lib/formatIrishDate";
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
@@ -42,7 +50,6 @@ export default function DashboardPage() {
       if (!meResponse.ok) {
         window.location.href =
           "/login";
-
         return;
       }
 
@@ -52,7 +59,6 @@ export default function DashboardPage() {
       if (!me.authenticated) {
         window.location.href =
           "/login";
-
         return;
       }
 
@@ -87,14 +93,11 @@ export default function DashboardPage() {
       const matches =
         await matchesResponse.json();
 
-      setMatchCount(
-        matches.length
-      );
+      setMatchCount(matches.length);
 
       const upcomingMatches =
         matches.filter(
-          (m: any) =>
-            !m.completed
+          (m: any) => !m.completed
         );
 
       if (
@@ -107,8 +110,7 @@ export default function DashboardPage() {
 
       const completedMatches =
         matches.filter(
-          (m: any) =>
-            m.completed
+          (m: any) => m.completed
         );
 
       if (
@@ -116,8 +118,7 @@ export default function DashboardPage() {
       ) {
         setLastMatch(
           completedMatches[
-            completedMatches.length -
-              1
+            completedMatches.length - 1
           ]
         );
       }
@@ -134,9 +135,7 @@ export default function DashboardPage() {
         predictions.length
       );
 
-      if (
-        predictions.length > 0
-      ) {
+      if (predictions.length > 0) {
         const sortedPredictions =
           [...predictions].sort(
             (a, b) =>
@@ -155,7 +154,16 @@ export default function DashboardPage() {
 
       setLoading(false);
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Dashboard load failed:",
+        {
+          timestamp:
+            formatIsoDate(
+              new Date()
+            ),
+          error,
+        }
+      );
 
       window.location.href =
         "/login";
@@ -168,21 +176,16 @@ export default function DashboardPage() {
     if (
       userRow.rankMovement ===
         undefined ||
-      userRow.rankMovement ===
-        null
+      userRow.rankMovement === null
     ) {
       return "-";
     }
 
-    if (
-      userRow.rankMovement > 0
-    ) {
+    if (userRow.rankMovement > 0) {
       return `↑ ${userRow.rankMovement}`;
     }
 
-    if (
-      userRow.rankMovement < 0
-    ) {
+    if (userRow.rankMovement < 0) {
       return `↓ ${Math.abs(
         userRow.rankMovement
       )}`;
@@ -193,172 +196,129 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        Loading dashboard...
-      </div>
+      <main className="p-8">
+        <PageHeader
+          title="Dashboard"
+          subtitle="Loading your dashboard..."
+        />
+
+        <Card>
+          Loading dashboard...
+        </Card>
+      </main>
     );
   }
 
   return (
     <main className="p-8">
-
-      <h1 className="text-4xl font-bold mb-2">
-        Dashboard
-      </h1>
-
-      <p className="text-xl mb-8">
-        Welcome{" "}
-        <strong>
-          {user?.firstName ??
-            "Player"}
-        </strong>
-      </p>
+      <PageHeader
+        title="Dashboard"
+        subtitle={`Welcome ${user?.firstName ?? "Player"}`}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Current Rank"
+          value={`#${userRow?.rank ?? "-"}`}
+        />
 
-        <div className="border rounded p-4">
-          <h2 className="font-bold">
-            Current Rank
-          </h2>
+        <StatCard
+          title="Rank Movement"
+          value={renderMovement()}
+        />
 
-          <p className="text-3xl">
-            #{userRow?.rank ?? "-"}
-          </p>
-        </div>
+        <StatCard
+          title="Total Points"
+          value={
+            userRow?.totalPoints ?? 0
+          }
+        />
 
-        <div className="border rounded p-4">
-          <h2 className="font-bold">
-            Rank Movement
-          </h2>
-
-          <p className="text-3xl">
-            {renderMovement()}
-          </p>
-        </div>
-
-        <div className="border rounded p-4">
-          <h2 className="font-bold">
-            Total Points
-          </h2>
-
-          <p className="text-3xl">
-            {userRow?.totalPoints ??
-              0}
-          </p>
-        </div>
-
-        <div className="border rounded p-4">
-          <h2 className="font-bold">
-            Difference Score
-          </h2>
-
-          <p className="text-3xl">
-            {userRow?.differenceScore ??
-              0}
-          </p>
-        </div>
-
+        <StatCard
+          title="Difference Score"
+          value={
+            userRow?.differenceScore ?? 0
+          }
+        />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3 mt-6">
+        <StatCard
+          title="Exact Scores"
+          value={
+            userRow?.exactScores ?? 0
+          }
+        />
 
-        <div className="border rounded p-4">
-          <h2 className="font-bold">
-            Exact Scores
-          </h2>
+        <StatCard
+          title="Prediction Progress"
+          value={`${predictionCount} / ${matchCount}`}
+        />
 
-          <p className="text-2xl">
-            {userRow?.exactScores ??
-              0}
-          </p>
-        </div>
-
-        <div className="border rounded p-4">
-          <h2 className="font-bold">
-            Prediction Progress
-          </h2>
-
-          <p className="text-2xl">
-            {predictionCount}
-            {" / "}
-            {matchCount}
-          </p>
-        </div>
-
-        <div className="border rounded p-4">
-          <h2 className="font-bold">
-            Players
-          </h2>
-
-          <p className="text-2xl">
-            {leaderboard.length}
-          </p>
-        </div>
-
+        <StatCard
+          title="Players"
+          value={leaderboard.length}
+        />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 mt-8">
-
-        <div className="border rounded p-6">
-
-          <h2 className="text-2xl font-bold mb-4">
-            Next Match
-          </h2>
-
+        <Card title="Next Match">
           {nextMatch ? (
-            <>
-              <p className="text-xl">
-                {
-                  nextMatch.homeTeam
-                    .name
-                }
-                {" vs "}
-                {
-                  nextMatch.awayTeam
-                    .name
-                }
-              </p>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xl font-semibold">
+                  {
+                    nextMatch.homeTeam
+                      .name
+                  }
+                  {" vs "}
+                  {
+                    nextMatch.awayTeam
+                      .name
+                  }
+                </p>
 
-              <p className="mt-2">
-                Round {nextMatch.round}
-              </p>
+                <p className="mt-2">
+                  Round{" "}
+                  {nextMatch.round}
+                </p>
 
-              <p>
-                {
+                <p className="text-slate-600">
+                  {formatIrishDate(
+                    nextMatch.kickoffTime
+                  )}
+                </p>
+              </div>
+
+              <CountdownTimer
+                targetDate={
                   nextMatch.kickoffTime
                 }
-              </p>
-            </>
+                label="Time until kick-off"
+              />
+            </div>
           ) : (
             <p>
               Tournament Complete
             </p>
           )}
+        </Card>
 
-        </div>
-
-        <div className="border rounded p-6">
-
-          <h2 className="text-2xl font-bold mb-4">
-            Latest Result
-          </h2>
-
+        <Card title="Latest Result">
           {lastMatch ? (
             <>
-              <p className="text-xl">
+              <p className="text-xl font-semibold">
                 {
                   lastMatch.homeTeam
                     .name
-                }
-                {" "}
+                }{" "}
                 {
                   lastMatch.actualHomeScore
                 }
                 {" - "}
                 {
                   lastMatch.actualAwayScore
-                }
-                {" "}
+                }{" "}
                 {
                   lastMatch.awayTeam
                     .name
@@ -367,37 +327,29 @@ export default function DashboardPage() {
 
               {lastPrediction && (
                 <div className="mt-4">
-
                   <p>
-                    Points Earned:
-                    {" "}
+                    Points Earned:{" "}
                     {
                       lastPrediction.pointsAwarded
                     }
                   </p>
 
                   <p>
-                    Difference Score:
-                    {" "}
+                    Difference Score:{" "}
                     {
                       lastPrediction.differenceScore
                     }
                   </p>
-
                 </div>
               )}
-
             </>
           ) : (
             <p>
               No completed matches
             </p>
           )}
-
-        </div>
-
+        </Card>
       </div>
-
     </main>
   );
 }

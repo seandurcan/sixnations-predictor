@@ -1,44 +1,34 @@
-import { NextResponse } from "next/server";
 import {
-  destroySession,
-  SESSION_COOKIE,
-} from "@/lib/auth";
+  NextRequest,
+  NextResponse,
+} from "next/server";
 
-export async function POST() {
-  try {
-    await destroySession();
+export async function POST(
+  request: NextRequest
+) {
+  const response = NextResponse.json({
+    success: true,
+  });
 
-    const response =
-      NextResponse.json({
-        success: true,
-      });
+  const cookies =
+    request.cookies.getAll();
 
+  for (const cookie of cookies) {
     response.cookies.set(
-      SESSION_COOKIE,
+      cookie.name,
       "",
       {
-        httpOnly: true,
-        secure:
-          process.env.NODE_ENV ===
-          "production",
-        sameSite: "lax",
         path: "/",
-        expires: new Date(0),
-      }
-    );
-
-    return response;
-  } catch (error) {
-    console.error(error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Logout failed",
-      },
-      {
-        status: 500,
+        maxAge: 0,
       }
     );
   }
+
+  return response;
+}
+
+export async function GET(
+  request: NextRequest
+) {
+  return POST(request);
 }

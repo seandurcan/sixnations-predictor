@@ -1,0 +1,119 @@
+Folder PATH listing
+Volume serial number is 00000013 AE60:D2BA
+C:.
+|   folder_structure_B.txt
+|   generate_tree.py
+|   
++---app
+|   |   favicon.ico
+|   |   globals.css
+|   |   layout.tsx
+|   |   page.tsx
+|   |   
+|   +---admin
+|   |   |   page.tsx
+|   |   |   
+|   |   +---audit
+|   |   |       page.tsx
+|   |   |       
+|   |   \---dashboard
+|   |           page.tsx
+|   |           
+|   +---api
+|   |   +---admin
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   +---audit
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   +---dashboard
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   +---matches
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   \---results
+|   |   |           route.ts
+|   |   |           
+|   |   +---auth
+|   |   |   \---me
+|   |   |           route.ts
+|   |   |           
+|   |   +---forgot-password
+|   |   |       route.ts
+|   |   |       
+|   |   +---leaderboard
+|   |   |       route.ts
+|   |   |       
+|   |   +---login
+|   |   |       route.ts
+|   |   |       
+|   |   +---logout
+|   |   |       route.ts
+|   |   |       
+|   |   +---matches
+|   |   |       route.ts
+|   |   |       
+|   |   +---predictions
+|   |   |   |   route.ts
+|   |   |   |   
+|   |   |   \---list
+|   |   |           route.ts
+|   |   |           
+|   |   +---register
+|   |   |       route.ts
+|   |   |       
+|   |   +---resend-verification
+|   |   |       route.ts
+|   |   |       
+|   |   +---reset-password
+|   |   |       route.ts
+|   |   |       
+|   |   +---results
+|   |   |       route.ts
+|   |   |       
+|   |   +---test-email
+|   |   |       route.ts
+|   |   |       
+|   |   \---verify-email
+|   |           route.ts
+|   |           
+|   +---dashboard
+|   |       page.tsx
+|   |       
+|   +---forgot-password
+|   |       page.tsx
+|   |       
+|   +---leaderboard
+|   |       page.tsx
+|   |       
+|   +---login
+|   |       page.tsx
+|   |       
+|   +---predictions
+|   |       page.tsx
+|   |       
+|   +---register
+|   |       page.tsx
+|   |       
+|   +---reset-password
+|   |       page.tsx
+|   |       
+|   \---verify-email
+|           page.tsx
+|           
++---components
+|   +---layout
+|   |       Navbar.tsx
+|   |       
+|   \---ui
+|           Card.tsx
+|           PageHeader.tsx
+|           StatCard.tsx
+|           StatusBadge.tsx
+|           
+\---lib
+        auth.ts
+        email.ts
+        prisma.ts
+        

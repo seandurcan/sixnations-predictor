@@ -1,14 +1,25 @@
 "use client";
 
+import Alert from "@/components/ui/Alert";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function VerifyEmailPage() {
-  const searchParams =
-    useSearchParams();
+  const searchParams = useSearchParams();
 
   const [message, setMessage] =
     useState("Verifying...");
+
+  const [variant, setVariant] =
+    useState<"info" | "success" | "error">("info");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [canRetry, setCanRetry] =
+    useState(false);
 
   useEffect(() => {
     verify();
@@ -18,51 +29,124 @@ export default function VerifyEmailPage() {
     const token =
       searchParams.get("token");
 
+    setLoading(true);
+    setCanRetry(false);
+    setVariant("info");
+    setMessage("Verifying...");
+
     if (!token) {
+      setVariant("error");
       setMessage(
         "Missing verification token."
       );
+      setLoading(false);
+      setCanRetry(false);
       return;
     }
 
-    const response =
-      await fetch(
-        "/api/verify-email",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            token,
-          }),
-        }
+    try {
+      const response =
+        await fetch(
+          "/api/verify-email",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              token,
+            }),
+          }
+        );
+
+      const result =
+        await response.json();
+
+      if (result.success) {
+        setVariant("success");
+
+        setMessage(
+          "Email successfully verified. You may now log in."
+        );
+
+        setCanRetry(false);
+      } else {
+        setVariant("error");
+
+        setMessage(
+          result.error ??
+            "Email verification failed."
+        );
+
+        setCanRetry(true);
+      }
+    } catch {
+      setVariant("error");
+
+      setMessage(
+        "Email verification failed."
       );
 
-    const result =
-      await response.json();
-
-    if (result.success) {
-      setMessage(
-        "Email successfully verified."
-      );
-    } else {
-      setMessage(
-        result.error
-      );
+      setCanRetry(true);
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="border rounded p-6 max-w-md">
+    <main className="min-h-screen flex items-center justify-center p-6">
+      <Card className="w-full max-w-md">
         <h1 className="text-2xl font-bold mb-4">
           Email Verification
         </h1>
 
-        <p>{message}</p>
-      </div>
+        <Alert
+          variant={variant}
+          title={
+            variant === "success"
+              ? "Verification Successful"
+              : variant === "error"
+                ? "Verification Failed"
+                : "Verifying Email"
+          }
+        >
+          {message}
+        </Alert>
+
+        {loading && (
+          <p className="mt-4 text-sm text-slate-500">
+            Please wait while we verify your email.
+          </p>
+        )}
+
+        {canRetry && (
+          <div className="mt-4">
+            <Button
+              type="button"
+              fullWidth
+              onClick={verify}
+            >
+              Try Again
+            </Button>
+          </div>
+        )}
+
+        {variant === "success" && (
+          <div className="mt-4">
+            <Button
+              type="button"
+              fullWidth
+              onClick={() => {
+                window.location.href =
+                  "/login";
+              }}
+            >
+              Go To Login
+            </Button>
+          </div>
+        )}
+      </Card>
     </main>
   );
 }

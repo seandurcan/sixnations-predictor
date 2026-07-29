@@ -1,115 +1,152 @@
 "use client";
 
+import Alert from "@/components/ui/Alert";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import PasswordInput from "@/components/ui/PasswordInput";
 import { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] =
-    useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const [password, setPassword] =
-    useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  async function handleLogin(
-    e: React.FormEvent
-  ) {
+  function isValidEmail(value: string) {
+    return /\S+@\S+\.\S+/.test(value);
+  }
+
+  function validateForm() {
+    if (!email.trim()) {
+      return "Email is required.";
+    }
+
+    if (!isValidEmail(email)) {
+      return "Enter a valid email address.";
+    }
+
+    if (!password.trim()) {
+      return "Password is required.";
+    }
+
+    return "";
+  }
+
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
 
-    const response =
-      await fetch(
-        "/api/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            password,
-          }),
-        }
-      );
+    setError("");
+    setSuccess("");
 
-    const result =
-      await response.json();
+    const validationError = validateForm();
 
-    alert(
-      JSON.stringify(result)
-    );
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
-    if (result.success) {
-      localStorage.setItem(
-        "userId",
-        result.userId
-      );
+    setLoading(true);
 
-      window.location.href =
-        "/dashboard";
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        setError(result.error ?? "Login failed.");
+        return;
+      }
+
+      setSuccess("Login successful. Redirecting...");
+
+      localStorage.setItem("userId", result.userId);
+
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 1000);
+    } catch {
+      setError("Unable to connect. Please try again.");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <form
-        onSubmit={handleLogin}
-        className="border rounded p-6 w-full max-w-md space-y-4"
-      >
-        <h1 className="text-3xl font-bold">
-          Login
-        </h1>
+    <main className="min-h-screen flex items-center justify-center p-6">
+      <Card className="w-full max-w-md">
+        <form onSubmit={handleLogin} className="space-y-4">
+          <h1 className="text-3xl font-bold">
+            Login
+          </h1>
 
-        <input
-          className="border p-2 w-full"
-          placeholder="Email"
-          value={email}
-          onChange={(e) =>
-            setEmail(
-              e.target.value
-            )
-          }
-        />
+          {success && (
+            <Alert variant="success" title="Success">
+              {success}
+            </Alert>
+          )}
 
-        <input
-          type="password"
-          className="border p-2 w-full"
-          placeholder="Password"
-          value={password}
-          onChange={(e) =>
-            setPassword(
-              e.target.value
-            )
-          }
-        />
+          {error && (
+            <Alert variant="error" title="Login Failed">
+              {error}
+            </Alert>
+          )}
 
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Login
-        </button>
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            disabled={loading}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-        <button
-          type="button"
-          className="text-blue-600 underline text-sm block"
-          onClick={() => {
-            window.location.href =
-              "/forgot-password";
-          }}
-        >
-          Forgot Password?
-        </button>
+          <PasswordInput
+            placeholder="Password"
+            value={password}
+            disabled={loading}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-        <button
-          type="button"
-          className="text-blue-600 underline text-sm block"
-          onClick={() => {
-            window.location.href =
-              "/register";
-          }}
-        >
-          Create Account
-        </button>
-      </form>
+          <Button type="submit" fullWidth disabled={loading}>
+            {loading ? "Signing In..." : "Login"}
+          </Button>
+
+          <Button
+            type="button"
+            variant="secondary"
+            fullWidth
+            disabled={loading}
+            onClick={() => {
+              window.location.href = "/forgot-password";
+            }}
+          >
+            Forgot Password?
+          </Button>
+
+          <Button
+            type="button"
+            variant="secondary"
+            fullWidth
+            disabled={loading}
+            onClick={() => {
+              window.location.href = "/register";
+            }}
+          >
+            Create Account
+          </Button>
+        </form>
+      </Card>
     </main>
   );
 }
