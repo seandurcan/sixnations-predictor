@@ -1,47 +1,59 @@
 "use client";
 
+import Link from "next/link";
+import {
+  type FormEvent,
+  useState,
+} from "react";
+
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import PasswordInput from "@/components/ui/PasswordInput";
-import { useState } from "react";
+
+type LoginResponse = {
+  success?: boolean;
+  error?: string;
+};
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error, setError] =
+    useState("");
 
-  function isValidEmail(value: string) {
-    return /\S+@\S+\.\S+/.test(value);
-  }
+  const [loading, setLoading] =
+    useState(false);
 
   function validateForm() {
-    if (!email.trim()) {
+    if (!form.email.trim()) {
       return "Email is required.";
     }
 
-    if (!isValidEmail(email)) {
-      return "Enter a valid email address.";
-    }
-
-    if (!password.trim()) {
+    if (!form.password) {
       return "Password is required.";
     }
 
     return "";
   }
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    if (loading) {
+      return;
+    }
 
     setError("");
-    setSuccess("");
 
-    const validationError = validateForm();
+    const validationError =
+      validateForm();
 
     if (validationError) {
       setError(validationError);
@@ -51,100 +63,163 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      const response = await fetch(
+        "/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            email: form.email
+              .trim()
+              .toLowerCase(),
+            password: form.password,
+          }),
+        }
+      );
 
-      const result = await response.json();
+      const result =
+        (await response
+          .json()
+          .catch(() => null)) as
+          | LoginResponse
+          | null;
 
-      if (!result.success) {
-        setError(result.error ?? "Login failed.");
+      if (!response.ok) {
+        setError(
+          result?.error ??
+            "Login failed. Please try again."
+        );
         return;
       }
 
-      setSuccess("Login successful. Redirecting...");
+      window.location.assign(
+        "/dashboard"
+      );
+    } catch (loginError) {
+      console.error(
+        "Login request failed:",
+        loginError
+      );
 
-      localStorage.setItem("userId", result.userId);
-
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 1000);
-    } catch {
-      setError("Unable to connect. Please try again.");
+      setError(
+        "Unable to connect. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
+    <main className="flex min-h-screen items-center justify-center p-6">
       <Card className="w-full max-w-md">
-        <form onSubmit={handleLogin} className="space-y-4">
-          <h1 className="text-3xl font-bold">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4"
+          noValidate
+        >
+          <h1 className="text-3xl font-bold text-[var(--brand-navy)]">
             Login
           </h1>
 
-          {success && (
-            <Alert variant="success" title="Success">
-              {success}
-            </Alert>
-          )}
-
           {error && (
-            <Alert variant="error" title="Login Failed">
+            <Alert
+              variant="error"
+              title="Login Failed"
+            >
               {error}
             </Alert>
           )}
 
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            disabled={loading}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <div className="space-y-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-semibold text-[var(--brand-navy)]"
+            >
+              Email
+            </label>
 
-          <PasswordInput
-            placeholder="Password"
-            value={password}
-            disabled={loading}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="Email"
+              autoComplete="email"
+              value={form.email}
+              disabled={loading}
+              aria-invalid={
+                error
+                  .toLowerCase()
+                  .includes("email")
+              }
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  email:
+                    event.target.value,
+                }))
+              }
+            />
+          </div>
 
-          <Button type="submit" fullWidth disabled={loading}>
-            {loading ? "Signing In..." : "Login"}
-          </Button>
+          <div className="space-y-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-semibold text-[var(--brand-navy)]"
+            >
+              Password
+            </label>
+
+            <PasswordInput
+              id="password"
+              name="password"
+              placeholder="Password"
+              autoComplete="current-password"
+              value={form.password}
+              disabled={loading}
+              aria-invalid={
+                error
+                  .toLowerCase()
+                  .includes("password")
+              }
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  password:
+                    event.target.value,
+                }))
+              }
+            />
+          </div>
 
           <Button
-            type="button"
-            variant="secondary"
+            type="submit"
             fullWidth
             disabled={loading}
-            onClick={() => {
-              window.location.href = "/forgot-password";
-            }}
           >
-            Forgot Password?
+            {loading
+              ? "Logging in..."
+              : "Login"}
           </Button>
 
-          <Button
-            type="button"
-            variant="secondary"
-            fullWidth
-            disabled={loading}
-            onClick={() => {
-              window.location.href = "/register";
-            }}
-          >
-            Create Account
-          </Button>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Link
+              href="/forgot-password"
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-center font-semibold text-[var(--brand-navy)] transition-colors duration-200 hover:bg-[var(--brand-soft-lime)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-blue)] focus:ring-offset-2"
+            >
+              Forgot Password?
+            </Link>
+
+            <Link
+              href="/register"
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-center font-semibold text-[var(--brand-navy)] transition-colors duration-200 hover:bg-[var(--brand-soft-lime)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-blue)] focus:ring-offset-2"
+            >
+              Register
+            </Link>
+          </div>
         </form>
       </Card>
     </main>

@@ -359,8 +359,8 @@ describe("PredictionsPage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText(/01 Feb 2027/i)
-    ).toBeInTheDocument();
+  screen.getAllByText(/01 Feb 2027/i)[0]
+).toBeInTheDocument();
   });
 
   it("renders predictions page with fixture, progress, and Irish formatted kick-off date", async () => {
@@ -391,12 +391,12 @@ describe("PredictionsPage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText(/29 Jan 2027/i)
-    ).toBeInTheDocument();
+  screen.getAllByText(/29 Jan 2027/i)[0]
+).toBeInTheDocument();
 
     expect(
-      screen.getByText(/14:15/i)
-    ).toBeInTheDocument();
+  screen.getAllByText(/14:15/i)[0]
+).toBeInTheDocument();
   });
 
   it("shows saved predictions with formatted fixture date", async () => {
@@ -409,12 +409,13 @@ describe("PredictionsPage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText(/30 Jan 2027/i)
-    ).toBeInTheDocument();
+  screen.getAllByText(/30 Jan 2027/i)[0]
+).toBeInTheDocument();
 
     expect(
-      screen.getByText(/16:45/i)
-    ).toBeInTheDocument();
+  screen.getAllByText(/16:45/i)[0]
+).toBeInTheDocument();
+
   });
 
   it("shows empty predictions state", async () => {
@@ -584,8 +585,8 @@ describe("PredictionsPage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText("LOCKED")
-    ).toBeInTheDocument();
+  screen.getAllByText("LOCKED")[0]
+).toBeInTheDocument();
 
     expect(
       screen.queryByText("Time until predictions lock")

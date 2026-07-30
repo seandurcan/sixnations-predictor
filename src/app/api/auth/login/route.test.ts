@@ -89,8 +89,16 @@ describe("POST /api/auth/login", () => {
     expect(body).toEqual({
       success: true,
       firstName: "Sean",
+      lastName: "Durcan",
       email: "sean@example.com",
       role: "USER",
+      user: {
+        id: 1,
+        firstName: "Sean",
+        lastName: "Durcan",
+        email: "sean@example.com",
+        role: "USER",
+      },
     });
 
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
@@ -127,7 +135,7 @@ describe("POST /api/auth/login", () => {
 
     expect(body).toEqual({
       success: false,
-      error: "Invalid email or password",
+      error: "Invalid email or password.",
     });
 
     expect(bcrypt.compare).not.toHaveBeenCalled();
@@ -154,7 +162,7 @@ describe("POST /api/auth/login", () => {
 
     expect(body).toEqual({
       success: false,
-      error: "Invalid email or password",
+      error: "Invalid email or password.",
     });
 
     expect(createSession).not.toHaveBeenCalled();
@@ -181,14 +189,15 @@ describe("POST /api/auth/login", () => {
 
     expect(body).toEqual({
       success: false,
-      error: "Please verify your email address before logging in.",
+      error:
+        "Please verify your email address before logging in.",
       emailVerificationRequired: true,
     });
 
     expect(createSession).not.toHaveBeenCalled();
   });
 
-  it("returns 500 when request JSON parsing fails", async () => {
+  it("returns 400 when request JSON parsing fails", async () => {
     const request = new Request(
       "http://localhost/api/auth/login",
       {
@@ -204,11 +213,11 @@ describe("POST /api/auth/login", () => {
 
     const body = await response.json();
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(400);
 
     expect(body).toEqual({
       success: false,
-      error: "Login failed",
+      error: "Email and password are required.",
     });
   });
 
@@ -230,7 +239,7 @@ describe("POST /api/auth/login", () => {
 
     expect(body).toEqual({
       success: false,
-      error: "Login failed",
+      error: "Login failed. Please try again.",
     });
   });
 
@@ -258,7 +267,7 @@ describe("POST /api/auth/login", () => {
 
     expect(body).toEqual({
       success: false,
-      error: "Login failed",
+      error: "Login failed. Please try again.",
     });
   });
 });

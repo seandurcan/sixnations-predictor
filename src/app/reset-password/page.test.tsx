@@ -346,71 +346,82 @@ describe("ResetPasswordPage", () => {
   });
 
   it("shows validation error on submit when passwords do not match", async () => {
-    const user = userEvent.setup();
+  const user = userEvent.setup();
 
-    render(<ResetPasswordPage />);
+  render(<ResetPasswordPage />);
 
-    await user.type(
-      screen.getByPlaceholderText("New Password"),
-      "Password123!"
-    );
+  await user.type(
+    screen.getByPlaceholderText("New Password"),
+    "Password123!"
+  );
 
-    await user.type(
-      screen.getByPlaceholderText("Confirm Password"),
-      "Different123!"
-    );
+  await user.type(
+    screen.getByPlaceholderText("Confirm Password"),
+    "Different123!"
+  );
 
-    await user.click(
-      screen.getByRole("button", {
-        name: "Reset Password",
-      })
-    );
+  await user.click(
+    screen.getByRole("button", {
+      name: "Reset Password",
+    })
+  );
 
-    expect(
-      await screen.findByText("Passwords do not match.")
-    ).toBeInTheDocument();
+  expect(
+    await screen.findAllByText("Passwords do not match.")
+  ).toHaveLength(2);
 
-    expect(global.fetch).not.toHaveBeenCalled();
-  });
+  expect(global.fetch).not.toHaveBeenCalled();
+});
 
   it("shows password criteria and strength meter for new password", async () => {
-    const user = userEvent.setup();
+  const user = userEvent.setup();
 
-    render(<ResetPasswordPage />);
+  render(<ResetPasswordPage />);
 
-    await user.type(
-      screen.getByPlaceholderText("New Password"),
-      "Password123!"
-    );
+  await user.type(
+    screen.getByPlaceholderText("New Password"),
+    "Password123!"
+  );
 
-    expect(
-      screen.getAllByText("Password strength:")[0]
-    ).toBeInTheDocument();
+  expect(
+    screen.getAllByText("Password strength:")[0]
+  ).toBeInTheDocument();
 
-    expect(
-      screen.getAllByText("Strong")[0]
-    ).toBeInTheDocument();
+  expect(
+    screen.getAllByText("Strong")[0]
+  ).toBeInTheDocument();
 
-    expect(
-      screen.getAllByText("At least 8 characters")[0]
-    ).toBeInTheDocument();
+  expect(
+    screen.getByText((content) =>
+      content.includes("At least 8 characters")
+    )
+  ).toBeInTheDocument();
 
-    expect(
-      screen.getAllByText("At least one uppercase letter")[0]
-    ).toBeInTheDocument();
+  expect(
+    screen.getByText((content) =>
+      content.includes("At least one uppercase letter")
+    )
+  ).toBeInTheDocument();
 
-    expect(
-      screen.getAllByText("At least one lowercase letter")[0]
-    ).toBeInTheDocument();
+  expect(
+    screen.getByText((content) =>
+      content.includes("At least one lowercase letter")
+    )
+  ).toBeInTheDocument();
 
-    expect(
-      screen.getAllByText("At least one number")[0]
-    ).toBeInTheDocument();
+  expect(
+    screen.getByText((content) =>
+      content.includes("At least one number")
+    )
+  ).toBeInTheDocument();
 
-    expect(
-      screen.getAllByText("At least one special character")[0]
-    ).toBeInTheDocument();
-  });
+  expect(
+    screen.getByText((content) =>
+      content.includes("At least one special character")
+    )
+  ).toBeInTheDocument();
+});
+
 
   it("toggles visibility for new password field", async () => {
     const user = userEvent.setup();

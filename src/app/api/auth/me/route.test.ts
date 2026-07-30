@@ -67,6 +67,7 @@ describe("GET /api/auth/me", () => {
 
     expect(body).toEqual({
       authenticated: false,
+      user: null,
     });
   });
 
@@ -83,7 +84,8 @@ describe("GET /api/auth/me", () => {
 
     expect(body).toEqual({
       authenticated: false,
-      error: "Failed to retrieve current user",
+      user: null,
+      error: "Failed to retrieve current user.",
     });
   });
 });

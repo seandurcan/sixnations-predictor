@@ -12,33 +12,24 @@ export default function ResetPasswordPage() {
 
   const [token, setToken] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [error, setError] =
-    useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const [success, setSuccess] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const urlToken =
-      searchParams.get("token");
+    const urlToken = searchParams.get("token");
 
     if (urlToken) {
       setToken(urlToken);
     }
   }, [searchParams]);
 
-  const passwordsMatch =
-    password === confirmPassword;
+  const passwordsMatch = password === confirmPassword;
 
-  function passwordMeetsCriteria(
-    passwordValue: string
-  ) {
+  function passwordMeetsCriteria(passwordValue: string) {
     return (
       passwordValue.length >= 8 &&
       /[A-Z]/.test(passwordValue) &&
@@ -57,11 +48,7 @@ export default function ResetPasswordPage() {
       return "Password is required.";
     }
 
-    if (
-      !passwordMeetsCriteria(
-        password
-      )
-    ) {
+    if (!passwordMeetsCriteria(password)) {
       return "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
     }
 
@@ -76,16 +63,13 @@ export default function ResetPasswordPage() {
     return "";
   }
 
-  async function handleSubmit(
-    e: React.FormEvent
-  ) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     setError("");
     setSuccess("");
 
-    const validationError =
-      validateForm();
+    const validationError = validateForm();
 
     if (validationError) {
       setError(validationError);
@@ -95,46 +79,32 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      const response =
-        await fetch(
-          "/api/reset-password",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              token,
-              password,
-              confirmPassword,
-            }),
-          }
-        );
+      const response = await fetch("/api/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token,
+          password,
+          confirmPassword,
+        }),
+      });
 
-      const result =
-        await response.json();
+      const result = await response.json();
 
       if (!result.success) {
-        setError(
-          result.error ??
-            "Password reset failed."
-        );
+        setError(result.error ?? "Password reset failed.");
         return;
       }
 
-      setSuccess(
-        "Password updated successfully. Redirecting to login..."
-      );
+      setSuccess("Password updated successfully. Redirecting to login...");
 
       setTimeout(() => {
-        window.location.href =
-          "/login";
+        window.location.href = "/login";
       }, 2000);
     } catch {
-      setError(
-        "Unable to connect. Please try again."
-      );
+      setError("Unable to connect. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -143,10 +113,7 @@ export default function ResetPasswordPage() {
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
       <Card className="w-full max-w-md">
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4">
           <h1 className="text-3xl font-bold">
             Reset Password
           </h1>
@@ -157,19 +124,13 @@ export default function ResetPasswordPage() {
           </p>
 
           {success && (
-            <Alert
-              variant="success"
-              title="Success"
-            >
+            <Alert variant="success" title="Success">
               {success}
             </Alert>
           )}
 
           {error && (
-            <Alert
-              variant="error"
-              title="Reset Failed"
-            >
+            <Alert variant="error" title="Reset Failed">
               {error}
             </Alert>
           )}
@@ -180,47 +141,28 @@ export default function ResetPasswordPage() {
             disabled={loading}
             showStrength
             showCriteria
-            onChange={(e) =>
-              setPassword(
-                e.target.value
-              )
-            }
+            onChange={(e) => setPassword(e.target.value)}
           />
 
           <PasswordInput
             placeholder="Confirm Password"
             value={confirmPassword}
             disabled={loading}
-            onChange={(e) =>
-              setConfirmPassword(
-                e.target.value
-              )
-            }
+            onChange={(e) => setConfirmPassword(e.target.value)}
           />
 
-          {confirmPassword &&
-            !passwordsMatch && (
-              <Alert
-                variant="warning"
-                title="Validation"
-              >
-                Passwords do not match.
-              </Alert>
-            )}
+          {confirmPassword && !passwordsMatch && (
+            <Alert variant="warning" title="Validation">
+              Passwords do not match.
+            </Alert>
+          )}
 
           <Button
             type="submit"
             fullWidth
-            disabled={
-              loading ||
-              !password ||
-              !confirmPassword ||
-              !passwordsMatch
-            }
+            disabled={loading}
           >
-            {loading
-              ? "Updating..."
-              : "Reset Password"}
+            {loading ? "Updating..." : "Reset Password"}
           </Button>
         </form>
       </Card>

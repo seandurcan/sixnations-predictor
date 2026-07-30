@@ -1,4 +1,8 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
   afterEach,
@@ -8,88 +12,135 @@ import {
   it,
   vi,
 } from "vitest";
+
 import LoginPage from "./page";
 
+const {
+  replaceMock,
+} = vi.hoisted(() => ({
+  replaceMock: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    replace: replaceMock,
+    push: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+}));
+
+const fetchMock = vi.fn<typeof fetch>();
+
+function createJsonResponse(
+  body: unknown,
+  status = 200
+): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: vi.fn().mockResolvedValue(body),
+  } as unknown as Response;
+}
+
+async function completeLoginForm(
+  email = "sean@example.com",
+  password = "Password123!"
+) {
+  const user = userEvent.setup();
+
+  await user.type(
+    screen.getByLabelText(/email/i),
+    email
+  );
+
+  await user.type(
+    screen.getByLabelText(/password/i),
+    password
+  );
+
+  return user;
+}
+
 describe("LoginPage", () => {
-  const originalLocation = window.location;
-
   beforeEach(() => {
-    vi.restoreAllMocks();
+    fetchMock.mockReset();
+    replaceMock.mockReset();
 
-    global.fetch = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
 
-    Object.defineProperty(window, "location", {
-      value: {
-        href: "",
-        assign: vi.fn(),
-      },
-      writable: true,
+    vi.spyOn(
+      console,
+      "error"
+    ).mockImplementation(() => {
+      // Suppress expected errors in failure tests.
     });
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
-
-    Object.defineProperty(window, "location", {
-      value: originalLocation,
-      writable: true,
-    });
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
-  it("renders login page content", () => {
+  it("renders the login page", () => {
     render(<LoginPage />);
 
     expect(
       screen.getByRole("heading", {
-        name: /login/i,
+        name: "Login",
       })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByLabelText(/email/i)
+      screen.getByLabelText("Email")
     ).toBeInTheDocument();
 
     expect(
-      screen.getByLabelText(/password/i)
+      screen.getByLabelText("Password")
     ).toBeInTheDocument();
 
     expect(
       screen.getByRole("button", {
-        name: /login/i,
+        name: "Login",
       })
     ).toBeInTheDocument();
   });
 
-  it("renders register link", () => {
+  it("renders the register link", () => {
     render(<LoginPage />);
 
     expect(
       screen.getByRole("link", {
-        name: /register/i,
+        name: "Register",
       })
-    ).toBeInTheDocument();
+    ).toHaveAttribute(
+      "href",
+      "/register"
+    );
   });
 
-  it("renders forgot password link when available", () => {
+  it("renders the forgot-password link", () => {
     render(<LoginPage />);
 
-    const forgotLink =
-      screen.queryByRole("link", {
+    expect(
+      screen.getByRole("link", {
         name: /forgot password/i,
-      });
-
-    if (forgotLink) {
-      expect(forgotLink).toBeInTheDocument();
-    }
+      })
+    ).toHaveAttribute(
+      "href",
+      "/forgot-password"
+    );
   });
 
-  it("allows entering email address", async () => {
+  it("allows the email address to be entered", async () => {
     const user = userEvent.setup();
 
     render(<LoginPage />);
 
     const emailInput =
-      screen.getByLabelText(/email/i);
+      screen.getByLabelText("Email");
 
     await user.type(
       emailInput,
@@ -101,13 +152,13 @@ describe("LoginPage", () => {
     );
   });
 
-  it("allows entering password", async () => {
+  it("allows the password to be entered", async () => {
     const user = userEvent.setup();
 
     render(<LoginPage />);
 
     const passwordInput =
-      screen.getByLabelText(/password/i);
+      screen.getByLabelText("Password");
 
     await user.type(
       passwordInput,
@@ -119,474 +170,455 @@ describe("LoginPage", () => {
     );
   });
 
-  it("shows validation when email is empty", async () => {
+  it("shows an error when email is empty", async () => {
     const user = userEvent.setup();
 
     render(<LoginPage />);
 
-    const passwordInput =
-      screen.getByLabelText(/password/i);
-
     await user.type(
-      passwordInput,
+      screen.getByLabelText("Password"),
       "Password123!"
     );
 
     await user.click(
       screen.getByRole("button", {
-        name: /login/i,
+        name: "Login",
       })
     );
 
     expect(
-      screen.getByLabelText(/password/i)
+      await screen.findByText(
+        "Email is required."
+      )
     ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("shows validation when password is empty", async () => {
+  it("shows an error when password is empty", async () => {
     const user = userEvent.setup();
 
     render(<LoginPage />);
 
-    const emailInput =
-      screen.getByLabelText(/email/i);
-
     await user.type(
-      emailInput,
+      screen.getByLabelText("Email"),
       "sean@example.com"
     );
 
     await user.click(
       screen.getByRole("button", {
-        name: /login/i,
+        name: "Login",
       })
     );
 
     expect(
-      screen.getByLabelText(/email/i)
+      await screen.findByText(
+        "Password is required."
+      )
     ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("submits login credentials successfully", async () => {
-    const user = userEvent.setup();
-
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
+  it("posts the login credentials to the API", async () => {
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse({
         success: true,
-      }),
-    } as Response);
+      })
+    );
 
     render(<LoginPage />);
 
-    await user.type(
-      screen.getByLabelText(/email/i),
-      "sean@example.com"
-    );
-
-    await user.type(
-      screen.getByLabelText(/password/i),
-      "Password123!"
-    );
+    const user =
+      await completeLoginForm();
 
     await user.click(
       screen.getByRole("button", {
-        name: /login/i,
+        name: "Login",
       })
     );
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
-    });
-  });
-
-  it("posts credentials to login API", async () => {
-    const user = userEvent.setup();
-
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        success: true,
-      }),
-    } as Response);
-
-    render(<LoginPage />);
-
-    await user.type(
-      screen.getByLabelText(/email/i),
-      "sean@example.com"
-    );
-
-    await user.type(
-      screen.getByLabelText(/password/i),
-      "Password123!"
-    );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: /login/i,
-      })
-    );
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringMatching(/login/i),
-        expect.objectContaining({
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/auth/login",
+        {
           method: "POST",
-        })
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            email: "sean@example.com",
+            password: "Password123!",
+          }),
+        }
       );
     });
   });
 
-  it("redirects after successful login", async () => {
-    const user = userEvent.setup();
-
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
+  it("redirects to the dashboard after successful login", async () => {
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse({
         success: true,
-      }),
-    } as Response);
+      })
+    );
 
     render(<LoginPage />);
 
-    await user.type(
-      screen.getByLabelText(/email/i),
-      "sean@example.com"
-    );
-
-    await user.type(
-      screen.getByLabelText(/password/i),
-      "Password123!"
-    );
+    const user =
+      await completeLoginForm();
 
     await user.click(
       screen.getByRole("button", {
-        name: /login/i,
+        name: "Login",
       })
     );
 
     await waitFor(() => {
       expect(
-        global.fetch
-      ).toHaveBeenCalled();
+        replaceMock
+      ).toHaveBeenCalledWith(
+        "/dashboard"
+      );
     });
+
+    expect(replaceMock).toHaveBeenCalledTimes(
+      1
+    );
   });
 
-  it("shows invalid credentials error", async () => {
-    const user = userEvent.setup();
-
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      json: async () => ({
-        error: "Invalid credentials",
-      }),
-    } as Response);
+  it("shows an invalid-credentials error", async () => {
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse(
+        {
+          success: false,
+          error:
+            "Invalid email or password.",
+        },
+        401
+      )
+    );
 
     render(<LoginPage />);
 
-    await user.type(
-      screen.getByLabelText(/email/i),
-      "sean@example.com"
-    );
-
-    await user.type(
-      screen.getByLabelText(/password/i),
-      "BadPassword"
-    );
+    const user =
+      await completeLoginForm(
+        "sean@example.com",
+        "BadPassword"
+      );
 
     await user.click(
       screen.getByRole("button", {
-        name: /login/i,
+        name: "Login",
       })
     );
 
     expect(
       await screen.findByText(
-        /invalid credentials/i
+        "Invalid email or password."
       )
     ).toBeInTheDocument();
+
+    expect(
+      replaceMock
+    ).not.toHaveBeenCalled();
   });
 
-  it("shows API supplied error messages", async () => {
-    const user = userEvent.setup();
-
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: false,
-      status: 400,
-      json: async () => ({
-        error:
-          "Email address has not been verified.",
-      }),
-    } as Response);
+  it("shows an email-verification error supplied by the API", async () => {
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse(
+        {
+          success: false,
+          error:
+            "Please verify your email address before logging in.",
+          emailVerificationRequired:
+            true,
+        },
+        403
+      )
+    );
 
     render(<LoginPage />);
 
-    await user.type(
-      screen.getByLabelText(/email/i),
-      "sean@example.com"
-    );
-
-    await user.type(
-      screen.getByLabelText(/password/i),
-      "Password123!"
-    );
+    const user =
+      await completeLoginForm();
 
     await user.click(
       screen.getByRole("button", {
-        name: /login/i,
+        name: "Login",
       })
     );
 
     expect(
       await screen.findByText(
-        /email address has not been verified/i
+        "Please verify your email address before logging in."
       )
     ).toBeInTheDocument();
   });
 
-  it("shows fallback error message when API does not return error text", async () => {
-    const user = userEvent.setup();
+  it("shows the fallback error when no API error is supplied", async () => {
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse({}, 500)
+    );
 
-    vi.mocked(global.fetch).mockResolvedValueOnce({
+    render(<LoginPage />);
+
+    const user =
+      await completeLoginForm();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Login",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Login failed. Please try again."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows the fallback error when the response is not valid JSON", async () => {
+    fetchMock.mockResolvedValueOnce({
       ok: false,
       status: 500,
-      json: async () => ({}),
-    } as Response);
+      json: vi
+        .fn()
+        .mockRejectedValue(
+          new Error("Invalid JSON")
+        ),
+    } as unknown as Response);
 
     render(<LoginPage />);
 
-    await user.type(
-      screen.getByLabelText(/email/i),
-      "sean@example.com"
-    );
-
-    await user.type(
-      screen.getByLabelText(/password/i),
-      "Password123!"
-    );
+    const user =
+      await completeLoginForm();
 
     await user.click(
       screen.getByRole("button", {
-        name: /login/i,
+        name: "Login",
       })
     );
 
     expect(
-      await screen.findByRole("alert")
+      await screen.findByText(
+        "Login failed. Please try again."
+      )
     ).toBeInTheDocument();
   });
 
-  it("shows network error when login API throws", async () => {
-    const user = userEvent.setup();
-
-    vi.mocked(global.fetch).mockRejectedValueOnce(
+  it("shows a connection error when fetch rejects", async () => {
+    fetchMock.mockRejectedValueOnce(
       new Error("Network unavailable")
     );
 
     render(<LoginPage />);
 
-    await user.type(
-      screen.getByLabelText(/email/i),
-      "sean@example.com"
-    );
-
-    await user.type(
-      screen.getByLabelText(/password/i),
-      "Password123!"
-    );
+    const user =
+      await completeLoginForm();
 
     await user.click(
       screen.getByRole("button", {
-        name: /login/i,
-      })
-    );
-
-    expect(
-      await screen.findByRole("alert")
-    ).toBeInTheDocument();
-  });
-
-  it("shows loading state while login request is processing", async () => {
-    const user = userEvent.setup();
-
-    let resolveRequest!: (
-      value: Response
-    ) => void;
-
-    const pendingRequest =
-      new Promise<Response>((resolve) => {
-        resolveRequest = resolve;
-      });
-
-    vi.mocked(global.fetch).mockReturnValueOnce(
-      pendingRequest
-    );
-
-    render(<LoginPage />);
-
-    await user.type(
-      screen.getByLabelText(/email/i),
-      "sean@example.com"
-    );
-
-    await user.type(
-      screen.getByLabelText(/password/i),
-      "Password123!"
-    );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: /login/i,
-      })
-    );
-
-    expect(
-      screen.getByRole("button")
-    ).toBeDisabled();
-
-    resolveRequest({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        success: true,
-      }),
-    } as Response);
-
-    await waitFor(() => {
-      expect(
-        global.fetch
-      ).toHaveBeenCalled();
-    });
-  });
-
-  it("prevents double submission while request is in progress", async () => {
-    const user = userEvent.setup();
-
-    let resolveRequest!: (
-      value: Response
-    ) => void;
-
-    const pendingRequest =
-      new Promise<Response>((resolve) => {
-        resolveRequest = resolve;
-      });
-
-    vi.mocked(global.fetch).mockReturnValueOnce(
-      pendingRequest
-    );
-
-    render(<LoginPage />);
-
-    await user.type(
-      screen.getByLabelText(/email/i),
-      "sean@example.com"
-    );
-
-    await user.type(
-      screen.getByLabelText(/password/i),
-      "Password123!"
-    );
-
-    const button =
-      screen.getByRole("button", {
-        name: /login/i,
-      });
-
-    await user.click(button);
-
-    expect(button).toBeDisabled();
-
-    resolveRequest({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        success: true,
-      }),
-    } as Response);
-
-    await waitFor(() => {
-      expect(
-        global.fetch
-      ).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it("trims email values before submission", async () => {
-    const user = userEvent.setup();
-
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        success: true,
-      }),
-    } as Response);
-
-    render(<LoginPage />);
-
-    await user.type(
-      screen.getByLabelText(/email/i),
-      "  sean@example.com  "
-    );
-
-    await user.type(
-      screen.getByLabelText(/password/i),
-      "Password123!"
-    );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: /login/i,
-      })
-    );
-
-    await waitFor(() => {
-      expect(
-        global.fetch
-      ).toHaveBeenCalled();
-    });
-  });
-
-  it("preserves entered email after failed login", async () => {
-    const user = userEvent.setup();
-
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      json: async () => ({
-        error: "Invalid credentials",
-      }),
-    } as Response);
-
-    render(<LoginPage />);
-
-    const emailInput =
-      screen.getByLabelText(/email/i);
-
-    await user.type(
-      emailInput,
-      "sean@example.com"
-    );
-
-    await user.type(
-      screen.getByLabelText(/password/i),
-      "wrong-password"
-    );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: /login/i,
+        name: "Login",
       })
     );
 
     expect(
       await screen.findByText(
-        /invalid credentials/i
+        "Unable to connect. Please try again."
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      replaceMock
+    ).not.toHaveBeenCalled();
+  });
+
+  it("shows the loading state while login is processing", async () => {
+    let resolveRequest!: (
+      response: Response
+    ) => void;
+
+    const pendingRequest =
+      new Promise<Response>(
+        (resolve) => {
+          resolveRequest = resolve;
+        }
+      );
+
+    fetchMock.mockReturnValueOnce(
+      pendingRequest
+    );
+
+    render(<LoginPage />);
+
+    const user =
+      await completeLoginForm();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Login",
+      })
+    );
+
+    const loadingButton =
+      screen.getByRole("button", {
+        name: "Logging in...",
+      });
+
+    expect(
+      loadingButton
+    ).toBeDisabled();
+
+    expect(
+      screen.getByLabelText("Email")
+    ).toBeDisabled();
+
+    expect(
+      screen.getByLabelText("Password")
+    ).toBeDisabled();
+
+    resolveRequest(
+      createJsonResponse({
+        success: true,
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        replaceMock
+      ).toHaveBeenCalledWith(
+        "/dashboard"
+      );
+    });
+  });
+
+  it("prevents duplicate submission while the request is pending", async () => {
+    let resolveRequest!: (
+      response: Response
+    ) => void;
+
+    const pendingRequest =
+      new Promise<Response>(
+        (resolve) => {
+          resolveRequest = resolve;
+        }
+      );
+
+    fetchMock.mockReturnValueOnce(
+      pendingRequest
+    );
+
+    render(<LoginPage />);
+
+    const user =
+      await completeLoginForm();
+
+    const loginButton =
+      screen.getByRole("button", {
+        name: "Login",
+      });
+
+    await user.click(loginButton);
+
+    const loadingButton =
+      screen.getByRole("button", {
+        name: "Logging in...",
+      });
+
+    expect(
+      loadingButton
+    ).toBeDisabled();
+
+    await user.click(loadingButton);
+
+    expect(fetchMock).toHaveBeenCalledTimes(
+      1
+    );
+
+    resolveRequest(
+      createJsonResponse({
+        success: true,
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        replaceMock
+      ).toHaveBeenCalledWith(
+        "/dashboard"
+      );
+    });
+  });
+
+  it("trims and lowercases the email before submission", async () => {
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse({
+        success: true,
+      })
+    );
+
+    render(<LoginPage />);
+
+    const user =
+      await completeLoginForm(
+        "  SEAN@EXAMPLE.COM  ",
+        "Password123!"
+      );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Login",
+      })
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/auth/login",
+        expect.objectContaining({
+          body: JSON.stringify({
+            email: "sean@example.com",
+            password: "Password123!",
+          }),
+        })
+      );
+    });
+  });
+
+  it("preserves the entered email after a failed login", async () => {
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse(
+        {
+          success: false,
+          error:
+            "Invalid email or password.",
+        },
+        401
+      )
+    );
+
+    render(<LoginPage />);
+
+    const emailInput =
+      screen.getByLabelText("Email");
+
+    const user =
+      await completeLoginForm(
+        "sean@example.com",
+        "wrong-password"
+      );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Login",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Invalid email or password."
       )
     ).toBeInTheDocument();
 

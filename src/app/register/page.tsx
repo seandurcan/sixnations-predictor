@@ -21,11 +21,10 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const passwordsMatch =
-    form.password === form.confirmPassword;
+  const passwordsMatch = form.password === form.confirmPassword;
 
   function isValidEmail(email: string) {
-    return /\S+@\S+\.\S+/.test(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
   function isValidMobile(mobile: string) {
@@ -86,16 +85,13 @@ export default function RegisterPage() {
     return "";
   }
 
-  async function handleSubmit(
-    e: React.FormEvent
-  ) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     setError("");
     setSuccess("");
 
-    const validationError =
-      validateForm();
+    const validationError = validateForm();
 
     if (validationError) {
       setError(validationError);
@@ -105,27 +101,18 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const response =
-        await fetch(
-          "/api/register",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify(form),
-          }
-        );
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
 
-      const result =
-        await response.json();
+      const result = await response.json();
 
       if (!response.ok) {
-        setError(
-          result.error ??
-            "Registration failed."
-        );
+        setError(result.error ?? "Registration failed.");
         return;
       }
 
@@ -142,9 +129,7 @@ export default function RegisterPage() {
         confirmPassword: "",
       });
     } catch {
-      setError(
-        "Unable to connect. Please try again."
-      );
+      setError("Unable to connect. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -156,6 +141,7 @@ export default function RegisterPage() {
         <form
           onSubmit={handleSubmit}
           className="space-y-4"
+          noValidate
         >
           <h1 className="text-3xl font-bold">
             Register
@@ -191,8 +177,7 @@ export default function RegisterPage() {
             onChange={(e) =>
               setForm({
                 ...form,
-                firstName:
-                  e.target.value,
+                firstName: e.target.value,
               })
             }
           />
@@ -204,22 +189,20 @@ export default function RegisterPage() {
             onChange={(e) =>
               setForm({
                 ...form,
-                lastName:
-                  e.target.value,
+                lastName: e.target.value,
               })
             }
           />
 
           <Input
-            type="email"
+            type="text"
             placeholder="Email"
             value={form.email}
             disabled={loading}
             onChange={(e) =>
               setForm({
                 ...form,
-                email:
-                  e.target.value,
+                email: e.target.value,
               })
             }
           />
@@ -231,8 +214,7 @@ export default function RegisterPage() {
             onChange={(e) =>
               setForm({
                 ...form,
-                mobile:
-                  e.target.value,
+                mobile: e.target.value,
               })
             }
           />
@@ -246,8 +228,7 @@ export default function RegisterPage() {
             onChange={(e) =>
               setForm({
                 ...form,
-                password:
-                  e.target.value,
+                password: e.target.value,
               })
             }
           />
@@ -259,30 +240,26 @@ export default function RegisterPage() {
             onChange={(e) =>
               setForm({
                 ...form,
-                confirmPassword:
-                  e.target.value,
+                confirmPassword: e.target.value,
               })
             }
           />
 
-          {form.confirmPassword &&
-            !passwordsMatch && (
-              <Alert
-                variant="warning"
-                title="Validation"
-              >
-                Passwords do not match.
-              </Alert>
-            )}
+          {form.confirmPassword && !passwordsMatch && (
+            <Alert
+              variant="warning"
+              title="Validation"
+            >
+              Passwords do not match.
+            </Alert>
+          )}
 
           <Button
             type="submit"
             fullWidth
             disabled={loading}
           >
-            {loading
-              ? "Registering..."
-              : "Register"}
+            {loading ? "Registering..." : "Register"}
           </Button>
         </form>
       </Card>

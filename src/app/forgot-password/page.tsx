@@ -89,9 +89,10 @@ export default function ForgotPasswordPage() {
     <main className="min-h-screen flex items-center justify-center p-6">
       <Card className="w-full max-w-md">
         <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
+  onSubmit={handleSubmit}
+  className="space-y-4"
+  noValidate
+>
           <h1 className="text-3xl font-bold">
             Forgot Password
           </h1>
@@ -121,7 +122,7 @@ export default function ForgotPasswordPage() {
           )}
 
           <Input
-            type="email"
+            type="text"
             placeholder="Email"
             value={email}
             disabled={loading}
