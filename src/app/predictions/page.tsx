@@ -11,20 +11,153 @@ import {
   formatIrishDate,
   formatIsoDate,
 } from "@/lib/formatIrishDate";
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+type User = {
+  firstName?: string | null;
+};
+
+type Team = {
+  name: string;
+  shortCode: string;
+};
+
+type Tournament = {
+  predictionLockAt?: string | null;
+};
+
+type Match = {
+  id: number;
+  round: number;
+  kickoffTime?: string | null;
+  completed: boolean;
+  homeTeam: Team;
+  awayTeam: Team;
+  tournament?: Tournament | null;
+};
+
+type PredictionMatch = {
+  kickoffTime?: string | null;
+  homeTeam: Team;
+  awayTeam: Team;
+};
+
+type Prediction = {
+  id: number;
+  matchId: number;
+  predictedHomeScore: number;
+  predictedAwayScore: number;
+  match: PredictionMatch;
+};
+
+type AuthResponse = {
+  authenticated?: boolean;
+  user?: User | null;
+};
+
+type SavePredictionResponse = {
+  success?: boolean;
+  error?: string;
+};
+
+type MatchStatus =
+  | "OPEN"
+  | "LOCKED"
+  | "COMPLETE";
+
+async function readJson<T>(
+  response: Response
+): Promise<T> {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new Error(
+      `Invalid JSON response from ${response.url || "API"}.`
+    );
+  }
+}
+
+function getKickoffTimestamp(
+  match: Match
+): number {
+  if (!match.kickoffTime) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  const timestamp = new Date(
+    match.kickoffTime
+  ).getTime();
+
+  return Number.isFinite(timestamp)
+    ? timestamp
+    : Number.MAX_SAFE_INTEGER;
+}
+
+function isMatchLocked(
+  match: Match
+): boolean {
+  if (match.completed) {
+    return true;
+  }
+
+  const predictionLockAt =
+    match.tournament?.predictionLockAt;
+
+  if (predictionLockAt) {
+    const lockTimestamp = new Date(
+      predictionLockAt
+    ).getTime();
+
+    if (Number.isFinite(lockTimestamp)) {
+      return lockTimestamp <= Date.now();
+    }
+  }
+
+  if (match.kickoffTime) {
+    const kickoffTimestamp = new Date(
+      match.kickoffTime
+    ).getTime();
+
+    if (Number.isFinite(kickoffTimestamp)) {
+      return kickoffTimestamp <= Date.now();
+    }
+  }
+
+  return false;
+}
+function getMatchStatus(
+  match: Match
+): MatchStatus {
+  if (match.completed) {
+    return "COMPLETE";
+  }
+
+  if (isMatchLocked(match)) {
+    return "LOCKED";
+  }
+
+  return "OPEN";
+}
 
 export default function PredictionsPage() {
   const [user, setUser] =
-    useState<any>(null);
+    useState<User | null>(null);
 
   const [matches, setMatches] =
-    useState<any[]>([]);
+    useState<Match[]>([]);
 
-  const [savedPredictions, setSavedPredictions] =
-    useState<any[]>([]);
+  const [
+    savedPredictions,
+    setSavedPredictions,
+  ] = useState<Prediction[]>([]);
 
-  const [currentMatchId, setCurrentMatchId] =
-    useState<number | null>(null);
+  const [
+    currentMatchId,
+    setCurrentMatchId,
+  ] = useState<number | null>(null);
 
   const [homeScore, setHomeScore] =
     useState("");
@@ -36,15 +169,14 @@ export default function PredictionsPage() {
     useState(false);
 
   const [
-    editingPredictionId,
-    setEditingPredictionId,
-  ] = useState<number | null>(null);
+    feedbackMessage,
+    setFeedbackMessage,
+  ] = useState("");
 
-  const [lockMessage, setLockMessage] =
-    useState("");
-
-  const [successMessage, setSuccessMessage] =
-    useState("");
+  const [
+    successMessage,
+    setSuccessMessage,
+  ] = useState("");
 
   const [isLocked, setIsLocked] =
     useState(false);
@@ -56,114 +188,205 @@ export default function PredictionsPage() {
     useState(false);
 
   useEffect(() => {
-    initialisePage();
+    let cancelled = false;
+
+    async function initialisePage() {
+      try {
+        const meResponse =
+          await fetch("/api/auth/me");
+
+        if (!meResponse.ok) {
+          window.location.href =
+            "/login";
+          return;
+        }
+
+        const me =
+          await readJson<AuthResponse>(
+            meResponse
+          );
+
+        if (!me.authenticated) {
+          window.location.href =
+            "/login";
+          return;
+        }
+
+        const matchesResponse =
+          await fetch("/api/matches");
+
+        if (!matchesResponse.ok) {
+          throw new Error(
+            `Matches request failed with status ${matchesResponse.status}.`
+          );
+        }
+
+        const matchesData =
+          await readJson<Match[]>(
+            matchesResponse
+          );
+
+        if (!Array.isArray(matchesData)) {
+          throw new Error(
+            "Matches API returned invalid data."
+          );
+        }
+
+        const predictionsResponse =
+          await fetch(
+            "/api/predictions/list"
+          );
+
+        if (!predictionsResponse.ok) {
+          throw new Error(
+            `Predictions request failed with status ${predictionsResponse.status}.`
+          );
+        }
+
+        const predictionsData =
+          await readJson<Prediction[]>(
+            predictionsResponse
+          );
+
+        if (
+          !Array.isArray(
+            predictionsData
+          )
+        ) {
+          throw new Error(
+            "Predictions API returned invalid data."
+          );
+        }
+
+        const sortedMatches = [
+          ...matchesData,
+        ].sort(
+          (first, second) =>
+            getKickoffTimestamp(
+              first
+            ) -
+            getKickoffTimestamp(
+              second
+            )
+        );
+
+        const predictedMatchIds =
+          new Set(
+            predictionsData.map(
+              (prediction) =>
+                prediction.matchId
+            )
+          );
+
+        const firstUnpredictedMatch =
+          sortedMatches.find(
+            (match) =>
+              !predictedMatchIds.has(
+                match.id
+              ) &&
+              !match.completed
+          );
+
+        const initialMatch =
+          firstUnpredictedMatch ??
+          sortedMatches[0] ??
+          null;
+
+        if (cancelled) {
+          return;
+        }
+
+        setUser(me.user ?? null);
+        setMatches(sortedMatches);
+        setSavedPredictions(
+          predictionsData
+        );
+
+        if (initialMatch) {
+          const initialPrediction =
+            predictionsData.find(
+              (prediction) =>
+                prediction.matchId ===
+                initialMatch.id
+            );
+
+          setCurrentMatchId(
+            initialMatch.id
+          );
+
+          setIsLocked(
+            isMatchLocked(initialMatch)
+          );
+
+          if (initialPrediction) {
+            setEditing(true);
+            setHomeScore(
+              String(
+                initialPrediction
+                  .predictedHomeScore
+              )
+            );
+            setAwayScore(
+              String(
+                initialPrediction
+                  .predictedAwayScore
+              )
+            );
+          }
+        }
+      } catch (error) {
+        console.error(
+          "Predictions page load failed:",
+          {
+            timestamp:
+              formatIsoDate(
+                new Date()
+              ),
+            error,
+          }
+        );
+
+        if (!cancelled) {
+          window.location.href =
+            "/login";
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void initialisePage();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  async function initialisePage() {
-    try {
-      const meResponse =
-        await fetch("/api/auth/me");
-
-      if (!meResponse.ok) {
-        window.location.href =
-          "/login";
-        return;
-      }
-
-      const me =
-        await meResponse.json();
-
-      if (!me.authenticated) {
-        window.location.href =
-          "/login";
-        return;
-      }
-
-      setUser(me.user);
-
-      const matchesResponse =
-        await fetch("/api/matches");
-
-      const matchesData =
-        await matchesResponse.json();
-
-      const sortedMatches =
-        [...matchesData].sort(
-          (a: any, b: any) =>
-            new Date(
-              a.kickoffTime
-            ).getTime() -
-            new Date(
-              b.kickoffTime
-            ).getTime()
-        );
-
-      const predictionsResponse =
-        await fetch(
-          "/api/predictions/list"
-        );
-
-      const predictionsData =
-        await predictionsResponse.json();
-
-      setMatches(sortedMatches);
-
-      setSavedPredictions(
-        predictionsData
-      );
-
-      const predictedMatchIds =
-        predictionsData.map(
-          (prediction: any) =>
-            prediction.matchId
-        );
-
-      const firstUnpredictedMatch =
-        sortedMatches.find(
-          (match: any) =>
-            !predictedMatchIds.includes(
-              match.id
-            ) &&
-            !match.completed
-        );
-
-      if (firstUnpredictedMatch) {
-        setCurrentMatchId(
-          firstUnpredictedMatch.id
-        );
-      } else if (
-        sortedMatches.length > 0
-      ) {
-        setCurrentMatchId(
-          sortedMatches[0].id
-        );
-      }
-
-      setLoading(false);
-    } catch (error) {
-      console.error(
-        "Predictions page load failed:",
-        {
-          timestamp:
-            formatIsoDate(
-              new Date()
-            ),
-          error,
-        }
-      );
-
-      window.location.href =
-        "/login";
-    }
-  }
-
-  async function refreshPredictions() {
+  async function refreshPredictions(): Promise<
+    Prediction[]
+  > {
     const response = await fetch(
       "/api/predictions/list"
     );
 
+    if (!response.ok) {
+      throw new Error(
+        `Predictions refresh failed with status ${response.status}.`
+      );
+    }
+
     const data =
-      await response.json();
+      await readJson<Prediction[]>(
+        response
+      );
+
+    if (!Array.isArray(data)) {
+      throw new Error(
+        "Predictions API returned invalid data."
+      );
+    }
 
     setSavedPredictions(data);
 
@@ -171,69 +394,42 @@ export default function PredictionsPage() {
   }
 
   function goToFirstUnpredictedMatch(
-    predictions: any[]
+    predictions: Prediction[]
   ) {
     const predictedMatchIds =
-      predictions.map(
-        (prediction: any) =>
-          prediction.matchId
+      new Set(
+        predictions.map(
+          (prediction) =>
+            prediction.matchId
+        )
       );
 
     const nextMatch = matches.find(
       (match) =>
-        !predictedMatchIds.includes(
+        !predictedMatchIds.has(
           match.id
         ) &&
         !match.completed
     );
 
-    if (nextMatch) {
-      setCurrentMatchId(
-        nextMatch.id
-      );
+    if (!nextMatch) {
+      return;
     }
+
+    setCurrentMatchId(nextMatch.id);
+    setIsLocked(
+      isMatchLocked(nextMatch)
+    );
   }
 
   function getPredictionForMatch(
     matchId: number
-  ) {
+  ): Prediction | undefined {
     return savedPredictions.find(
       (prediction) =>
-        prediction.matchId === matchId
+        prediction.matchId ===
+        matchId
     );
-  }
-
-  function isMatchLocked(
-    match: any
-  ) {
-    if (match.completed) {
-      return true;
-    }
-
-    if (!match.kickoffTime) {
-      return false;
-    }
-
-    return (
-      new Date(
-        match.kickoffTime
-      ).getTime() <=
-      new Date().getTime()
-    );
-  }
-
-  function getMatchStatus(
-    match: any
-  ) {
-    if (match.completed) {
-      return "COMPLETE";
-    }
-
-    if (isMatchLocked(match)) {
-      return "LOCKED";
-    }
-
-    return "OPEN";
   }
 
   function selectMatch(
@@ -243,37 +439,47 @@ export default function PredictionsPage() {
       (item) => item.id === matchId
     );
 
+    if (!match) {
+      setFeedbackMessage(
+        "The selected fixture could not be found."
+      );
+      return;
+    }
+
     const existingPrediction =
       getPredictionForMatch(matchId);
 
     setCurrentMatchId(matchId);
-    setLockMessage("");
+    setFeedbackMessage("");
     setSuccessMessage("");
     setIsLocked(
-      match ? isMatchLocked(match) : false
+      isMatchLocked(match)
     );
 
     if (existingPrediction) {
       setEditing(true);
-      setEditingPredictionId(
-        existingPrediction.id
-      );
       setHomeScore(
-        existingPrediction.predictedHomeScore.toString()
+        String(
+          existingPrediction
+            .predictedHomeScore
+        )
       );
       setAwayScore(
-        existingPrediction.predictedAwayScore.toString()
+        String(
+          existingPrediction
+            .predictedAwayScore
+        )
       );
-    } else {
-      setEditing(false);
-      setEditingPredictionId(null);
-      setHomeScore("");
-      setAwayScore("");
+      return;
     }
+
+    setEditing(false);
+    setHomeScore("");
+    setAwayScore("");
   }
 
   function editPrediction(
-    prediction: any
+    prediction: Prediction
   ) {
     selectMatch(
       prediction.matchId
@@ -281,7 +487,10 @@ export default function PredictionsPage() {
   }
 
   async function savePrediction() {
-    if (!currentMatchId) {
+    if (
+      currentMatchId === null ||
+      saving
+    ) {
       return;
     }
 
@@ -289,13 +498,35 @@ export default function PredictionsPage() {
       homeScore.trim() === "" ||
       awayScore.trim() === ""
     ) {
-      setLockMessage(
+      setFeedbackMessage(
         "Enter both scores before saving your prediction."
       );
       return;
     }
 
-    setLockMessage("");
+    const parsedHomeScore =
+      Number(homeScore);
+
+    const parsedAwayScore =
+      Number(awayScore);
+
+    if (
+      !Number.isInteger(
+        parsedHomeScore
+      ) ||
+      !Number.isInteger(
+        parsedAwayScore
+      ) ||
+      parsedHomeScore < 0 ||
+      parsedAwayScore < 0
+    ) {
+      setFeedbackMessage(
+        "Scores must be whole numbers of zero or greater."
+      );
+      return;
+    }
+
+    setFeedbackMessage("");
     setSuccessMessage("");
     setSaving(true);
 
@@ -311,27 +542,30 @@ export default function PredictionsPage() {
           body: JSON.stringify({
             matchId: currentMatchId,
             homeScore:
-              Number(homeScore),
+              parsedHomeScore,
             awayScore:
-              Number(awayScore),
+              parsedAwayScore,
           }),
         }
       );
 
       const result =
-        await response.json();
+        await readJson<SavePredictionResponse>(
+          response
+        );
 
-      if (!result.success) {
-        if (
-          response.status === 403
-        ) {
+      if (
+        !response.ok ||
+        result.success !== true
+      ) {
+        if (response.status === 403) {
           setIsLocked(true);
 
-          setLockMessage(
-            "This fixture has already kicked off. Predictions can no longer be edited."
-          );
+          setFeedbackMessage(
+  "This fixture has already kicked off. Predictions can no longer be edited."
+);
         } else {
-          setLockMessage(
+          setFeedbackMessage(
             result.error ??
               "Failed to save prediction."
           );
@@ -340,11 +574,13 @@ export default function PredictionsPage() {
         return;
       }
 
+      const wasEditing = editing;
+
       const refreshedPredictions =
         await refreshPredictions();
 
       setSuccessMessage(
-        editing
+        wasEditing
           ? "Prediction updated successfully."
           : "Prediction saved successfully."
       );
@@ -352,7 +588,6 @@ export default function PredictionsPage() {
       setHomeScore("");
       setAwayScore("");
       setEditing(false);
-      setEditingPredictionId(null);
 
       goToFirstUnpredictedMatch(
         refreshedPredictions
@@ -369,7 +604,7 @@ export default function PredictionsPage() {
         }
       );
 
-      setLockMessage(
+      setFeedbackMessage(
         "Unable to save prediction. Please try again."
       );
     } finally {
@@ -468,9 +703,15 @@ export default function PredictionsPage() {
           </p>
 
           <p className="mt-2 text-lg font-bold text-[var(--brand-navy)]">
-            {currentMatch.homeTeam.shortCode}
+            {
+              currentMatch.homeTeam
+                .shortCode
+            }
             {" v "}
-            {currentMatch.awayTeam.shortCode}
+            {
+              currentMatch.awayTeam
+                .shortCode
+            }
           </p>
         </Card>
 
@@ -508,13 +749,17 @@ export default function PredictionsPage() {
         </Alert>
       )}
 
-      {lockMessage && (
+      {feedbackMessage && (
         <Alert
           variant="error"
-          title="🔒 Prediction Locked"
+          title={
+            fixtureLocked
+              ? "🔒 Prediction Locked"
+              : "Prediction Error"
+          }
           className="mb-4"
         >
-          {lockMessage}
+          {feedbackMessage}
         </Alert>
       )}
 
@@ -526,11 +771,13 @@ export default function PredictionsPage() {
           >
             <p className="font-semibold text-[var(--brand-navy)]">
               {
-                existingPrediction.predictedHomeScore
+                existingPrediction
+                  .predictedHomeScore
               }
               {" - "}
               {
-                existingPrediction.predictedAwayScore
+                existingPrediction
+                  .predictedAwayScore
               }
             </p>
           </Card>
@@ -565,9 +812,15 @@ export default function PredictionsPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-bold text-[var(--brand-navy)]">
-                        {match.homeTeam.shortCode}
+                        {
+                          match.homeTeam
+                            .shortCode
+                        }
                         {" v "}
-                        {match.awayTeam.shortCode}
+                        {
+                          match.awayTeam
+                            .shortCode
+                        }
                       </p>
 
                       <p className="mt-1 text-sm text-[var(--brand-muted)]">
@@ -614,9 +867,11 @@ export default function PredictionsPage() {
                 </p>
 
                 <p className="mt-1 font-bold text-[var(--brand-navy)]">
-                  {formatIrishDate(
-                    currentMatch.kickoffTime
-                  )}
+                  {currentMatch.kickoffTime
+                    ? formatIrishDate(
+                        currentMatch.kickoffTime
+                      )
+                    : "Kick-off time unavailable"}
                 </p>
 
                 <p className="mt-2 text-sm text-[var(--brand-muted)]">
@@ -626,26 +881,31 @@ export default function PredictionsPage() {
               </div>
 
               {!fixtureLocked && (
-                <CountdownTimer
-                  targetDate={
-                    currentMatch.kickoffTime
-                  }
-                  label="Time until predictions lock"
-                />
-              )}
+  <CountdownTimer
+    targetDate={
+      currentMatch.tournament
+        ?.predictionLockAt ??
+      currentMatch.kickoffTime ??
+      ""
+    }
+    label="Time until predictions lock"
+  />
+)}
 
               {fixtureLocked && (
                 <Alert
                   variant="warning"
-                  title="Fixture Locked"
+                  title="Tournament Locked"
                 >
-                  Predictions for this fixture are no longer editable.
+                  Predictions are locked because the tournament has started.
                 </Alert>
               )}
 
               <div className="grid gap-4 md:grid-cols-2">
                 <Input
                   type="number"
+                  min={0}
+                  step={1}
                   disabled={fixtureLocked}
                   placeholder={`${currentMatch.homeTeam.name} Score`}
                   value={homeScore}
@@ -658,6 +918,8 @@ export default function PredictionsPage() {
 
                 <Input
                   type="number"
+                  min={0}
+                  step={1}
                   disabled={fixtureLocked}
                   placeholder={`${currentMatch.awayTeam.name} Score`}
                   value={awayScore}
@@ -688,7 +950,8 @@ export default function PredictionsPage() {
           </Card>
 
           <Card title="Your Predictions">
-            {savedPredictions.length === 0 ? (
+            {savedPredictions.length ===
+            0 ? (
               <p className="text-[var(--brand-muted)]">
                 You have not saved any predictions yet.
               </p>
@@ -697,9 +960,7 @@ export default function PredictionsPage() {
                 {savedPredictions.map(
                   (prediction) => (
                     <button
-                      key={
-                        prediction.id
-                      }
+                      key={prediction.id}
                       type="button"
                       onClick={() =>
                         editPrediction(
@@ -716,11 +977,13 @@ export default function PredictionsPage() {
                         }
                         {" "}
                         {
-                          prediction.predictedHomeScore
+                          prediction
+                            .predictedHomeScore
                         }
                         {" - "}
                         {
-                          prediction.predictedAwayScore
+                          prediction
+                            .predictedAwayScore
                         }
                         {" "}
                         {
@@ -730,10 +993,12 @@ export default function PredictionsPage() {
                         }
                       </div>
 
-                      {prediction.match?.kickoffTime && (
+                      {prediction.match
+                        ?.kickoffTime && (
                         <p className="mt-1 text-sm text-[var(--brand-muted)]">
                           {formatIrishDate(
-                            prediction.match.kickoffTime
+                            prediction.match
+                              .kickoffTime
                           )}
                         </p>
                       )}
