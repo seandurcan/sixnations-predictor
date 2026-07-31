@@ -1,0 +1,75 @@
+
+> sixnations-predictor@0.1.0 test
+> vitest
+
+
+[1m[30m[44m DEV [49m[39m[22m [34mv4.1.10 [39m[90mC:/Projects/sixnations-predictor[39m
+
+ [32m✓[39m src/app/leaderboard/page.test.tsx [2m([22m[2m25 tests[22m[2m)[22m[33m 2731[2mms[22m[39m
+ [32m✓[39m src/app/admin/page.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[33m 3240[2mms[22m[39m
+     [33m[2m✓[22m[39m shows saving state while result save is processing [33m 381[2mms[22m[39m
+     [33m[2m✓[22m[39m shows fallback error message when save result fails without API error text [33m 348[2mms[22m[39m
+     [33m[2m✓[22m[39m redirects to login when save result returns 401 [33m 331[2mms[22m[39m
+ [32m✓[39m src/app/register/page.test.tsx [2m([22m[2m30 tests[22m[2m)[22m[33m 3757[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a warning when passwords do not match [33m 538[2mms[22m[39m
+ [32m✓[39m src/app/forgot-password/page.test.tsx [2m([22m[2m13 tests[22m[2m)[22m[33m 4157[2mms[22m[39m
+     [33m[2m✓[22m[39m shows validation error for invalid email format [33m 318[2mms[22m[39m
+     [33m[2m✓[22m[39m shows validation error when email is missing @ symbol [33m 412[2mms[22m[39m
+     [33m[2m✓[22m[39m shows validation error when email has no domain extension [33m 351[2mms[22m[39m
+     [33m[2m✓[22m[39m accepts valid email addresses [33m 395[2mms[22m[39m
+     [33m[2m✓[22m[39m shows loading state while request is processing [33m 409[2mms[22m[39m
+     [33m[2m✓[22m[39m shows success alert when reset link is sent [33m 352[2mms[22m[39m
+     [33m[2m✓[22m[39m shows API error when request fails [33m 347[2mms[22m[39m
+     [33m[2m✓[22m[39m shows fallback error when API returns no message [33m 380[2mms[22m[39m
+     [33m[2m✓[22m[39m shows connection error when request throws [33m 334[2mms[22m[39m
+     [33m[2m✓[22m[39m submits the correct payload [33m 333[2mms[22m[39m
+ [32m✓[39m src/app/predictions/page.test.tsx [2m([22m[2m36 tests[22m[2m)[22m[33m 5586[2mms[22m[39m
+     [33m[2m✓[22m[39m updates an existing prediction successfully [33m 523[2mms[22m[39m
+     [33m[2m✓[22m[39m allows user interaction by selecting a fixture, entering scores, and saving [33m 410[2mms[22m[39m
+     [33m[2m✓[22m[39m refreshes prediction data after saving a prediction [33m 302[2mms[22m[39m
+ [32m✓[39m src/app/login/page.test.tsx [2m([22m[2m18 tests[22m[2m)[22m[33m 1980[2mms[22m[39m
+     [33m[2m✓[22m[39m allows an email address to be entered [33m 327[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/page.test.tsx [2m([22m[2m30 tests[22m[2m)[22m[33m 1831[2mms[22m[39m
+ [32m✓[39m src/app/admin/audit/page.test.tsx [2m([22m[2m19 tests[22m[2m)[22m[33m 1011[2mms[22m[39m
+ [32m✓[39m src/app/page.test.tsx [2m([22m[2m20 tests[22m[2m)[22m[33m 1872[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the landing page hero immediately [33m 485[2mms[22m[39m
+ [32m✓[39m src/app/reset-password/page.test.tsx [2m([22m[2m23 tests[22m[2m)[22m[33m 9940[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a validation error when the password is missing [33m 384[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a password too short [33m 443[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a password without an uppercase letter [33m 619[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a password without a lowercase letter [33m 588[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a password without a number [33m 492[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a password without a special character [33m 522[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a validation error when confirm password is missing [33m 318[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a warning while the passwords do not match [33m 521[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a validation error on submit when passwords do not match [33m 617[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a loading state while the reset request is processing [33m 618[2mms[22m[39m
+     [33m[2m✓[22m[39m submits a valid reset-password request successfully [33m 519[2mms[22m[39m
+     [33m[2m✓[22m[39m shows the API error when the reset request fails [33m 530[2mms[22m[39m
+     [33m[2m✓[22m[39m shows the token error returned by the API [33m 606[2mms[22m[39m
+     [33m[2m✓[22m[39m shows the token error returned by the API [33m 552[2mms[22m[39m
+     [33m[2m✓[22m[39m shows the token error returned by the API [33m 583[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a fallback error when the API returns no error message [33m 570[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a connection error when the request throws [33m 595[2mms[22m[39m
+ [32m✓[39m src/app/admin/dashboard/page.test.tsx [2m([22m[2m18 tests[22m[2m)[22m[33m 972[2mms[22m[39m
+ [32m✓[39m src/app/api/admin/dashboard/route.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 53[2mms[22m[39m
+ [32m✓[39m src/app/api/admin/results/route.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 52[2mms[22m[39m
+ [32m✓[39m src/app/verify-email/page.test.tsx [2m([22m[2m13 tests[22m[2m)[22m[33m 724[2mms[22m[39m
+ [32m✓[39m src/app/api/admin/audit/route.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 44[2mms[22m[39m
+ [32m✓[39m src/app/api/predictions/route.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32m✓[39m src/app/api/leaderboard/route.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m src/app/api/auth/login/route.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m src/app/api/predictions/list/route.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m src/app/api/admin/matches/route.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m src/app/api/auth/me/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/app/api/matches/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m22 passed[39m[22m[90m (22)[39m
+[2m      Tests [22m [1m[32m347 passed[39m[22m[90m (347)[39m
+[2m   Start at [22m 01:17:25
+[2m   Duration [22m 24.82s[2m (transform 3.05s, setup 14.75s, import 5.83s, tests 38.14s, environment 48.66s)[22m
+
+[1m[30m[42m PASS [49m[39m[22m [32mWaiting for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+[31mCancelling test run. Press CTRL+c again to exit forcefully.
+[39m

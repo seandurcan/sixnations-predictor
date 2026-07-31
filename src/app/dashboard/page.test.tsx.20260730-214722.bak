@@ -464,7 +464,7 @@ describe("DashboardPage", () => {
     render(<DashboardPage />);
 
     expect(
-      await screen.findByText(/Welcome Sean.*Ranked #3 of 3 players/)
+      await screen.findByText("Welcome Sean · Ranked #3 of 3 players")
     ).toBeInTheDocument();
   });
 
@@ -502,7 +502,7 @@ describe("DashboardPage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText((content) => content.trim().startsWith(String.fromCharCode(0x2191)))
+      screen.getByText("↑ 2")
     ).toBeInTheDocument();
 
     expect(
@@ -526,7 +526,7 @@ describe("DashboardPage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getAllByText("3")[0]
+      screen.getByText("3")
     ).toBeInTheDocument();
 
     expect(
@@ -550,7 +550,7 @@ describe("DashboardPage", () => {
     render(<DashboardPage />);
 
     expect(
-      await screen.findByText((content) => content.trim().startsWith(String.fromCharCode(0x2193)))
+      await screen.findByText("↓ 2")
     ).toBeInTheDocument();
   });
 
@@ -562,7 +562,7 @@ describe("DashboardPage", () => {
     render(<DashboardPage />);
 
     expect(
-      await screen.findByText((content) => content.trim() === String.fromCharCode(0x2192))
+      await screen.findByText("→")
     ).toBeInTheDocument();
   });
 

@@ -161,11 +161,11 @@ describe("HomePage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getAllByText(/Analyse\. Predict\./i)[0]
+      screen.getByText(/Analyse\. Predict\./i)
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText("Win.", { selector: "span" })
+      screen.getByText(/Win\./i)
     ).toBeInTheDocument();
 
     expect(
@@ -221,7 +221,7 @@ describe("HomePage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText("29 Jan 2027, 14:15 GMT")
+      screen.getByText(/14:15/i)
     ).toBeInTheDocument();
 
     expect(
@@ -370,7 +370,9 @@ describe("HomePage", () => {
     render(<HomePage />);
 
     await user.click(
-      screen.getAllByRole("button", { name: "Login" })[0]
+      screen.getByRole("button", {
+        name: "Login",
+      })
     );
 
     expect(window.location.href).toBe("/login");
@@ -559,12 +561,8 @@ describe("HomePage", () => {
 
     render(<HomePage />);
 
-    const footerBranding = await screen.findAllByText(
-      /Analyse\. Predict\. Win\./i
-    );
-
     expect(
-      footerBranding[footerBranding.length - 1]
+      await screen.findByText("Predict. Compete. Climb the leaderboard.")
     ).toBeInTheDocument();
 
     expect(

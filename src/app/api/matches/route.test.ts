@@ -25,6 +25,11 @@ const mockMatches = [
     round: 1,
     kickoffTime: "2027-01-29T14:15:00.000Z",
     completed: false,
+    tournament: {
+      id: 1,
+      predictionLockAt:
+        "2027-01-29T14:15:00.000Z",
+    },
     homeTeam: {
       name: "Ireland",
       shortCode: "IRE",
@@ -65,6 +70,12 @@ describe("GET /api/matches", () => {
       include: {
         homeTeam: true,
         awayTeam: true,
+        tournament: {
+          select: {
+            id: true,
+            predictionLockAt: true,
+          },
+        },
       },
     });
   });

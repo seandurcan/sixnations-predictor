@@ -4,11 +4,12 @@ import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PasswordInput from "@/components/ui/PasswordInput";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [token, setToken] = useState("");
   const [password, setPassword] = useState("");
@@ -16,12 +17,10 @@ export default function ResetPasswordPage() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const urlToken = searchParams.get("token");
-
     if (urlToken) {
       setToken(urlToken);
     }
@@ -41,7 +40,7 @@ export default function ResetPasswordPage() {
 
   function validateForm() {
     if (!token) {
-      return "Reset token is missing.";
+      return "Reset token is missing or invalid.";
     }
 
     if (!password) {
@@ -93,7 +92,7 @@ export default function ResetPasswordPage() {
 
       const result = await response.json();
 
-      if (!result.success) {
+      if (!response.ok || !result.success) {
         setError(result.error ?? "Password reset failed.");
         return;
       }
@@ -101,8 +100,8 @@ export default function ResetPasswordPage() {
       setSuccess("Password updated successfully. Redirecting to login...");
 
       setTimeout(() => {
-        window.location.href = "/login";
-      }, 2000);
+        router.push("/login");
+      }, 1500);
     } catch {
       setError("Unable to connect. Please try again.");
     } finally {
@@ -111,61 +110,82 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <Card className="w-full max-w-md">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <h1 className="text-3xl font-bold">
-            Reset Password
-          </h1>
+    <Card className="w-full max-w-md">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <h1 className="text-3xl font-bold">Reset Password</h1>
 
-          <p className="text-sm text-slate-600">
-            Passwords must be at least 8 characters and include
-            uppercase, lowercase, a number, and a special character.
-          </p>
+        <p className="text-sm text-slate-600">
+          Passwords must be at least 8 characters and include uppercase, lowercase, a number, and a special character.
+        </p>
 
-          {success && (
-            <Alert variant="success" title="Success">
-              {success}
-            </Alert>
-          )}
+        {!token && (
+          <Alert variant="error" title="Missing Token">
+            Invalid or missing reset token. Please check the link from your email.
+          </Alert>
+        )}
 
-          {error && (
-            <Alert variant="error" title="Reset Failed">
-              {error}
-            </Alert>
-          )}
+        {success && (
+          <Alert variant="success" title="Success">
+            {success}
+          </Alert>
+        )}
 
+        {error && (
+          <Alert variant="error" title="Reset Failed">
+            {error}
+          </Alert>
+        )}
+
+        <div>
           <PasswordInput
+            aria-label="New Password"
             placeholder="New Password"
             value={password}
-            disabled={loading}
+            disabled={loading || !token}
             showStrength
             showCriteria
             onChange={(e) => setPassword(e.target.value)}
           />
+        </div>
 
+        <div>
           <PasswordInput
+            aria-label="Confirm Password"
             placeholder="Confirm Password"
             value={confirmPassword}
-            disabled={loading}
+            disabled={loading || !token}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
+        </div>
 
-          {confirmPassword && !passwordsMatch && (
-            <Alert variant="warning" title="Validation">
-              Passwords do not match.
-            </Alert>
-          )}
+        {confirmPassword && !passwordsMatch && (
+          <Alert variant="warning" title="Validation">
+            Passwords do not match.
+          </Alert>
+        )}
 
-          <Button
-            type="submit"
-            fullWidth
-            disabled={loading}
-          >
-            {loading ? "Updating..." : "Reset Password"}
-          </Button>
-        </form>
-      </Card>
+        <Button
+          type="submit"
+          fullWidth
+          disabled={loading || !token}
+        >
+          {loading ? "Updating..." : "Reset Password"}
+        </Button>
+      </form>
+    </Card>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <main className="min-h-screen flex items-center justify-center p-6">
+      <Suspense fallback={
+        <Card className="w-full max-w-md p-6 text-center text-slate-500">
+          Loading reset form...
+        </Card>
+      }>
+        <ResetPasswordForm />
+      </Suspense>
     </main>
   );
 }

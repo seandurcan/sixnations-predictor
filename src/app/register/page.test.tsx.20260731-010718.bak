@@ -1,0 +1,2331 @@
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import ResetPasswordPage from "./page";
+
+let mockToken: string | null = "valid-token";
+
+const mockPush = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => ({
+    get: (key: string) => {
+      if (key === "token") {
+        return mockToken;
+      }
+
+      return null;
+    },
+  }),
+  useRouter: () => ({
+    push: mockPush,
+    replace: mockPush,
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+}));
+
+describe("ResetPasswordPage", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+
+    mockToken = "valid-token";
+
+    global.fetch = vi.fn();
+
+    Object.defineProperty(window, "location", {
+      value: {
+        href: "",
+      },
+      writable: true,
+    });
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.useRealTimers();
+  });
+
+  it("renders the reset password form", () => {
+    render(<ResetPasswordPage />);
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Reset Password",
+      })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("New Password")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("Confirm Password")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation error when reset token is missing", async () => {
+    const user = userEvent.setup();
+
+    mockToken = null;
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText("Reset token is missing.")
+    ).toBeInTheDocument();
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when reset token is empty string", async () => {
+    const user = userEvent.setup();
+
+    mockToken = "";
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText("Reset token is missing.")
+    ).toBeInTheDocument();
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when password is missing", async () => {
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText("Password is required.")
+    ).toBeInTheDocument();
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when password is too short", async () => {
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Pass1!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Pass1!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+      )
+    ).toBeInTheDocument();
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when password has no uppercase letter", async () => {
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+      )
+    ).toBeInTheDocument();
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when password has no lowercase letter", async () => {
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "PASSWORD123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "PASSWORD123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+      )
+    ).toBeInTheDocument();
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when password has no number", async () => {
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+      )
+    ).toBeInTheDocument();
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when password has no special character", async () => {
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+      )
+    ).toBeInTheDocument();
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when confirm password is missing", async () => {
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText("Please confirm your password.")
+    ).toBeInTheDocument();
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("shows validation warning when passwords do not match", async () => {
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Different123!"
+    );
+
+    expect(
+      await screen.findByText("Passwords do not match.")
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation error on submit when passwords do not match", async () => {
+  const user = userEvent.setup();
+
+  render(<ResetPasswordPage />);
+
+  await user.type(
+    screen.getByPlaceholderText("New Password"),
+    "Password123!"
+  );
+
+  await user.type(
+    screen.getByPlaceholderText("Confirm Password"),
+    "Different123!"
+  );
+
+  await user.click(
+    screen.getByRole("button", {
+      name: "Reset Password",
+    })
+  );
+
+  expect(
+    await screen.findAllByText("Passwords do not match.")
+  ).toHaveLength(2);
+
+  expect(global.fetch).not.toHaveBeenCalled();
+});
+
+  it("shows password criteria and strength meter for new password", async () => {
+  const user = userEvent.setup();
+
+  render(<ResetPasswordPage />);
+
+  await user.type(
+    screen.getByPlaceholderText("New Password"),
+    "Password123!"
+  );
+
+  expect(
+    screen.getAllByText("Password strength:")[0]
+  ).toBeInTheDocument();
+
+  expect(
+    screen.getAllByText("Strong")[0]
+  ).toBeInTheDocument();
+
+  expect(
+    screen.getByText((content) =>
+      content.includes("At least 8 characters")
+    )
+  ).toBeInTheDocument();
+
+  expect(
+    screen.getByText((content) =>
+      content.includes("At least one uppercase letter")
+    )
+  ).toBeInTheDocument();
+
+  expect(
+    screen.getByText((content) =>
+      content.includes("At least one lowercase letter")
+    )
+  ).toBeInTheDocument();
+
+  expect(
+    screen.getByText((content) =>
+      content.includes("At least one number")
+    )
+  ).toBeInTheDocument();
+
+  expect(
+    screen.getByText((content) =>
+      content.includes("At least one special character")
+    )
+  ).toBeInTheDocument();
+});
+
+
+  it("toggles visibility for new password field", async () => {
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    const passwordInput =
+      screen.getByPlaceholderText("New Password");
+
+    expect(passwordInput).toHaveAttribute(
+      "type",
+      "password"
+    );
+
+    const showButtons = screen.getAllByRole("button", {
+      name: "Show",
+    });
+
+    await user.click(showButtons[0]);
+
+    expect(passwordInput).toHaveAttribute(
+      "type",
+      "text"
+    );
+
+    await user.click(
+      screen.getAllByRole("button", {
+        name: "Hide",
+      })[0]
+    );
+
+    expect(passwordInput).toHaveAttribute(
+      "type",
+      "password"
+    );
+  });
+
+  it("toggles visibility for confirm password field", async () => {
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    const confirmPasswordInput =
+      screen.getByPlaceholderText("Confirm Password");
+
+    expect(confirmPasswordInput).toHaveAttribute(
+      "type",
+      "password"
+    );
+
+    const showButtons = screen.getAllByRole("button", {
+      name: "Show",
+    });
+
+    await user.click(showButtons[1]);
+
+    expect(confirmPasswordInput).toHaveAttribute(
+      "type",
+      "text"
+    );
+
+    await user.click(
+      screen.getAllByRole("button", {
+        name: "Hide",
+      })[1]
+    );
+
+    expect(confirmPasswordInput).toHaveAttribute(
+      "type",
+      "password"
+    );
+  });
+
+  it("shows loading state while reset request is processing", async () => {
+    const user = userEvent.setup();
+
+    let resolveFetch!: (value: Response) => void;
+
+    const fetchPromise = new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    });
+
+    vi.mocked(global.fetch).mockReturnValueOnce(fetchPromise);
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      screen.getByRole("button", {
+        name: "Updating...",
+      })
+    ).toBeDisabled();
+
+    resolveFetch({
+      json: async () => ({
+        success: true,
+      }),
+    } as Response);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Password updated successfully. Redirecting to login..."
+        )
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("submits valid reset password request successfully", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      json: async () => ({
+        success: true,
+      }),
+    } as Response);
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/reset-password",
+      expect.objectContaining({
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: "valid-token",
+          password: "Password123!",
+          confirmPassword: "Password123!",
+        }),
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Password updated successfully. Redirecting to login..."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows API error when reset request fails", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      json: async () => ({
+        success: false,
+        error: "Password reset failed.",
+      }),
+    } as Response);
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText("Password reset failed.")
+    ).toBeInTheDocument();
+  });
+
+  it("shows expired token error when API reports expired reset token", async () => {
+    const user = userEvent.setup();
+
+    mockToken = "expired-token";
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      json: async () => ({
+        success: false,
+        error: "Reset token has expired.",
+      }),
+    } as Response);
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/reset-password",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          token: "expired-token",
+          password: "Password123!",
+          confirmPassword: "Password123!",
+        }),
+      })
+    );
+
+    expect(
+      await screen.findByText("Reset token has expired.")
+    ).toBeInTheDocument();
+  });
+
+  it("shows invalid or expired token message when API returns combined token error", async () => {
+    const user = userEvent.setup();
+
+    mockToken = "expired-token";
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      json: async () => ({
+        success: false,
+        error: "Invalid or expired reset token.",
+      }),
+    } as Response);
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/reset-password",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          token: "expired-token",
+          password: "Password123!",
+          confirmPassword: "Password123!",
+        }),
+      })
+    );
+
+    expect(
+      await screen.findByText("Invalid or expired reset token.")
+    ).toBeInTheDocument();
+  });
+
+  it("shows token expiration error when API reports token expiration explicitly", async () => {
+    const user = userEvent.setup();
+
+    mockToken = "token-expired-at-server";
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      json: async () => ({
+        success: false,
+        error: "Token expiration time has passed.",
+      }),
+    } as Response);
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/reset-password",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          token: "token-expired-at-server",
+          password: "Password123!",
+          confirmPassword: "Password123!",
+        }),
+      })
+    );
+
+    expect(
+      await screen.findByText("Token expiration time has passed.")
+    ).toBeInTheDocument();
+  });
+
+  it("shows fallback error when API returns no error message", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      json: async () => ({
+        success: false,
+      }),
+    } as Response);
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText("Password reset failed.")
+    ).toBeInTheDocument();
+  });
+
+  it("shows connection error when request throws", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(global.fetch).mockRejectedValueOnce(
+      new Error("Network error")
+    );
+
+    render(<ResetPasswordPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("New Password"),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Confirm Password"),
+      "Password123!"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Reset Password",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Unable to connect. Please try again."
+      )
+    ).toBeInTheDocument();
+  });
+});
+Document
+This are the results of a test: npm test -- --run src/app/reset-password/page.test.tsx
+
+Provide revised code.
+
+
+Iâ€™ll use the attached code as the source, identify the actual defects, and return a corrected replacement.
+Document
+
+The corrected code did not come through with your message. I checked the attached files, and the newest available items are still the earlier reset-password test files; there is no new register code attached. 
+
+
+Paste the correct code directly into your next message or attach the file again.
+Document
+Correct this code
+
+Worked for 56s
+
+Analyzed
+from pathlib import Path
+
+code = r'''import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+import RegisterPage from "./page";
+
+type RegistrationForm = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
+  password: string;
+  confirmPassword: string;
+};
+
+const fetchMock = vi.fn<typeof fetch>();
+
+const VALID_FORM: RegistrationForm = {
+  firstName: "Sean",
+  lastName: "Durcan",
+  email: "sean@example.com",
+  mobile: "0871234567",
+  password: "Password123!",
+  confirmPassword: "Password123!",
+};
+
+const SUCCESS_MESSAGE =
+  "Registration successful. Please verify your email before logging in.";
+
+const PASSWORD_REQUIREMENTS_MESSAGE =
+  "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+
+function createJsonResponse(
+  body: unknown,
+  status = 200
+): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: vi.fn().mockResolvedValue(body),
+  } as unknown as Response;
+}
+
+function setField(
+  placeholder: string,
+  value: string
+) {
+  fireEvent.change(
+    screen.getByPlaceholderText(placeholder),
+    {
+      target: { value },
+    }
+  );
+}
+
+function fillForm(
+  overrides: Partial<RegistrationForm> = {}
+) {
+  const form = {
+    ...VALID_FORM,
+    ...overrides,
+  };
+
+  setField("First Name", form.firstName);
+  setField("Last Name", form.lastName);
+  setField("Email", form.email);
+  setField("Mobile", form.mobile);
+  setField("Password", form.password);
+  setField(
+    "Confirm Password",
+    form.confirmPassword
+  );
+}
+
+async function submitForm() {
+  const user = userEvent.setup();
+
+  await user.click(
+    screen.getByRole("button", {
+      name: "Register",
+    })
+  );
+}
+
+function mockSuccessfulRegistration() {
+  fetchMock.mockResolvedValueOnce(
+    createJsonResponse({
+      success: true,
+    })
+  );
+}
+
+describe("RegisterPage", () => {
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("renders the register form", () => {
+    render(<RegisterPage />);
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Register",
+      })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText(
+        "First Name"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText(
+        "Last Name"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("Email")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("Mobile")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText(
+        "Password"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText(
+        "Confirm Password"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("button", {
+        name: "Register",
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation error when submitting an empty form", async () => {
+    render(<RegisterPage />);
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "First name is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when first name is missing", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      firstName: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "First name is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("allows special characters in first and last names", async () => {
+    mockSuccessfulRegistration();
+
+    render(<RegisterPage />);
+
+    fillForm({
+      firstName: "SeÃ¡n-John",
+      lastName: "O'Connor-Smith",
+    });
+
+    await submitForm();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/register",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            ...VALID_FORM,
+            firstName: "SeÃ¡n-John",
+            lastName: "O'Connor-Smith",
+          }),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        SUCCESS_MESSAGE
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation error when last name is missing", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      lastName: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Last name is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when email is missing", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      email: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Email is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      "does not contain an @ symbol",
+      "seanexample.com",
+    ],
+    [
+      "has no domain extension",
+      "sean@example",
+    ],
+    [
+      "contains spaces",
+      "sean @example.com",
+    ],
+    [
+      "has an invalid format",
+      "not-an-email",
+    ],
+  ])(
+    "shows validation error when email %s",
+    async (_description, email) => {
+      render(<RegisterPage />);
+
+      fillForm({ email });
+
+      await submitForm();
+
+      expect(
+        await screen.findByText(
+          "Enter a valid email address."
+        )
+      ).toBeInTheDocument();
+
+      expect(
+        fetchMock
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it("accepts email addresses with plus signs and subdomains", async () => {
+    mockSuccessfulRegistration();
+
+    render(<RegisterPage />);
+
+    fillForm({
+      email:
+        "sean+test@mail.example.com",
+    });
+
+    await submitForm();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/register",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            ...VALID_FORM,
+            email:
+              "sean+test@mail.example.com",
+          }),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        SUCCESS_MESSAGE
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation error when mobile is missing", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      mobile: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Mobile number is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["contains letters", "abc123"],
+    ["is too short", "123"],
+    [
+      "contains invalid symbols",
+      "08712@345!",
+    ],
+  ])(
+    "shows validation error when mobile %s",
+    async (_description, mobile) => {
+      render(<RegisterPage />);
+
+      fillForm({ mobile });
+
+      await submitForm();
+
+      expect(
+        await screen.findByText(
+          "Enter a valid mobile number."
+        )
+      ).toBeInTheDocument();
+
+      expect(
+        fetchMock
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it("accepts a valid Irish-style mobile number", async () => {
+    mockSuccessfulRegistration();
+
+    render(<RegisterPage />);
+
+    fillForm({
+      mobile: "0871234567",
+    });
+
+    await submitForm();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/register",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify(
+            VALID_FORM
+          ),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        SUCCESS_MESSAGE
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("accepts a valid international mobile number", async () => {
+    mockSuccessfulRegistration();
+
+    render(<RegisterPage />);
+
+    fillForm({
+      mobile: "+353 87 123 4567",
+    });
+
+    await submitForm();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/register",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            ...VALID_FORM,
+            mobile: "+353 87 123 4567",
+          }),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        SUCCESS_MESSAGE
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation error when password is missing", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      password: "",
+      confirmPassword: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Password is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when password is empty but confirmation is filled", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      password: "",
+      confirmPassword:
+        "Password123!",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Password is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when confirm password is empty", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      confirmPassword: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Please confirm your password."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      "has no special character",
+      "Password123",
+    ],
+    [
+      "has no uppercase letter",
+      "password123!",
+    ],
+    [
+      "has no lowercase letter",
+      "PASSWORD123!",
+    ],
+    ["has no number", "Password!"],
+  ])(
+    "shows validation error when password %s",
+    async (_description, password) => {
+      render(<RegisterPage />);
+
+      fillForm({
+        password,
+        confirmPassword: password,
+      });
+
+      await submitForm();
+
+      expect(
+        await screen.findByText(
+          PASSWORD_REQUIREMENTS_MESSAGE
+        )
+      ).toBeInTheDocument();
+
+      expect(
+        fetchMock
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it("shows a warning when passwords do not match", async () => {
+    const user = userEvent.setup();
+
+    render(<RegisterPage />);
+
+    await user.type(
+      screen.getByPlaceholderText(
+        "Password"
+      ),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText(
+        "Confirm Password"
+      ),
+      "Different123!"
+    );
+
+    expect(
+      await screen.findByText(
+        "Passwords do not match."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("toggles password visibility for the password field", async () => {
+    const user = userEvent.setup();
+
+    render(<RegisterPage />);
+
+    const passwordInput =
+      screen.getByPlaceholderText(
+        "Password"
+      );
+
+    expect(passwordInput).toHaveAttribute(
+      "type",
+      "password"
+    );
+
+    await user.click(
+      screen.getAllByRole("button", {
+        name: "Show",
+      })[0]
+    );
+
+    expect(passwordInput).toHaveAttribute(
+      "type",
+      "text"
+    );
+
+    await user.click(
+      screen.getAllByRole("button", {
+        name: "Hide",
+      })[0]
+    );
+
+    expect(passwordInput).toHaveAttribute(
+      "type",
+      "password"
+    );
+  });
+
+  it("toggles password visibility for the confirm-password field", async () => {
+    const user = userEvent.setup();
+
+    render(<RegisterPage />);
+
+    const confirmPasswordInput =
+      screen.getByPlaceholderText(
+        "Confirm Password"
+      );
+
+    expect(
+      confirmPasswordInput
+    ).toHaveAttribute("type", "password");
+
+    await user.click(
+      screen.getAllByRole("button", {
+        name: "Show",
+      })[1]
+    );
+
+    expect(
+      confirmPasswordInput
+    ).toHaveAttribute("type", "text");
+
+    await user.click(
+      screen.getAllByRole("button", {
+        name: "Hide",
+      })[1]
+    );
+
+    expect(
+      confirmPasswordInput
+    ).toHaveAttribute("type", "password");
+  });
+
+  it("submits a valid registration successfully", async () => {
+    mockSuccessfulRegistration();
+
+    render(<RegisterPage />);
+
+    fillForm();
+
+    await submitForm();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify(
+            VALID_FORM
+          ),
+        }
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        SUCCESS_MESSAGE
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows an API error when registration fails", async () => {
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse(
+        {
+          success: false,
+          error:
+            "Email already registered.",
+        },
+        409
+      )
+    );
+
+    render(<RegisterPage />);
+
+    fillForm();
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Email already registered."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows a connection error when the request fails", async () => {
+    fetchMock.mockRejectedValueOnce(
+      new Error("Network error")
+    );
+
+    render(<RegisterPage />);
+
+    fillForm();
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Unable to connect. Please try again."
+      )
+    ).toBeInTheDocument();
+  });
+});
+'''
+
+path = Path("/mnt/data/register-page.test.revised.tsx")
+path.write_text(code, encoding="utf-8")
+print(path)
+STDOUT/STDERR
+/mnt/data/register-page.test.revised.tsx
+I corrected and refactored the attached RegisterPage test file. The original repeatedly recreated the same form data, used an untyped global.fetch, and duplicated several validation tests. 
+
+
+register-page.test.revised.tsx
+
+Replace:
+
+src/app/register/page.test.tsx
+Then run:
+
+npm test -- --run src/app/register/page.test.tsx
+The revised file:
+
+Preserves all 30 test cases
+
+Uses a typed fetchMock
+
+Uses proper responses containing ok and status
+
+Consolidates repeated email, mobile, and password tests with it.each
+
+Uses fireEvent.change for form setup, which should considerably reduce the previous 25-second runtime
+
+Retains userEvent for actual button clicks, password visibility, and live mismatch behaviour
+
+Verifies the complete registration request body and headers 
+
+
+register-page.test.revised.tsx
+Code
+
+
+Library
+/
+register-page.test.revised.tsx
+
+
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+import RegisterPage from "./page";
+
+type RegistrationForm = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
+  password: string;
+  confirmPassword: string;
+};
+
+const fetchMock = vi.fn<typeof fetch>();
+
+const VALID_FORM: RegistrationForm = {
+  firstName: "Sean",
+  lastName: "Durcan",
+  email: "sean@example.com",
+  mobile: "0871234567",
+  password: "Password123!",
+  confirmPassword: "Password123!",
+};
+
+const SUCCESS_MESSAGE =
+  "Registration successful. Please verify your email before logging in.";
+
+const PASSWORD_REQUIREMENTS_MESSAGE =
+  "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+
+function createJsonResponse(
+  body: unknown,
+  status = 200
+): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: vi.fn().mockResolvedValue(body),
+  } as unknown as Response;
+}
+
+function setField(
+  placeholder: string,
+  value: string
+) {
+  fireEvent.change(
+    screen.getByPlaceholderText(placeholder),
+    {
+      target: { value },
+    }
+  );
+}
+
+function fillForm(
+  overrides: Partial<RegistrationForm> = {}
+) {
+  const form = {
+    ...VALID_FORM,
+    ...overrides,
+  };
+
+  setField("First Name", form.firstName);
+  setField("Last Name", form.lastName);
+  setField("Email", form.email);
+  setField("Mobile", form.mobile);
+  setField("Password", form.password);
+  setField(
+    "Confirm Password",
+    form.confirmPassword
+  );
+}
+
+async function submitForm() {
+  const user = userEvent.setup();
+
+  await user.click(
+    screen.getByRole("button", {
+      name: "Register",
+    })
+  );
+}
+
+function mockSuccessfulRegistration() {
+  fetchMock.mockResolvedValueOnce(
+    createJsonResponse({
+      success: true,
+    })
+  );
+}
+
+describe("RegisterPage", () => {
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("renders the register form", () => {
+    render(<RegisterPage />);
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Register",
+      })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText(
+        "First Name"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText(
+        "Last Name"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("Email")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("Mobile")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText(
+        "Password"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText(
+        "Confirm Password"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("button", {
+        name: "Register",
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation error when submitting an empty form", async () => {
+    render(<RegisterPage />);
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "First name is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when first name is missing", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      firstName: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "First name is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("allows special characters in first and last names", async () => {
+    mockSuccessfulRegistration();
+
+    render(<RegisterPage />);
+
+    fillForm({
+      firstName: "SeÃ¡n-John",
+      lastName: "O'Connor-Smith",
+    });
+
+    await submitForm();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/register",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            ...VALID_FORM,
+            firstName: "SeÃ¡n-John",
+            lastName: "O'Connor-Smith",
+          }),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        SUCCESS_MESSAGE
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation error when last name is missing", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      lastName: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Last name is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when email is missing", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      email: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Email is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      "does not contain an @ symbol",
+      "seanexample.com",
+    ],
+    [
+      "has no domain extension",
+      "sean@example",
+    ],
+    [
+      "contains spaces",
+      "sean @example.com",
+    ],
+    [
+      "has an invalid format",
+      "not-an-email",
+    ],
+  ])(
+    "shows validation error when email %s",
+    async (_description, email) => {
+      render(<RegisterPage />);
+
+      fillForm({ email });
+
+      await submitForm();
+
+      expect(
+        await screen.findByText(
+          "Enter a valid email address."
+        )
+      ).toBeInTheDocument();
+
+      expect(
+        fetchMock
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it("accepts email addresses with plus signs and subdomains", async () => {
+    mockSuccessfulRegistration();
+
+    render(<RegisterPage />);
+
+    fillForm({
+      email:
+        "sean+test@mail.example.com",
+    });
+
+    await submitForm();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/register",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            ...VALID_FORM,
+            email:
+              "sean+test@mail.example.com",
+          }),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        SUCCESS_MESSAGE
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation error when mobile is missing", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      mobile: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Mobile number is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["contains letters", "abc123"],
+    ["is too short", "123"],
+    [
+      "contains invalid symbols",
+      "08712@345!",
+    ],
+  ])(
+    "shows validation error when mobile %s",
+    async (_description, mobile) => {
+      render(<RegisterPage />);
+
+      fillForm({ mobile });
+
+      await submitForm();
+
+      expect(
+        await screen.findByText(
+          "Enter a valid mobile number."
+        )
+      ).toBeInTheDocument();
+
+      expect(
+        fetchMock
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it("accepts a valid Irish-style mobile number", async () => {
+    mockSuccessfulRegistration();
+
+    render(<RegisterPage />);
+
+    fillForm({
+      mobile: "0871234567",
+    });
+
+    await submitForm();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/register",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify(
+            VALID_FORM
+          ),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        SUCCESS_MESSAGE
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("accepts a valid international mobile number", async () => {
+    mockSuccessfulRegistration();
+
+    render(<RegisterPage />);
+
+    fillForm({
+      mobile: "+353 87 123 4567",
+    });
+
+    await submitForm();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/register",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            ...VALID_FORM,
+            mobile: "+353 87 123 4567",
+          }),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        SUCCESS_MESSAGE
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation error when password is missing", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      password: "",
+      confirmPassword: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Password is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when password is empty but confirmation is filled", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      password: "",
+      confirmPassword:
+        "Password123!",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Password is required."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when confirm password is empty", async () => {
+    render(<RegisterPage />);
+
+    fillForm({
+      confirmPassword: "",
+    });
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Please confirm your password."
+      )
+    ).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      "has no special character",
+      "Password123",
+    ],
+    [
+      "has no uppercase letter",
+      "password123!",
+    ],
+    [
+      "has no lowercase letter",
+      "PASSWORD123!",
+    ],
+    ["has no number", "Password!"],
+  ])(
+    "shows validation error when password %s",
+    async (_description, password) => {
+      render(<RegisterPage />);
+
+      fillForm({
+        password,
+        confirmPassword: password,
+      });
+
+      await submitForm();
+
+      expect(
+        await screen.findByText(
+          PASSWORD_REQUIREMENTS_MESSAGE
+        )
+      ).toBeInTheDocument();
+
+      expect(
+        fetchMock
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it("shows a warning when passwords do not match", async () => {
+    const user = userEvent.setup();
+
+    render(<RegisterPage />);
+
+    await user.type(
+      screen.getByPlaceholderText(
+        "Password"
+      ),
+      "Password123!"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText(
+        "Confirm Password"
+      ),
+      "Different123!"
+    );
+
+    expect(
+      await screen.findByText(
+        "Passwords do not match."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("toggles password visibility for the password field", async () => {
+    const user = userEvent.setup();
+
+    render(<RegisterPage />);
+
+    const passwordInput =
+      screen.getByPlaceholderText(
+        "Password"
+      );
+
+    expect(passwordInput).toHaveAttribute(
+      "type",
+      "password"
+    );
+
+    await user.click(
+      screen.getAllByRole("button", {
+        name: "Show",
+      })[0]
+    );
+
+    expect(passwordInput).toHaveAttribute(
+      "type",
+      "text"
+    );
+
+    await user.click(
+      screen.getAllByRole("button", {
+        name: "Hide",
+      })[0]
+    );
+
+    expect(passwordInput).toHaveAttribute(
+      "type",
+      "password"
+    );
+  });
+
+  it("toggles password visibility for the confirm-password field", async () => {
+    const user = userEvent.setup();
+
+    render(<RegisterPage />);
+
+    const confirmPasswordInput =
+      screen.getByPlaceholderText(
+        "Confirm Password"
+      );
+
+    expect(
+      confirmPasswordInput
+    ).toHaveAttribute("type", "password");
+
+    await user.click(
+      screen.getAllByRole("button", {
+        name: "Show",
+      })[1]
+    );
+
+    expect(
+      confirmPasswordInput
+    ).toHaveAttribute("type", "text");
+
+    await user.click(
+      screen.getAllByRole("button", {
+        name: "Hide",
+      })[1]
+    );
+
+    expect(
+      confirmPasswordInput
+    ).toHaveAttribute("type", "password");
+  });
+
+  it("submits a valid registration successfully", async () => {
+    mockSuccessfulRegistration();
+
+    render(<RegisterPage />);
+
+    fillForm();
+
+    await submitForm();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify(
+            VALID_FORM
+          ),
+        }
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        SUCCESS_MESSAGE
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows an API error when registration fails", async () => {
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse(
+        {
+          success: false,
+          error:
+            "Email already registered.",
+        },
+        409
+      )
+    );
+
+    render(<RegisterPage />);
+
+    fillForm();
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Email already registered."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows a connection error when the request fails", async () => {
+    fetchMock.mockRejectedValueOnce(
+      new Error("Network error")
+    );
+
+    render(<RegisterPage />);
+
+    fillForm();
+
+    await submitForm();
+
+    expect(
+      await screen.findByText(
+        "Unable to connect. Please try again."
+      )
+    ).toBeInTheDocument();
+  });
+});

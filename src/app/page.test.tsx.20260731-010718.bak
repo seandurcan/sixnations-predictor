@@ -165,7 +165,7 @@ describe("HomePage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText("Win.", { selector: "span" })
+      screen.getByText(/Win\./i)
     ).toBeInTheDocument();
 
     expect(

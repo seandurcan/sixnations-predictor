@@ -324,11 +324,11 @@ describe("AdminPage", () => {
     render(<AdminPage />);
 
     expect(
-      (await screen.findAllByText(/29 Jan 2027/i))[0]
+      await screen.findByText(/29 Jan 2027/i)
     ).toBeInTheDocument();
 
     expect(
-      screen.getAllByText(/14:15/i)[0]
+      screen.getByText(/14:15/i)
     ).toBeInTheDocument();
 
     expect(

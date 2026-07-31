@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   type FormEvent,
   useState,
@@ -18,6 +19,8 @@ type LoginResponse = {
 };
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -88,17 +91,19 @@ export default function LoginPage() {
           | LoginResponse
           | null;
 
-      if (!response.ok) {
+      if (
+        !response.ok ||
+        result?.success !== true
+      ) {
         setError(
           result?.error ??
             "Login failed. Please try again."
         );
+
         return;
       }
 
-      window.location.assign(
-        "/dashboard"
-      );
+      router.replace("/dashboard");
     } catch (loginError) {
       console.error(
         "Login request failed:",
@@ -150,11 +155,9 @@ export default function LoginPage() {
               autoComplete="email"
               value={form.email}
               disabled={loading}
-              aria-invalid={
-                error
-                  .toLowerCase()
-                  .includes("email")
-              }
+              aria-invalid={error
+                .toLowerCase()
+                .includes("email")}
               onChange={(event) =>
                 setForm((current) => ({
                   ...current,
@@ -180,11 +183,9 @@ export default function LoginPage() {
               autoComplete="current-password"
               value={form.password}
               disabled={loading}
-              aria-invalid={
-                error
-                  .toLowerCase()
-                  .includes("password")
-              }
+              aria-invalid={error
+                .toLowerCase()
+                .includes("password")}
               onChange={(event) =>
                 setForm((current) => ({
                   ...current,

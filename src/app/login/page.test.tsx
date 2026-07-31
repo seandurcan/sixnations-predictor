@@ -1,4 +1,6 @@
 import {
+  act,
+  fireEvent,
   render,
   screen,
   waitFor,
@@ -15,27 +17,34 @@ import {
 
 import LoginPage from "./page";
 
-const {
-  replaceMock,
-} = vi.hoisted(() => ({
-  replaceMock: vi.fn(),
+const navigationMocks = vi.hoisted(() => ({
+  replace: vi.fn(),
+  push: vi.fn(),
+  refresh: vi.fn(),
+  back: vi.fn(),
+  forward: vi.fn(),
+  prefetch: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    replace: replaceMock,
-    push: vi.fn(),
-    refresh: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
-    prefetch: vi.fn(),
-  }),
+  useRouter: () => navigationMocks,
 }));
 
 const fetchMock = vi.fn<typeof fetch>();
 
+type LoginResponse = {
+  success?: boolean;
+  error?: string;
+  emailVerificationRequired?: boolean;
+};
+
+type DeferredResponse = {
+  promise: Promise<Response>;
+  resolve: (response: Response) => void;
+};
+
 function createJsonResponse(
-  body: unknown,
+  body: LoginResponse,
   status = 200
 ): Response {
   return {
@@ -45,29 +54,81 @@ function createJsonResponse(
   } as unknown as Response;
 }
 
-async function completeLoginForm(
+function createInvalidJsonResponse(
+  status = 500
+): Response {
+  return {
+    ok: false,
+    status,
+    json: vi
+      .fn()
+      .mockRejectedValue(
+        new Error("Invalid JSON")
+      ),
+  } as unknown as Response;
+}
+
+function createDeferredResponse(): DeferredResponse {
+  let resolve!: (
+    response: Response
+  ) => void;
+
+  const promise = new Promise<Response>(
+    (resolvePromise) => {
+      resolve = resolvePromise;
+    }
+  );
+
+  return {
+    promise,
+    resolve,
+  };
+}
+
+function getEmailInput() {
+  return screen.getByLabelText("Email");
+}
+
+function getPasswordInput() {
+  return screen.getByPlaceholderText(
+    "Password"
+  );
+}
+
+function getLoginButton() {
+  return screen.getByRole("button", {
+    name: "Login",
+  });
+}
+
+function fillLoginForm(
   email = "sean@example.com",
   password = "Password123!"
 ) {
+  fireEvent.change(getEmailInput(), {
+    target: { value: email },
+  });
+
+  fireEvent.change(getPasswordInput(), {
+    target: { value: password },
+  });
+}
+
+async function submitLogin() {
   const user = userEvent.setup();
 
-  await user.type(
-    screen.getByLabelText(/email/i),
-    email
-  );
-
-  await user.type(
-    screen.getByLabelText(/password/i),
-    password
-  );
-
-  return user;
+  await user.click(getLoginButton());
 }
 
 describe("LoginPage", () => {
   beforeEach(() => {
     fetchMock.mockReset();
-    replaceMock.mockReset();
+
+    Object.values(
+      navigationMocks
+    ).forEach((mock) => {
+      mock.mockReset();
+    });
 
     vi.stubGlobal("fetch", fetchMock);
 
@@ -75,13 +136,13 @@ describe("LoginPage", () => {
       console,
       "error"
     ).mockImplementation(() => {
-      // Suppress expected errors in failure tests.
+      // Expected in network-failure tests.
     });
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("renders the login page", () => {
@@ -94,17 +155,15 @@ describe("LoginPage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByLabelText("Email")
+      getEmailInput()
     ).toBeInTheDocument();
 
     expect(
-      screen.getByLabelText("Password")
+      getPasswordInput()
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("button", {
-        name: "Login",
-      })
+      getLoginButton()
     ).toBeInTheDocument();
   });
 
@@ -134,13 +193,12 @@ describe("LoginPage", () => {
     );
   });
 
-  it("allows the email address to be entered", async () => {
+  it("allows an email address to be entered", async () => {
     const user = userEvent.setup();
 
     render(<LoginPage />);
 
-    const emailInput =
-      screen.getByLabelText("Email");
+    const emailInput = getEmailInput();
 
     await user.type(
       emailInput,
@@ -152,13 +210,13 @@ describe("LoginPage", () => {
     );
   });
 
-  it("allows the password to be entered", async () => {
+  it("allows a password to be entered", async () => {
     const user = userEvent.setup();
 
     render(<LoginPage />);
 
     const passwordInput =
-      screen.getByLabelText("Password");
+      getPasswordInput();
 
     await user.type(
       passwordInput,
@@ -171,20 +229,18 @@ describe("LoginPage", () => {
   });
 
   it("shows an error when email is empty", async () => {
-    const user = userEvent.setup();
-
     render(<LoginPage />);
 
-    await user.type(
-      screen.getByLabelText("Password"),
-      "Password123!"
+    fireEvent.change(
+      getPasswordInput(),
+      {
+        target: {
+          value: "Password123!",
+        },
+      }
     );
 
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
+    await submitLogin();
 
     expect(
       await screen.findByText(
@@ -192,24 +248,21 @@ describe("LoginPage", () => {
       )
     ).toBeInTheDocument();
 
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(
+      fetchMock
+    ).not.toHaveBeenCalled();
   });
 
   it("shows an error when password is empty", async () => {
-    const user = userEvent.setup();
-
     render(<LoginPage />);
 
-    await user.type(
-      screen.getByLabelText("Email"),
-      "sean@example.com"
-    );
+    fireEvent.change(getEmailInput(), {
+      target: {
+        value: "sean@example.com",
+      },
+    });
 
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
+    await submitLogin();
 
     expect(
       await screen.findByText(
@@ -217,7 +270,9 @@ describe("LoginPage", () => {
       )
     ).toBeInTheDocument();
 
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(
+      fetchMock
+    ).not.toHaveBeenCalled();
   });
 
   it("posts the login credentials to the API", async () => {
@@ -229,14 +284,8 @@ describe("LoginPage", () => {
 
     render(<LoginPage />);
 
-    const user =
-      await completeLoginForm();
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
+    fillLoginForm();
+    await submitLogin();
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -266,26 +315,20 @@ describe("LoginPage", () => {
 
     render(<LoginPage />);
 
-    const user =
-      await completeLoginForm();
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
+    fillLoginForm();
+    await submitLogin();
 
     await waitFor(() => {
       expect(
-        replaceMock
+        navigationMocks.replace
       ).toHaveBeenCalledWith(
         "/dashboard"
       );
     });
 
-    expect(replaceMock).toHaveBeenCalledTimes(
-      1
-    );
+    expect(
+      navigationMocks.replace
+    ).toHaveBeenCalledTimes(1);
   });
 
   it("shows an invalid-credentials error", async () => {
@@ -302,17 +345,12 @@ describe("LoginPage", () => {
 
     render(<LoginPage />);
 
-    const user =
-      await completeLoginForm(
-        "sean@example.com",
-        "BadPassword"
-      );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
+    fillLoginForm(
+      "sean@example.com",
+      "BadPassword"
     );
+
+    await submitLogin();
 
     expect(
       await screen.findByText(
@@ -321,7 +359,7 @@ describe("LoginPage", () => {
     ).toBeInTheDocument();
 
     expect(
-      replaceMock
+      navigationMocks.replace
     ).not.toHaveBeenCalled();
   });
 
@@ -341,72 +379,60 @@ describe("LoginPage", () => {
 
     render(<LoginPage />);
 
-    const user =
-      await completeLoginForm();
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
+    fillLoginForm();
+    await submitLogin();
 
     expect(
       await screen.findByText(
         "Please verify your email address before logging in."
       )
     ).toBeInTheDocument();
+
+    expect(
+      navigationMocks.replace
+    ).not.toHaveBeenCalled();
   });
 
-  it("shows the fallback error when no API error is supplied", async () => {
+  it("shows the fallback error when the API supplies no error text", async () => {
     fetchMock.mockResolvedValueOnce(
       createJsonResponse({}, 500)
     );
 
     render(<LoginPage />);
 
-    const user =
-      await completeLoginForm();
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
+    fillLoginForm();
+    await submitLogin();
 
     expect(
       await screen.findByText(
         "Login failed. Please try again."
       )
     ).toBeInTheDocument();
+
+    expect(
+      navigationMocks.replace
+    ).not.toHaveBeenCalled();
   });
 
   it("shows the fallback error when the response is not valid JSON", async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-      json: vi
-        .fn()
-        .mockRejectedValue(
-          new Error("Invalid JSON")
-        ),
-    } as unknown as Response);
+    fetchMock.mockResolvedValueOnce(
+      createInvalidJsonResponse()
+    );
 
     render(<LoginPage />);
 
-    const user =
-      await completeLoginForm();
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
+    fillLoginForm();
+    await submitLogin();
 
     expect(
       await screen.findByText(
         "Login failed. Please try again."
       )
     ).toBeInTheDocument();
+
+    expect(
+      navigationMocks.replace
+    ).not.toHaveBeenCalled();
   });
 
   it("shows a connection error when fetch rejects", async () => {
@@ -416,14 +442,8 @@ describe("LoginPage", () => {
 
     render(<LoginPage />);
 
-    const user =
-      await completeLoginForm();
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
+    fillLoginForm();
+    await submitLogin();
 
     expect(
       await screen.findByText(
@@ -432,63 +452,50 @@ describe("LoginPage", () => {
     ).toBeInTheDocument();
 
     expect(
-      replaceMock
+      navigationMocks.replace
     ).not.toHaveBeenCalled();
   });
 
   it("shows the loading state while login is processing", async () => {
-    let resolveRequest!: (
-      response: Response
-    ) => void;
-
-    const pendingRequest =
-      new Promise<Response>(
-        (resolve) => {
-          resolveRequest = resolve;
-        }
-      );
+    const deferred =
+      createDeferredResponse();
 
     fetchMock.mockReturnValueOnce(
-      pendingRequest
+      deferred.promise
     );
 
     render(<LoginPage />);
 
-    const user =
-      await completeLoginForm();
+    fillLoginForm();
+    await submitLogin();
 
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
-    );
-
-    const loadingButton =
+    expect(
       screen.getByRole("button", {
         name: "Logging in...",
-      });
-
-    expect(
-      loadingButton
-    ).toBeDisabled();
-
-    expect(
-      screen.getByLabelText("Email")
-    ).toBeDisabled();
-
-    expect(
-      screen.getByLabelText("Password")
-    ).toBeDisabled();
-
-    resolveRequest(
-      createJsonResponse({
-        success: true,
       })
-    );
+    ).toBeDisabled();
+
+    expect(
+      getEmailInput()
+    ).toBeDisabled();
+
+    expect(
+      getPasswordInput()
+    ).toBeDisabled();
+
+    await act(async () => {
+      deferred.resolve(
+        createJsonResponse({
+          success: true,
+        })
+      );
+
+      await deferred.promise;
+    });
 
     await waitFor(() => {
       expect(
-        replaceMock
+        navigationMocks.replace
       ).toHaveBeenCalledWith(
         "/dashboard"
       );
@@ -496,32 +503,17 @@ describe("LoginPage", () => {
   });
 
   it("prevents duplicate submission while the request is pending", async () => {
-    let resolveRequest!: (
-      response: Response
-    ) => void;
-
-    const pendingRequest =
-      new Promise<Response>(
-        (resolve) => {
-          resolveRequest = resolve;
-        }
-      );
+    const deferred =
+      createDeferredResponse();
 
     fetchMock.mockReturnValueOnce(
-      pendingRequest
+      deferred.promise
     );
 
     render(<LoginPage />);
 
-    const user =
-      await completeLoginForm();
-
-    const loginButton =
-      screen.getByRole("button", {
-        name: "Login",
-      });
-
-    await user.click(loginButton);
+    fillLoginForm();
+    await submitLogin();
 
     const loadingButton =
       screen.getByRole("button", {
@@ -532,21 +524,25 @@ describe("LoginPage", () => {
       loadingButton
     ).toBeDisabled();
 
-    await user.click(loadingButton);
+    fireEvent.click(loadingButton);
 
-    expect(fetchMock).toHaveBeenCalledTimes(
-      1
-    );
+    expect(
+      fetchMock
+    ).toHaveBeenCalledTimes(1);
 
-    resolveRequest(
-      createJsonResponse({
-        success: true,
-      })
-    );
+    await act(async () => {
+      deferred.resolve(
+        createJsonResponse({
+          success: true,
+        })
+      );
+
+      await deferred.promise;
+    });
 
     await waitFor(() => {
       expect(
-        replaceMock
+        navigationMocks.replace
       ).toHaveBeenCalledWith(
         "/dashboard"
       );
@@ -562,17 +558,12 @@ describe("LoginPage", () => {
 
     render(<LoginPage />);
 
-    const user =
-      await completeLoginForm(
-        "  SEAN@EXAMPLE.COM  ",
-        "Password123!"
-      );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
+    fillLoginForm(
+      "  SEAN@EXAMPLE.COM  ",
+      "Password123!"
     );
+
+    await submitLogin();
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -601,20 +592,14 @@ describe("LoginPage", () => {
 
     render(<LoginPage />);
 
-    const emailInput =
-      screen.getByLabelText("Email");
+    const emailInput = getEmailInput();
 
-    const user =
-      await completeLoginForm(
-        "sean@example.com",
-        "wrong-password"
-      );
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Login",
-      })
+    fillLoginForm(
+      "sean@example.com",
+      "wrong-password"
     );
+
+    await submitLogin();
 
     expect(
       await screen.findByText(

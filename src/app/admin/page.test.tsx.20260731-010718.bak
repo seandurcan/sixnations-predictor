@@ -328,7 +328,7 @@ describe("AdminPage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getAllByText(/14:15/i)[0]
+      screen.getByText(/14:15/i)
     ).toBeInTheDocument();
 
     expect(
