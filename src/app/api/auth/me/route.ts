@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {
@@ -16,7 +15,8 @@ export async function GET() {
         {
           status: 401,
           headers: {
-            "Cache-Control": "no-store",
+            "Cache-Control":
+              "no-store",
           },
         }
       );
@@ -27,17 +27,24 @@ export async function GET() {
         authenticated: true,
         user: {
           id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName:
+            user.firstName,
+          lastName:
+            user.lastName,
           email: user.email,
           role: user.role,
           totalPoints:
             user.totalPoints,
+          paymentStatus:
+            user.paymentStatus,
+          paidAt:
+            user.paidAt,
         },
       },
       {
         headers: {
-          "Cache-Control": "no-store",
+          "Cache-Control":
+            "no-store",
         },
       }
     );
@@ -57,7 +64,8 @@ export async function GET() {
       {
         status: 500,
         headers: {
-          "Cache-Control": "no-store",
+          "Cache-Control":
+            "no-store",
         },
       }
     );

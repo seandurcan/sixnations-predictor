@@ -18,8 +18,9 @@ import {
 
 type User = {
   firstName?: string | null;
+  paymentStatus?: string | null;
+  paidAt?: string | null;
 };
-
 type Team = {
   name: string;
   shortCode: string;
@@ -206,12 +207,14 @@ export default function PredictionsPage() {
             meResponse
           );
 
-        if (!me.authenticated) {
-          window.location.href =
-            "/login";
-          return;
-        }
-
+if (
+  me.user?.paymentStatus !==
+  "COMPLETED"
+) {
+  window.location.href =
+    "/payment-required";
+  return;
+}
         const matchesResponse =
           await fetch("/api/matches");
 

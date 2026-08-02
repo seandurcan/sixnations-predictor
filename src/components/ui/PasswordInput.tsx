@@ -4,6 +4,9 @@ import Input from "@/components/ui/Input";
 import { useState } from "react";
 
 type PasswordInputProps = {
+  id?: string;
+  name?: string;
+  autoComplete?: string;
   value: string;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement>
@@ -60,6 +63,9 @@ function getStrength(password: string) {
 }
 
 export default function PasswordInput({
+  id,
+  name,
+  autoComplete,
   value,
   onChange,
   placeholder,
@@ -80,6 +86,9 @@ export default function PasswordInput({
     <div className="space-y-2">
       <div className="relative">
         <Input
+          id={id}
+          name={name}
+          autoComplete={autoComplete}
           type={
             showPassword
               ? "text"
