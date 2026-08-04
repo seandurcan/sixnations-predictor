@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -257,28 +256,6 @@ export default function AdminPage() {
           title="Admin Results Entry"
           subtitle="Manage match results and tournament scoring"
         />
-
-        <div className="mb-6">
-          <Card title="Communications">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="font-semibold text-[var(--brand-navy)]">
-                  Manage verification and prediction reminder emails
-                </p>
-
-                <p className="mt-1 text-sm text-[var(--brand-muted)]">
-                  Send reminder campaigns, preview branded emails and manage automatic reminders.
-                </p>
-              </div>
-
-                <Link href="/admin/communications">
-                  <Button>
-                    Open Communications
-                  </Button>
-                </Link>
-            </div>
-          </Card>
-        </div>
 
         {successMessage && (
           <Alert

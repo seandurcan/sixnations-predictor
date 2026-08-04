@@ -1,0 +1,2438 @@
+
+> sixnations-predictor@0.1.0 test
+> vitest
+
+
+[1m[30m[44m DEV [49m[39m[22m [34mv4.1.10 [39m[90mC:/Projects/sixnations-predictor[39m
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when auth API request throws
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:22:14.979Z'[39m,
+  error: Error: Network error
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:255:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when matches API request fails
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:22:15.060Z'[39m,
+  error: Error: Matches API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:277:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when predictions API request fails during initial load
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:22:15.075Z'[39m,
+  error: Error: Predictions API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:305:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/admin/page.test.tsx[2m > [22m[2mAdminPage[2m > [22m[2mredirects to login when auth API throws
+[22m[39mAdmin results page load failed: {
+  timestamp: [32m'2026-08-04T14:22:15.092Z'[39m,
+  error: Error: Auth API unavailable
+      at C:/Projects/sixnations-predictor/src/app/admin/page.test.tsx:211:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+ [32m✓[39m src/app/admin/page.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[33m 3028[2mms[22m[39m
+     [33m[2m✓[22m[39m saves a result successfully [33m 330[2mms[22m[39m
+     [33m[2m✓[22m[39m shows saving state while result save is processing [33m 333[2mms[22m[39m
+ [32m✓[39m src/app/register/page.test.tsx [2m([22m[2m30 tests[22m[2m)[22m[33m 3562[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a warning when passwords do not match [33m 531[2mms[22m[39m
+ [32m✓[39m src/app/forgot-password/page.test.tsx [2m([22m[2m13 tests[22m[2m)[22m[33m 4093[2mms[22m[39m
+     [33m[2m✓[22m[39m shows validation error for invalid email format [33m 347[2mms[22m[39m
+     [33m[2m✓[22m[39m shows validation error when email is missing @ symbol [33m 365[2mms[22m[39m
+     [33m[2m✓[22m[39m shows validation error when email has no domain extension [33m 349[2mms[22m[39m
+     [33m[2m✓[22m[39m accepts valid email addresses [33m 418[2mms[22m[39m
+     [33m[2m✓[22m[39m shows loading state while request is processing [33m 399[2mms[22m[39m
+     [33m[2m✓[22m[39m shows success alert when reset link is sent [33m 370[2mms[22m[39m
+     [33m[2m✓[22m[39m shows API error when request fails [33m 369[2mms[22m[39m
+     [33m[2m✓[22m[39m shows fallback error when API returns no message [33m 349[2mms[22m[39m
+     [33m[2m✓[22m[39m shows connection error when request throws [33m 333[2mms[22m[39m
+     [33m[2m✓[22m[39m submits the correct payload [33m 319[2mms[22m[39m
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mshows network error message when save API throws
+[22m[39mPrediction save failed: {
+  timestamp: [32m'2026-08-04T14:22:19.141Z'[39m,
+  error: Error: Save API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:1377:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mhandles refresh predictions API failure after successful save attempt
+[22m[39mPrediction save failed: {
+  timestamp: [32m'2026-08-04T14:22:19.395Z'[39m,
+  error: Error: Refresh predictions failed
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:1422:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+ [31m❯[39m src/app/predictions/page.test.tsx [2m([22m[2m36 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 4967[2mms[22m[39m
+     [32m✓[39m renders loading state before data loads[32m 53[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when auth request is not ok[32m 86[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when authenticated is false[32m 78[2mms[22m[39m
+     [32m✓[39m redirects to login when auth API request throws[32m 80[2mms[22m[39m
+     [32m✓[39m redirects to login when matches API request fails[32m 16[2mms[22m[39m
+     [32m✓[39m redirects to login when predictions API request fails during initial load[32m 6[2mms[22m[39m
+     [32m✓[39m sorts unsorted fixture data by kickoff time and selects earliest open fixture[32m 132[2mms[22m[39m
+     [32m✓[39m uses edge-case fixture mock data and selects the earliest open fixture[32m 43[2mms[22m[39m
+[31m     [31m×[31m renders predictions page with fixture, progress, and Irish formatted kick-off date[39m[32m 116[2mms[22m[39m
+     [32m✓[39m shows saved predictions with formatted fixture date[32m 44[2mms[22m[39m
+     [32m✓[39m shows empty predictions state[32m 29[2mms[22m[39m
+     [32m✓[39m shows partial predictions progress when only some matches have predictions[32m 37[2mms[22m[39m
+     [32m✓[39m selects the first unpredicted open fixture automatically[32m 23[2mms[22m[39m
+     [32m✓[39m shows full predictions progress when all matches have predictions[32m 21[2mms[22m[39m
+     [32m✓[39m shows COMPLETE status for completed fixtures[32m 28[2mms[22m[39m
+     [32m✓[39m treats an incomplete fixture as locked when kick-off time is in the past[32m 38[2mms[22m[39m
+     [32m✓[39m shows countdown for open fixtures[32m 25[2mms[22m[39m
+     [32m✓[39m hides countdown and disables inputs when completed fixture is selected[32m 99[2mms[22m[39m
+     [32m✓[39m shows existing prediction card when locked fixture has a prediction[32m 132[2mms[22m[39m
+     [32m✓[39m allows selecting another fixture from the fixture list[32m 99[2mms[22m[39m
+     [32m✓[39m clears score inputs when switching from editing prediction to unpredicted fixture[32m 250[2mms[22m[39m
+     [33m[2m✓[22m[39m updates an existing prediction successfully [33m 423[2mms[22m[39m
+     [33m[2m✓[22m[39m allows user interaction by selecting a fixture, entering scores, and saving [33m 336[2mms[22m[39m
+     [32m✓[39m allows zero-zero score prediction[32m 256[2mms[22m[39m
+     [32m✓[39m shows saving state while save request is processing[32m 289[2mms[22m[39m
+     [32m✓[39m saves a new prediction successfully[32m 242[2mms[22m[39m
+     [32m✓[39m refreshes prediction data after saving a prediction[32m 240[2mms[22m[39m
+     [32m✓[39m shows validation error when both score inputs are empty[32m 94[2mms[22m[39m
+     [32m✓[39m shows validation error when home score is empty[32m 191[2mms[22m[39m
+     [32m✓[39m shows validation error when away score is empty[32m 189[2mms[22m[39m
+     [32m✓[39m shows API error message when saving prediction fails with non-403 response[32m 238[2mms[22m[39m
+     [32m✓[39m shows fallback API error message when save fails without error text[32m 238[2mms[22m[39m
+     [32m✓[39m shows network error message when save API throws[32m 237[2mms[22m[39m
+     [32m✓[39m handles refresh predictions API failure after successful save attempt[32m 270[2mms[22m[39m
+     [32m✓[39m shows locked fixture error when API returns 403[32m 267[2mms[22m[39m
+     [32m✓[39m shows no matches available when no fixtures exist[32m 16[2mms[22m[39m
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when auth API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:22:21.929Z'[39m,
+  error: Error: Auth API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:333:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when leaderboard API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:22:22.009Z'[39m,
+  error: Error: Leaderboard API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:355:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when matches API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:22:22.087Z'[39m,
+  error: Error: Matches API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:387:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when predictions API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:22:22.165Z'[39m,
+  error: Error: Predictions API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:421:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+ [32m✓[39m src/app/login/page.test.tsx [2m([22m[2m18 tests[22m[2m)[22m[33m 1707[2mms[22m[39m
+     [33m[2m✓[22m[39m allows an email address to be entered [33m 310[2mms[22m[39m
+[90mstderr[2m | src/app/leaderboard/page.test.tsx[2m > [22m[2mLeaderboardPage[2m > [22m[2mshows the API error when the request fails
+[22m[39mUnable to load leaderboard: Error: Leaderboard service unavailable.
+    at loadLeaderboard (C:/Projects/sixnations-predictor/src/app/leaderboard/page.tsx:155:17)
+
+[90mstderr[2m | src/app/leaderboard/page.test.tsx[2m > [22m[2mLeaderboardPage[2m > [22m[2mshows a fallback error when the API returns invalid data
+[22m[39mUnable to load leaderboard: Error: The leaderboard returned invalid data.
+    at loadLeaderboard (C:/Projects/sixnations-predictor/src/app/leaderboard/page.tsx:162:17)
+
+[90mstderr[2m | src/app/leaderboard/page.test.tsx[2m > [22m[2mLeaderboardPage[2m > [22m[2mshows a fallback error when fetch rejects
+[22m[39mUnable to load leaderboard: Error: Network failure
+    at C:/Projects/sixnations-predictor/src/app/leaderboard/page.test.tsx:823:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/leaderboard/page.test.tsx [2m([22m[2m25 tests[22m[2m)[22m[33m 2468[2mms[22m[39m
+[90mstderr[2m | src/app/page.test.tsx[2m > [22m[2mHomePage[2m > [22m[2mshows tournament complete state when matches API throws
+[22m[39mFailed to load next match Error: Matches API unavailable
+    at C:/Projects/sixnations-predictor/src/app/page.test.tsx:333:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/dashboard/page.test.tsx [2m([22m[2m30 tests[22m[2m)[22m[33m 1560[2mms[22m[39m
+ [32m✓[39m src/app/page.test.tsx [2m([22m[2m20 tests[22m[2m)[22m[33m 1346[2mms[22m[39m
+ [32m✓[39m src/app/reset-password/page.test.tsx [2m([22m[2m23 tests[22m[2m)[22m[33m 9864[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a validation error when the password is missing [33m 371[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a password too short [33m 430[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a password without an uppercase letter [33m 620[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a password without a lowercase letter [33m 578[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a password without a number [33m 497[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a password without a special character [33m 560[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a validation error when confirm password is missing [33m 332[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a warning while the passwords do not match [33m 540[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a validation error on submit when passwords do not match [33m 618[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a loading state while the reset request is processing [33m 583[2mms[22m[39m
+     [33m[2m✓[22m[39m submits a valid reset-password request successfully [33m 577[2mms[22m[39m
+     [33m[2m✓[22m[39m shows the API error when the reset request fails [33m 549[2mms[22m[39m
+     [33m[2m✓[22m[39m shows the token error returned by the API [33m 509[2mms[22m[39m
+     [33m[2m✓[22m[39m shows the token error returned by the API [33m 554[2mms[22m[39m
+     [33m[2m✓[22m[39m shows the token error returned by the API [33m 569[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a fallback error when the API returns no error message [33m 541[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a connection error when the request throws [33m 552[2mms[22m[39m
+[90mstderr[2m | src/app/admin/dashboard/page.test.tsx[2m > [22m[2mAdminDashboardPage[2m > [22m[2mshows failed load state when dashboard API throws
+[22m[39mAdmin dashboard load failed: {
+  timestamp: [32m'2026-08-04T14:22:25.744Z'[39m,
+  error: Error: Admin dashboard API unavailable
+      at C:/Projects/sixnations-predictor/src/app/admin/dashboard/page.test.tsx:255:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/verify-email/page.test.tsx[2m > [22m[2mVerifyEmailPage[2m > [22m[2mrenders the email verification page
+[22m[39mAn update to VerifyEmailContent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to VerifyEmailContent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to VerifyEmailContent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to VerifyEmailContent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstderr[2m | src/app/api/admin/results/route.test.ts[2m > [22m[2mPOST /api/admin/results[2m > [22m[2mreturns 401 when authentication is required
+[22m[39mError: Authentication required
+    at C:/Projects/sixnations-predictor/src/app/api/admin/results/route.test.ts:396:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/results/route.test.ts[2m > [22m[2mPOST /api/admin/results[2m > [22m[2mreturns 403 when admin access is required
+[22m[39mError: Admin access required
+    at C:/Projects/sixnations-predictor/src/app/api/admin/results/route.test.ts:419:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/results/route.test.ts[2m > [22m[2mPOST /api/admin/results[2m > [22m[2mreturns 500 when score audit creation fails
+[22m[39mError: Audit create failed
+    at C:/Projects/sixnations-predictor/src/app/api/admin/results/route.test.ts:657:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/results/route.test.ts[2m > [22m[2mPOST /api/admin/results[2m > [22m[2mreturns 500 when request JSON parsing fails
+[22m[39mSyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+[90m    at parseJSONFromBytes (node:internal/deps/undici/undici:4387:19)[39m
+[90m    at successSteps (node:internal/deps/undici/undici:7041:27)[39m
+[90m    at readAllBytes (node:internal/deps/undici/undici:5958:13)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+
+ [32m✓[39m src/app/api/admin/results/route.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 45[2mms[22m[39m
+ [32m✓[39m src/app/admin/dashboard/page.test.tsx [2m([22m[2m18 tests[22m[2m)[22m[33m 725[2mms[22m[39m
+ [32m✓[39m src/app/verify-email/page.test.tsx [2m([22m[2m13 tests[22m[2m)[22m[33m 634[2mms[22m[39m
+[90mstderr[2m | src/app/api/admin/audit/route.test.ts[2m > [22m[2mGET /api/admin/audit[2m > [22m[2mreturns 401 when authentication is required
+[22m[39mError: Authentication required
+    at C:/Projects/sixnations-predictor/src/app/api/admin/audit/route.test.ts:294:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/audit/route.test.ts[2m > [22m[2mGET /api/admin/audit[2m > [22m[2mreturns 403 when admin access is required
+[22m[39mError: Admin access required
+    at C:/Projects/sixnations-predictor/src/app/api/admin/audit/route.test.ts:311:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/audit/route.test.ts[2m > [22m[2mGET /api/admin/audit[2m > [22m[2mreturns 500 when audit count fails
+[22m[39mError: Audit count failed
+    at C:/Projects/sixnations-predictor/src/app/api/admin/audit/route.test.ts:330:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/audit/route.test.ts[2m > [22m[2mGET /api/admin/audit[2m > [22m[2mreturns 500 when audit enrichment fails
+[22m[39mError: Match lookup failed
+    at C:/Projects/sixnations-predictor/src/app/api/admin/audit/route.test.ts:355:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/api/admin/audit/route.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+[90mstderr[2m | src/app/api/admin/dashboard/route.test.ts[2m > [22m[2mGET /api/admin/dashboard[2m > [22m[2mreturns 401 when authentication is required
+[22m[39mError: Authentication required
+    at C:/Projects/sixnations-predictor/src/app/api/admin/dashboard/route.test.ts:585:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/dashboard/route.test.ts[2m > [22m[2mGET /api/admin/dashboard[2m > [22m[2mreturns 403 when admin access is required
+[22m[39mError: Admin access required
+    at C:/Projects/sixnations-predictor/src/app/api/admin/dashboard/route.test.ts:602:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/dashboard/route.test.ts[2m > [22m[2mGET /api/admin/dashboard[2m > [22m[2mreturns 500 when dashboard query fails
+[22m[39mError: Database unavailable
+    at C:/Projects/sixnations-predictor/src/app/api/admin/dashboard/route.test.ts:623:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/dashboard/route.test.ts[2m > [22m[2mGET /api/admin/dashboard[2m > [22m[2mreturns 500 when audit enrichment fails
+[22m[39mError: Audit match lookup failed
+    at C:/Projects/sixnations-predictor/src/app/api/admin/dashboard/route.test.ts:672:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/dashboard/route.test.ts[2m > [22m[2mGET /api/admin/dashboard[2m > [22m[2mreturns 500 when winner enrichment fails
+[22m[39mError: Winner user lookup failed
+    at C:/Projects/sixnations-predictor/src/app/api/admin/dashboard/route.test.ts:725:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/api/admin/dashboard/route.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+[90mstderr[2m | src/app/api/predictions/route.test.ts[2m > [22m[2mPOST /api/predictions[2m > [22m[2mreturns 401 when user is not authenticated
+[22m[39mError: Authentication required
+    at C:/Projects/sixnations-predictor/src/app/api/predictions/route.test.ts:174:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/predictions/route.test.ts[2m > [22m[2mPOST /api/predictions[2m > [22m[2mreturns 500 when prediction upsert fails
+[22m[39mError: Database unavailable
+    at C:/Projects/sixnations-predictor/src/app/api/predictions/route.test.ts:240:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/predictions/route.test.ts[2m > [22m[2mPOST /api/predictions[2m > [22m[2mreturns 500 when request JSON parsing fails
+[22m[39mSyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+[90m    at parseJSONFromBytes (node:internal/deps/undici/undici:4387:19)[39m
+[90m    at successSteps (node:internal/deps/undici/undici:7041:27)[39m
+[90m    at readAllBytes (node:internal/deps/undici/undici:5958:13)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+
+ [32m✓[39m src/app/api/predictions/route.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+[90mstderr[2m | src/app/api/auth/login/route.test.ts[2m > [22m[2mPOST /api/auth/login[2m > [22m[2mreturns 500 when database lookup throws
+[22m[39mLogin failed: Error: Database unavailable
+    at C:/Projects/sixnations-predictor/src/app/api/auth/login/route.test.ts:226:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/auth/login/route.test.ts[2m > [22m[2mPOST /api/auth/login[2m > [22m[2mreturns 500 when createSession throws
+[22m[39mLogin failed: Error: Session creation failed
+    at C:/Projects/sixnations-predictor/src/app/api/auth/login/route.test.ts:254:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/api/auth/login/route.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m src/app/api/leaderboard/route.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+[90mstderr[2m | src/app/api/admin/matches/route.test.ts[2m > [22m[2mGET /api/admin/matches[2m > [22m[2mreturns 401 when authentication is required
+[22m[39mError: Authentication required
+    at C:/Projects/sixnations-predictor/src/app/api/admin/matches/route.test.ts:86:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/matches/route.test.ts[2m > [22m[2mGET /api/admin/matches[2m > [22m[2mreturns 403 when admin access is required
+[22m[39mError: Admin access required
+    at C:/Projects/sixnations-predictor/src/app/api/admin/matches/route.test.ts:103:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/admin/matches/route.test.ts[2m > [22m[2mGET /api/admin/matches[2m > [22m[2mreturns 500 when database query fails
+[22m[39mError: Database unavailable
+    at C:/Projects/sixnations-predictor/src/app/api/admin/matches/route.test.ts:122:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/api/admin/matches/route.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+[90mstderr[2m | src/app/api/predictions/list/route.test.ts[2m > [22m[2mGET /api/predictions/list[2m > [22m[2mreturns 401 when user is not authenticated
+[22m[39mError: Authentication required
+    at C:/Projects/sixnations-predictor/src/app/api/predictions/list/route.test.ts:109:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+[90mstderr[2m | src/app/api/predictions/list/route.test.ts[2m > [22m[2mGET /api/predictions/list[2m > [22m[2mreturns 500 when database query fails
+[22m[39mError: Database unavailable
+    at C:/Projects/sixnations-predictor/src/app/api/predictions/list/route.test.ts:128:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/api/predictions/list/route.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+[90mstderr[2m | src/app/api/auth/me/route.test.ts[2m > [22m[2mGET /api/auth/me[2m > [22m[2mreturns 500 when getCurrentUser throws
+[22m[39mFailed to retrieve current user: Error: Session lookup failed
+    at C:/Projects/sixnations-predictor/src/app/api/auth/me/route.test.ts:76:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/api/auth/me/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/app/api/matches/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [31m❯[39m src/app/admin/audit/page.test.tsx [2m([22m[2m19 tests[22m[2m | [22m[31m19 failed[39m[2m)[22m[33m 17269[2mms[22m[39m
+[31m     [31m×[31m renders loading state before audit data loads[39m[32m 56[2mms[22m[39m
+[31m     [31m×[31m fetches audit history on render[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m redirects to login when audit API returns 401[39m[33m 1019[2mms[22m[39m
+[31m     [31m×[31m redirects to dashboard when audit API returns 403[39m[33m 1009[2mms[22m[39m
+[31m     [31m×[31m renders audit table with headings[39m[33m 1016[2mms[22m[39m
+[31m     [31m×[31m renders audit rows with match names and score changes[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m renders admin user names[39m[33m 1014[2mms[22m[39m
+[31m     [31m×[31m renders Irish formatted audit dates[39m[33m 1012[2mms[22m[39m
+[31m     [31m×[31m renders empty audit state[39m[33m 1013[2mms[22m[39m
+[31m     [31m×[31m renders fallback match label when match relationship is missing[39m[33m 1015[2mms[22m[39m
+[31m     [31m×[31m renders fallback admin id when admin user relationship is missing[39m[33m 1015[2mms[22m[39m
+[31m     [31m×[31m shows pagination controls when audit rows exist[39m[33m 1012[2mms[22m[39m
+[31m     [31m×[31m disables previous button on first page[39m[33m 1009[2mms[22m[39m
+[31m     [31m×[31m disables next button on final page[39m[33m 1014[2mms[22m[39m
+[31m     [31m×[31m loads next page of audit results[39m[33m 1010[2mms[22m[39m
+[31m     [31m×[31m returns to previous page of audit results[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m handles audit API throwing by ending loading state[39m[32m 7[2mms[22m[39m
+[31m     [31m×[31m falls back to one page when totalPages is missing[39m[33m 1006[2mms[22m[39m
+[31m     [31m×[31m falls back to empty audit array when audits is missing[39m[33m 1004[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 20 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/app/predictions/page.test.tsx[2m > [22mPredictionsPage[2m > [22mrenders predictions page with fixture, progress, and Irish formatted kick-off date
+[31m[1mError[22m: [2mexpect([22m[31melement[31m[2m).toBeInTheDocument()[22m
+
+[31melement could not be found in the document[31m[39m
+[36m [2m❯[22m src/app/predictions/page.test.tsx:[2m375:7[22m[39m
+    [90m373|[39m         name[33m:[39m [32m"Predictions"[39m[33m,[39m
+    [90m374|[39m       })
+    [90m375|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m   |[39m       [31m^[39m
+    [90m376|[39m
+    [90m377|[39m     [34mexpect[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mrenders loading state before audit data loads
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: Loading audit records.... This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m180:14[22m[39m
+    [90m178|[39m
+    [90m179|[39m     [34mexpect[39m(
+    [90m180|[39m       screen[33m.[39m[34mgetByText[39m([32m"Loading audit records..."[39m)
+    [90m   |[39m              [31m^[39m
+    [90m181|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m182|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mfetches audit history on render
+[31m[1mTestingLibraryElementError[22m: Unable to find role="heading" and name "Audit History"
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m194:20[22m[39m
+    [90m192|[39m
+    [90m193|[39m     [34mexpect[39m(
+    [90m194|[39m       [35mawait[39m screen[33m.[39m[34mfindByRole[39m([32m"heading"[39m[33m,[39m {
+    [90m   |[39m                    [31m^[39m
+    [90m195|[39m         name[33m:[39m [32m"Audit History"[39m[33m,[39m
+    [90m196|[39m       })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mredirects to login when audit API returns 401
+[31m[1mAssertionError[22m: expected '' to be '/login' // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m""[31m
+      [36m>[31m
+        [36m<h1[31m
+          [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+        [36m/>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- /login[39m
+
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m219:36[22m[39m
+    [90m217|[39m
+    [90m218|[39m     [35mawait[39m [34mwaitFor[39m(() [33m=>[39m {
+    [90m219|[39m       [34mexpect[39m(window[33m.[39mlocation[33m.[39mhref)[33m.[39m[34mtoBe[39m([32m"/login"[39m)[33m;[39m
+    [90m   |[39m                                    [31m^[39m
+    [90m220|[39m     })[33m;[39m
+    [90m221|[39m
+[90m [2m❯[22m runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:[2m47:12[22m[39m
+[90m [2m❯[22m checkCallback node_modules/@testing-library/dom/dist/wait-for.js:[2m124:77[22m[39m
+[90m [2m❯[22m Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:[2m118:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mredirects to dashboard when audit API returns 403
+[31m[1mAssertionError[22m: expected '' to be '/dashboard' // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m""[31m
+      [36m>[31m
+        [36m<h1[31m
+          [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+        [36m/>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- /dashboard[39m
+
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m240:36[22m[39m
+    [90m238|[39m
+    [90m239|[39m     [35mawait[39m [34mwaitFor[39m(() [33m=>[39m {
+    [90m240|[39m       [34mexpect[39m(window[33m.[39mlocation[33m.[39mhref)[33m.[39m[34mtoBe[39m([32m"/dashboard"[39m)[33m;[39m
+    [90m   |[39m                                    [31m^[39m
+    [90m241|[39m     })[33m;[39m
+    [90m242|[39m
+[90m [2m❯[22m runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:[2m47:12[22m[39m
+[90m [2m❯[22m checkCallback node_modules/@testing-library/dom/dist/wait-for.js:[2m124:77[22m[39m
+[90m [2m❯[22m Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:[2m118:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mrenders audit table with headings
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: Date. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m254:20[22m[39m
+    [90m252|[39m
+    [90m253|[39m     [34mexpect[39m(
+    [90m254|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"Date"[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m255|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m256|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mrenders audit rows with match names and score changes
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: IRE v FRA. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m280:20[22m[39m
+    [90m278|[39m
+    [90m279|[39m     [34mexpect[39m(
+    [90m280|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"IRE v FRA"[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m281|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m282|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mrenders admin user names
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: Admin User. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m310:20[22m[39m
+    [90m308|[39m
+    [90m309|[39m     [34mexpect[39m(
+    [90m310|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"Admin User"[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m311|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m312|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mrenders Irish formatted audit dates
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: /29 Jan 2027/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m324:20[22m[39m
+    [90m322|[39m
+    [90m323|[39m     [34mexpect[39m(
+    [90m324|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([36m/29 Jan 2027/i[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m325|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m326|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mrenders empty audit state
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: No audit records found.. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m349:20[22m[39m
+    [90m347|[39m
+    [90m348|[39m     [34mexpect[39m(
+    [90m349|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"No audit records found."[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m350|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m351|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mrenders fallback match label when match relationship is missing
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: Match 999. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m366:20[22m[39m
+    [90m364|[39m
+    [90m365|[39m     [34mexpect[39m(
+    [90m366|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"Match 999"[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m367|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m368|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mrenders fallback admin id when admin user relationship is missing
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: ENG v IRE. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m395:20[22m[39m
+    [90m393|[39m
+    [90m394|[39m     [34mexpect[39m(
+    [90m395|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"ENG v IRE"[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m396|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m397|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mshows pagination controls when audit rows exist
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: IRE v FRA. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m424:20[22m[39m
+    [90m422|[39m
+    [90m423|[39m     [34mexpect[39m(
+    [90m424|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"IRE v FRA"[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m425|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m426|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mdisables previous button on first page
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: IRE v FRA. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m453:20[22m[39m
+    [90m451|[39m
+    [90m452|[39m     [34mexpect[39m(
+    [90m453|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"IRE v FRA"[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m454|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m455|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mdisables next button on final page
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: IRE v FRA. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m472:20[22m[39m
+    [90m470|[39m
+    [90m471|[39m     [34mexpect[39m(
+    [90m472|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"IRE v FRA"[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m473|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m474|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mloads next page of audit results
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: IRE v FRA. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m506:20[22m[39m
+    [90m504|[39m
+    [90m505|[39m     [34mexpect[39m(
+    [90m506|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"IRE v FRA"[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m507|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m508|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mreturns to previous page of audit results
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: IRE v FRA. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m563:20[22m[39m
+    [90m561|[39m
+    [90m562|[39m     [34mexpect[39m(
+    [90m563|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"IRE v FRA"[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m564|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m565|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mhandles audit API throwing by ending loading state
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: No audit records found.. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m611:14[22m[39m
+    [90m609|[39m
+    [90m610|[39m     [34mexpect[39m(
+    [90m611|[39m       screen[33m.[39m[34mgetByText[39m([32m"No audit records found."[39m)
+    [90m   |[39m              [31m^[39m
+    [90m612|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m613|[39m   })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mfalls back to one page when totalPages is missing
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: IRE v FRA. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m627:20[22m[39m
+    [90m625|[39m
+    [90m626|[39m     [34mexpect[39m(
+    [90m627|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"IRE v FRA"[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m628|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m629|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/20]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/admin/audit/page.test.tsx[2m > [22mAuditPage[2m > [22mfalls back to empty audit array when audits is missing
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: No audit records found.. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m""[31m
+    [36m>[31m
+      [36m<h1[31m
+        [33mclass[31m=[32m"text-4xl font-bold text-[var(--brand-navy)]"[31m
+      [36m/>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m src/app/admin/audit/page.test.tsx:[2m647:20[22m[39m
+    [90m645|[39m
+    [90m646|[39m     [34mexpect[39m(
+    [90m647|[39m       [35mawait[39m screen[33m.[39m[34mfindByText[39m([32m"No audit records found."[39m)
+    [90m   |[39m                    [31m^[39m
+    [90m648|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m649|[39m   })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/20]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m20 passed[39m[22m[90m (22)[39m
+[2m      Tests [22m [1m[31m20 failed[39m[22m[2m | [22m[1m[32m327 passed[39m[22m[90m (347)[39m
+[2m   Start at [22m 15:22:04
+[2m   Duration [22m 27.56s[2m (transform 3.42s, setup 15.62s, import 6.11s, tests 51.48s, environment 47.64s)[22m
+
+[1m[30m[41m FAIL [49m[39m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[30m[44m RERUN [49m[39m[22m [34m[2msrc/components/ui/PageHeader.tsx [22m[39m
+
+ [31m❯[39m src/app/admin/audit/page.test.tsx [2m([22m[2m19 tests[22m[2m | [22m[31m19 failed[39m[2m)[22m[33m 17269[2mms[22m[39m
+[31m     [31m×[31m renders loading state before audit data loads[39m[32m 56[2mms[22m[39m
+[31m     [31m×[31m fetches audit history on render[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m redirects to login when audit API returns 401[39m[33m 1019[2mms[22m[39m
+[31m     [31m×[31m redirects to dashboard when audit API returns 403[39m[33m 1009[2mms[22m[39m
+[31m     [31m×[31m renders audit table with headings[39m[33m 1016[2mms[22m[39m
+[31m     [31m×[31m renders audit rows with match names and score changes[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m renders admin user names[39m[33m 1014[2mms[22m[39m
+[31m     [31m×[31m renders Irish formatted audit dates[39m[33m 1012[2mms[22m[39m
+[31m     [31m×[31m renders empty audit state[39m[33m 1013[2mms[22m[39m
+[31m     [31m×[31m renders fallback match label when match relationship is missing[39m[33m 1015[2mms[22m[39m
+[31m     [31m×[31m renders fallback admin id when admin user relationship is missing[39m[33m 1015[2mms[22m[39m
+[31m     [31m×[31m shows pagination controls when audit rows exist[39m[33m 1012[2mms[22m[39m
+[31m     [31m×[31m disables previous button on first page[39m[33m 1009[2mms[22m[39m
+[31m     [31m×[31m disables next button on final page[39m[33m 1014[2mms[22m[39m
+[31m     [31m×[31m loads next page of audit results[39m[33m 1010[2mms[22m[39m
+[31m     [31m×[31m returns to previous page of audit results[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m handles audit API throwing by ending loading state[39m[32m 7[2mms[22m[39m
+[31m     [31m×[31m falls back to one page when totalPages is missing[39m[33m 1006[2mms[22m[39m
+[31m     [31m×[31m falls back to empty audit array when audits is missing[39m[33m 1004[2mms[22m[39m
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when auth API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:29:43.177Z'[39m,
+  error: Error: Auth API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:333:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when auth API request throws
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:29:43.218Z'[39m,
+  error: Error: Network error
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:255:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/admin/dashboard/page.test.tsx[2m > [22m[2mAdminDashboardPage[2m > [22m[2mshows failed load state when dashboard API throws
+[22m[39mAdmin dashboard load failed: {
+  timestamp: [32m'2026-08-04T14:29:43.217Z'[39m,
+  error: Error: Admin dashboard API unavailable
+      at C:/Projects/sixnations-predictor/src/app/admin/dashboard/page.test.tsx:255:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when leaderboard API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:29:43.238Z'[39m,
+  error: Error: Leaderboard API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:355:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when matches API request fails
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:29:43.307Z'[39m,
+  error: Error: Matches API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:277:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when matches API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:29:43.306Z'[39m,
+  error: Error: Matches API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:387:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when predictions API request fails during initial load
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:29:43.327Z'[39m,
+  error: Error: Predictions API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:305:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/admin/page.test.tsx[2m > [22m[2mAdminPage[2m > [22m[2mredirects to login when auth API throws
+[22m[39mAdmin results page load failed: {
+  timestamp: [32m'2026-08-04T14:29:43.348Z'[39m,
+  error: Error: Auth API unavailable
+      at C:/Projects/sixnations-predictor/src/app/admin/page.test.tsx:211:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when predictions API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:29:43.378Z'[39m,
+  error: Error: Predictions API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:421:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+ [32m✓[39m src/app/admin/dashboard/page.test.tsx [2m([22m[2m18 tests[22m[2m)[22m[33m 975[2mms[22m[39m
+[90mstderr[2m | src/app/page.test.tsx[2m > [22m[2mHomePage[2m > [22m[2mshows tournament complete state when matches API throws
+[22m[39mFailed to load next match Error: Matches API unavailable
+    at C:/Projects/sixnations-predictor/src/app/page.test.tsx:333:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/page.test.tsx [2m([22m[2m20 tests[22m[2m)[22m[33m 1840[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the landing page hero immediately [33m 368[2mms[22m[39m
+ [32m✓[39m src/app/dashboard/page.test.tsx [2m([22m[2m30 tests[22m[2m)[22m[33m 1917[2mms[22m[39m
+     [33m[2m✓[22m[39m fetches all dashboard data on successful load [33m 399[2mms[22m[39m
+[90mstderr[2m | src/app/leaderboard/page.test.tsx[2m > [22m[2mLeaderboardPage[2m > [22m[2mshows the API error when the request fails
+[22m[39mUnable to load leaderboard: Error: Leaderboard service unavailable.
+    at loadLeaderboard (C:/Projects/sixnations-predictor/src/app/leaderboard/page.tsx:155:17)
+
+[90mstderr[2m | src/app/leaderboard/page.test.tsx[2m > [22m[2mLeaderboardPage[2m > [22m[2mshows a fallback error when the API returns invalid data
+[22m[39mUnable to load leaderboard: Error: The leaderboard returned invalid data.
+    at loadLeaderboard (C:/Projects/sixnations-predictor/src/app/leaderboard/page.tsx:162:17)
+
+[90mstderr[2m | src/app/leaderboard/page.test.tsx[2m > [22m[2mLeaderboardPage[2m > [22m[2mshows a fallback error when fetch rejects
+[22m[39mUnable to load leaderboard: Error: Network failure
+    at C:/Projects/sixnations-predictor/src/app/leaderboard/page.test.tsx:823:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/leaderboard/page.test.tsx [2m([22m[2m25 tests[22m[2m)[22m[33m 3057[2mms[22m[39m
+     [33m[2m✓[22m[39m sorts by player name using the dropdown [33m 326[2mms[22m[39m
+ [32m✓[39m src/app/admin/page.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[33m 3522[2mms[22m[39m
+     [33m[2m✓[22m[39m loads and renders admin results page [33m 433[2mms[22m[39m
+     [33m[2m✓[22m[39m saves a result successfully [33m 358[2mms[22m[39m
+     [33m[2m✓[22m[39m shows saving state while result save is processing [33m 388[2mms[22m[39m
+     [33m[2m✓[22m[39m shows fallback error message when save result fails without API error text [32m 300[2mms[22m[39m
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mshows network error message when save API throws
+[22m[39mPrediction save failed: {
+  timestamp: [32m'2026-08-04T14:29:48.091Z'[39m,
+  error: Error: Save API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:1377:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mhandles refresh predictions API failure after successful save attempt
+[22m[39mPrediction save failed: {
+  timestamp: [32m'2026-08-04T14:29:48.331Z'[39m,
+  error: Error: Refresh predictions failed
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:1422:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+ [31m❯[39m src/app/predictions/page.test.tsx [2m([22m[2m36 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 5632[2mms[22m[39m
+     [32m✓[39m renders loading state before data loads[32m 63[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when auth request is not ok[32m 72[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when authenticated is false[32m 61[2mms[22m[39m
+     [32m✓[39m redirects to login when auth API request throws[32m 86[2mms[22m[39m
+     [32m✓[39m redirects to login when matches API request fails[32m 19[2mms[22m[39m
+     [32m✓[39m redirects to login when predictions API request fails during initial load[32m 23[2mms[22m[39m
+     [32m✓[39m sorts unsorted fixture data by kickoff time and selects earliest open fixture[32m 90[2mms[22m[39m
+     [32m✓[39m uses edge-case fixture mock data and selects the earliest open fixture[32m 62[2mms[22m[39m
+[31m     [31m×[31m renders predictions page with fixture, progress, and Irish formatted kick-off date[39m[33m 340[2mms[22m[39m
+     [32m✓[39m shows saved predictions with formatted fixture date[32m 50[2mms[22m[39m
+     [32m✓[39m shows empty predictions state[32m 58[2mms[22m[39m
+     [32m✓[39m shows partial predictions progress when only some matches have predictions[32m 51[2mms[22m[39m
+     [32m✓[39m selects the first unpredicted open fixture automatically[32m 37[2mms[22m[39m
+     [32m✓[39m shows full predictions progress when all matches have predictions[32m 32[2mms[22m[39m
+     [32m✓[39m shows COMPLETE status for completed fixtures[32m 33[2mms[22m[39m
+     [32m✓[39m treats an incomplete fixture as locked when kick-off time is in the past[32m 66[2mms[22m[39m
+     [32m✓[39m shows countdown for open fixtures[32m 32[2mms[22m[39m
+     [32m✓[39m hides countdown and disables inputs when completed fixture is selected[32m 166[2mms[22m[39m
+     [32m✓[39m shows existing prediction card when locked fixture has a prediction[32m 109[2mms[22m[39m
+     [32m✓[39m allows selecting another fixture from the fixture list[32m 97[2mms[22m[39m
+     [32m✓[39m clears score inputs when switching from editing prediction to unpredicted fixture[32m 208[2mms[22m[39m
+     [33m[2m✓[22m[39m updates an existing prediction successfully [33m 476[2mms[22m[39m
+     [33m[2m✓[22m[39m allows user interaction by selecting a fixture, entering scores, and saving [33m 379[2mms[22m[39m
+     [32m✓[39m allows zero-zero score prediction[32m 284[2mms[22m[39m
+     [32m✓[39m shows saving state while save request is processing[32m 299[2mms[22m[39m
+     [32m✓[39m saves a new prediction successfully[32m 269[2mms[22m[39m
+     [32m✓[39m refreshes prediction data after saving a prediction[32m 283[2mms[22m[39m
+     [32m✓[39m shows validation error when both score inputs are empty[32m 96[2mms[22m[39m
+     [32m✓[39m shows validation error when home score is empty[32m 223[2mms[22m[39m
+     [32m✓[39m shows validation error when away score is empty[32m 190[2mms[22m[39m
+     [32m✓[39m shows API error message when saving prediction fails with non-403 response[32m 285[2mms[22m[39m
+     [32m✓[39m shows fallback API error message when save fails without error text[32m 288[2mms[22m[39m
+     [32m✓[39m shows network error message when save API throws[32m 272[2mms[22m[39m
+     [32m✓[39m handles refresh predictions API failure after successful save attempt[32m 240[2mms[22m[39m
+     [32m✓[39m shows locked fixture error when API returns 403[32m 272[2mms[22m[39m
+     [32m✓[39m shows no matches available when no fixtures exist[32m 16[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/app/predictions/page.test.tsx[2m > [22mPredictionsPage[2m > [22mrenders predictions page with fixture, progress, and Irish formatted kick-off date
+[31m[1mError[22m: [2mexpect([22m[31melement[31m[2m).toBeInTheDocument()[22m
+
+[31melement could not be found in the document[31m[39m
+[36m [2m❯[22m src/app/predictions/page.test.tsx:[2m375:7[22m[39m
+    [90m373|[39m         name[33m:[39m [32m"Predictions"[39m[33m,[39m
+    [90m374|[39m       })
+    [90m375|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m   |[39m       [31m^[39m
+    [90m376|[39m
+    [90m377|[39m     [34mexpect[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[31m20 failed[39m[22m[2m | [22m[1m[32m150 passed[39m[22m[90m (170)[39m
+[2m   Start at [22m 15:29:39
+[2m   Duration [22m 21.64s
+
+[1m[30m[41m FAIL [49m[39m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[30m[44m RERUN [49m[39m[22m [34m[2msrc/components/ui/PageHeader.tsx [22m[39m
+
+ [31m❯[39m src/app/admin/audit/page.test.tsx [2m([22m[2m19 tests[22m[2m | [22m[31m19 failed[39m[2m)[22m[33m 17269[2mms[22m[39m
+[31m     [31m×[31m renders loading state before audit data loads[39m[32m 56[2mms[22m[39m
+[31m     [31m×[31m fetches audit history on render[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m redirects to login when audit API returns 401[39m[33m 1019[2mms[22m[39m
+[31m     [31m×[31m redirects to dashboard when audit API returns 403[39m[33m 1009[2mms[22m[39m
+[31m     [31m×[31m renders audit table with headings[39m[33m 1016[2mms[22m[39m
+[31m     [31m×[31m renders audit rows with match names and score changes[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m renders admin user names[39m[33m 1014[2mms[22m[39m
+[31m     [31m×[31m renders Irish formatted audit dates[39m[33m 1012[2mms[22m[39m
+[31m     [31m×[31m renders empty audit state[39m[33m 1013[2mms[22m[39m
+[31m     [31m×[31m renders fallback match label when match relationship is missing[39m[33m 1015[2mms[22m[39m
+[31m     [31m×[31m renders fallback admin id when admin user relationship is missing[39m[33m 1015[2mms[22m[39m
+[31m     [31m×[31m shows pagination controls when audit rows exist[39m[33m 1012[2mms[22m[39m
+[31m     [31m×[31m disables previous button on first page[39m[33m 1009[2mms[22m[39m
+[31m     [31m×[31m disables next button on final page[39m[33m 1014[2mms[22m[39m
+[31m     [31m×[31m loads next page of audit results[39m[33m 1010[2mms[22m[39m
+[31m     [31m×[31m returns to previous page of audit results[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m handles audit API throwing by ending loading state[39m[32m 7[2mms[22m[39m
+[31m     [31m×[31m falls back to one page when totalPages is missing[39m[33m 1006[2mms[22m[39m
+[31m     [31m×[31m falls back to empty audit array when audits is missing[39m[33m 1004[2mms[22m[39m
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when auth API request throws
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:32:47.276Z'[39m,
+  error: Error: Network error
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:255:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/admin/dashboard/page.test.tsx[2m > [22m[2mAdminDashboardPage[2m > [22m[2mshows failed load state when dashboard API throws
+[22m[39mAdmin dashboard load failed: {
+  timestamp: [32m'2026-08-04T14:32:47.320Z'[39m,
+  error: Error: Admin dashboard API unavailable
+      at C:/Projects/sixnations-predictor/src/app/admin/dashboard/page.test.tsx:255:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when matches API request fails
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:32:47.362Z'[39m,
+  error: Error: Matches API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:277:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when predictions API request fails during initial load
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:32:47.385Z'[39m,
+  error: Error: Predictions API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:305:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when auth API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:32:47.462Z'[39m,
+  error: Error: Auth API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:333:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when leaderboard API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:32:47.563Z'[39m,
+  error: Error: Leaderboard API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:355:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when matches API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:32:47.645Z'[39m,
+  error: Error: Matches API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:387:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/dashboard/page.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mredirects to login when predictions API throws
+[22m[39mDashboard load failed: {
+  timestamp: [32m'2026-08-04T14:32:47.740Z'[39m,
+  error: Error: Predictions API unavailable
+      at C:/Projects/sixnations-predictor/src/app/dashboard/page.test.tsx:421:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/admin/page.test.tsx[2m > [22m[2mAdminPage[2m > [22m[2mredirects to login when auth API throws
+[22m[39mAdmin results page load failed: {
+  timestamp: [32m'2026-08-04T14:32:47.967Z'[39m,
+  error: Error: Auth API unavailable
+      at C:/Projects/sixnations-predictor/src/app/admin/page.test.tsx:211:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+ [32m✓[39m src/app/admin/dashboard/page.test.tsx [2m([22m[2m18 tests[22m[2m)[22m[33m 2021[2mms[22m[39m
+     [33m[2m✓[22m[39m fetches admin dashboard data on render [33m 429[2mms[22m[39m
+[90mstderr[2m | src/app/page.test.tsx[2m > [22m[2mHomePage[2m > [22m[2mshows tournament complete state when matches API throws
+[22m[39mFailed to load next match Error: Matches API unavailable
+    at C:/Projects/sixnations-predictor/src/app/page.test.tsx:333:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/dashboard/page.test.tsx [2m([22m[2m30 tests[22m[2m)[22m[33m 3430[2mms[22m[39m
+     [33m[2m✓[22m[39m fetches all dashboard data on successful load [33m 761[2mms[22m[39m
+ [32m✓[39m src/app/page.test.tsx [2m([22m[2m20 tests[22m[2m)[22m[33m 3859[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the landing page hero immediately [33m 1011[2mms[22m[39m
+[90mstderr[2m | src/app/leaderboard/page.test.tsx[2m > [22m[2mLeaderboardPage[2m > [22m[2mshows the API error when the request fails
+[22m[39mUnable to load leaderboard: Error: Leaderboard service unavailable.
+    at loadLeaderboard (C:/Projects/sixnations-predictor/src/app/leaderboard/page.tsx:155:17)
+
+[90mstderr[2m | src/app/leaderboard/page.test.tsx[2m > [22m[2mLeaderboardPage[2m > [22m[2mshows a fallback error when the API returns invalid data
+[22m[39mUnable to load leaderboard: Error: The leaderboard returned invalid data.
+    at loadLeaderboard (C:/Projects/sixnations-predictor/src/app/leaderboard/page.tsx:162:17)
+
+[90mstderr[2m | src/app/leaderboard/page.test.tsx[2m > [22m[2mLeaderboardPage[2m > [22m[2mshows a fallback error when fetch rejects
+[22m[39mUnable to load leaderboard: Error: Network failure
+    at C:/Projects/sixnations-predictor/src/app/leaderboard/page.test.tsx:823:7
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+    at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+
+ [32m✓[39m src/app/leaderboard/page.test.tsx [2m([22m[2m25 tests[22m[2m)[22m[33m 5122[2mms[22m[39m
+     [33m[2m✓[22m[39m renders the loading state while the request is pending [33m 379[2mms[22m[39m
+     [33m[2m✓[22m[39m sorts entries by points by default [33m 648[2mms[22m[39m
+     [33m[2m✓[22m[39m sorts by player name using the dropdown [33m 583[2mms[22m[39m
+     [33m[2m✓[22m[39m sorts by difference score using the dropdown [33m 462[2mms[22m[39m
+     [33m[2m✓[22m[39m sorts by exact scores using the dropdown [33m 402[2mms[22m[39m
+     [33m[2m✓[22m[39m sorts by cumulative error using the dropdown [33m 372[2mms[22m[39m
+     [33m[2m✓[22m[39m sorts by points when the Points heading button is clicked [33m 539[2mms[22m[39m
+ [32m✓[39m src/app/admin/page.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[33m 5219[2mms[22m[39m
+     [33m[2m✓[22m[39m loads and renders admin results page [33m 751[2mms[22m[39m
+     [33m[2m✓[22m[39m selects completed match and loads existing scores [33m 467[2mms[22m[39m
+     [33m[2m✓[22m[39m saves a result successfully [33m 615[2mms[22m[39m
+     [33m[2m✓[22m[39m shows saving state while result save is processing [33m 547[2mms[22m[39m
+     [33m[2m✓[22m[39m shows API error message when save result fails [33m 338[2mms[22m[39m
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mshows network error message when save API throws
+[22m[39mPrediction save failed: {
+  timestamp: [32m'2026-08-04T14:32:53.820Z'[39m,
+  error: Error: Save API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:1377:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mhandles refresh predictions API failure after successful save attempt
+[22m[39mPrediction save failed: {
+  timestamp: [32m'2026-08-04T14:32:54.086Z'[39m,
+  error: Error: Refresh predictions failed
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:1422:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+ [31m❯[39m src/app/predictions/page.test.tsx [2m([22m[2m36 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 7368[2mms[22m[39m
+     [32m✓[39m renders loading state before data loads[32m 98[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when auth request is not ok[32m 83[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when authenticated is false[32m 78[2mms[22m[39m
+     [32m✓[39m redirects to login when auth API request throws[32m 79[2mms[22m[39m
+     [32m✓[39m redirects to login when matches API request fails[32m 27[2mms[22m[39m
+     [32m✓[39m redirects to login when predictions API request fails during initial load[32m 21[2mms[22m[39m
+     [32m✓[39m sorts unsorted fixture data by kickoff time and selects earliest open fixture[32m 202[2mms[22m[39m
+     [32m✓[39m uses edge-case fixture mock data and selects the earliest open fixture[32m 93[2mms[22m[39m
+[31m     [31m×[31m renders predictions page with fixture, progress, and Irish formatted kick-off date[39m[33m 763[2mms[22m[39m
+     [32m✓[39m shows saved predictions with formatted fixture date[32m 110[2mms[22m[39m
+     [32m✓[39m shows empty predictions state[32m 109[2mms[22m[39m
+     [32m✓[39m shows partial predictions progress when only some matches have predictions[32m 83[2mms[22m[39m
+     [32m✓[39m selects the first unpredicted open fixture automatically[32m 69[2mms[22m[39m
+     [32m✓[39m shows full predictions progress when all matches have predictions[32m 82[2mms[22m[39m
+     [32m✓[39m shows COMPLETE status for completed fixtures[32m 48[2mms[22m[39m
+     [32m✓[39m treats an incomplete fixture as locked when kick-off time is in the past[32m 172[2mms[22m[39m
+     [32m✓[39m shows countdown for open fixtures[32m 109[2mms[22m[39m
+     [33m[2m✓[22m[39m hides countdown and disables inputs when completed fixture is selected [33m 446[2mms[22m[39m
+     [32m✓[39m shows existing prediction card when locked fixture has a prediction[32m 256[2mms[22m[39m
+     [32m✓[39m allows selecting another fixture from the fixture list[32m 258[2mms[22m[39m
+     [33m[2m✓[22m[39m clears score inputs when switching from editing prediction to unpredicted fixture [33m 440[2mms[22m[39m
+     [33m[2m✓[22m[39m updates an existing prediction successfully [33m 512[2mms[22m[39m
+     [33m[2m✓[22m[39m allows user interaction by selecting a fixture, entering scores, and saving [33m 415[2mms[22m[39m
+     [32m✓[39m allows zero-zero score prediction[32m 233[2mms[22m[39m
+     [33m[2m✓[22m[39m shows saving state while save request is processing [33m 324[2mms[22m[39m
+     [32m✓[39m saves a new prediction successfully[32m 260[2mms[22m[39m
+     [32m✓[39m refreshes prediction data after saving a prediction[32m 266[2mms[22m[39m
+     [32m✓[39m shows validation error when both score inputs are empty[32m 80[2mms[22m[39m
+     [32m✓[39m shows validation error when home score is empty[32m 175[2mms[22m[39m
+     [32m✓[39m shows validation error when away score is empty[32m 161[2mms[22m[39m
+     [32m✓[39m shows API error message when saving prediction fails with non-403 response[32m 255[2mms[22m[39m
+     [32m✓[39m shows fallback API error message when save fails without error text[32m 267[2mms[22m[39m
+     [32m✓[39m shows network error message when save API throws[32m 259[2mms[22m[39m
+     [32m✓[39m handles refresh predictions API failure after successful save attempt[32m 284[2mms[22m[39m
+     [32m✓[39m shows locked fixture error when API returns 403[32m 226[2mms[22m[39m
+     [32m✓[39m shows no matches available when no fixtures exist[32m 15[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/app/predictions/page.test.tsx[2m > [22mPredictionsPage[2m > [22mrenders predictions page with fixture, progress, and Irish formatted kick-off date
+[31m[1mError[22m: [2mexpect([22m[31melement[31m[2m).toBeInTheDocument()[22m
+
+[31melement could not be found in the document[31m[39m
+[36m [2m❯[22m src/app/predictions/page.test.tsx:[2m375:7[22m[39m
+    [90m373|[39m         name[33m:[39m [32m"Predictions"[39m[33m,[39m
+    [90m374|[39m       })
+    [90m375|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m   |[39m       [31m^[39m
+    [90m376|[39m
+    [90m377|[39m     [34mexpect[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[31m20 failed[39m[22m[2m | [22m[1m[32m150 passed[39m[22m[90m (170)[39m
+[2m   Start at [22m 15:32:40
+[2m   Duration [22m 36.90s
+
+[1m[30m[41m FAIL [49m[39m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[30m[44m RERUN [49m[39m[22m [34m[2msrc/app/predictions/page.tsx [22m[34mx3 [34m[39m
+
+ [31m❯[39m src/app/admin/audit/page.test.tsx [2m([22m[2m19 tests[22m[2m | [22m[31m19 failed[39m[2m)[22m[33m 17269[2mms[22m[39m
+[31m     [31m×[31m renders loading state before audit data loads[39m[32m 56[2mms[22m[39m
+[31m     [31m×[31m fetches audit history on render[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m redirects to login when audit API returns 401[39m[33m 1019[2mms[22m[39m
+[31m     [31m×[31m redirects to dashboard when audit API returns 403[39m[33m 1009[2mms[22m[39m
+[31m     [31m×[31m renders audit table with headings[39m[33m 1016[2mms[22m[39m
+[31m     [31m×[31m renders audit rows with match names and score changes[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m renders admin user names[39m[33m 1014[2mms[22m[39m
+[31m     [31m×[31m renders Irish formatted audit dates[39m[33m 1012[2mms[22m[39m
+[31m     [31m×[31m renders empty audit state[39m[33m 1013[2mms[22m[39m
+[31m     [31m×[31m renders fallback match label when match relationship is missing[39m[33m 1015[2mms[22m[39m
+[31m     [31m×[31m renders fallback admin id when admin user relationship is missing[39m[33m 1015[2mms[22m[39m
+[31m     [31m×[31m shows pagination controls when audit rows exist[39m[33m 1012[2mms[22m[39m
+[31m     [31m×[31m disables previous button on first page[39m[33m 1009[2mms[22m[39m
+[31m     [31m×[31m disables next button on final page[39m[33m 1014[2mms[22m[39m
+[31m     [31m×[31m loads next page of audit results[39m[33m 1010[2mms[22m[39m
+[31m     [31m×[31m returns to previous page of audit results[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m handles audit API throwing by ending loading state[39m[32m 7[2mms[22m[39m
+[31m     [31m×[31m falls back to one page when totalPages is missing[39m[33m 1006[2mms[22m[39m
+[31m     [31m×[31m falls back to empty audit array when audits is missing[39m[33m 1004[2mms[22m[39m
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when auth API request throws
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:42:35.901Z'[39m,
+  error: Error: Network error
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:255:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when matches API request fails
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:42:35.984Z'[39m,
+  error: Error: Matches API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:277:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when predictions API request fails during initial load
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:42:35.999Z'[39m,
+  error: Error: Predictions API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:305:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mshows network error message when save API throws
+[22m[39mPrediction save failed: {
+  timestamp: [32m'2026-08-04T14:42:40.242Z'[39m,
+  error: Error: Save API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:1377:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mhandles refresh predictions API failure after successful save attempt
+[22m[39mPrediction save failed: {
+  timestamp: [32m'2026-08-04T14:42:40.489Z'[39m,
+  error: Error: Refresh predictions failed
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:1422:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+ [31m❯[39m src/app/predictions/page.test.tsx [2m([22m[2m36 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 5081[2mms[22m[39m
+     [32m✓[39m renders loading state before data loads[32m 37[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when auth request is not ok[32m 75[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when authenticated is false[32m 79[2mms[22m[39m
+     [32m✓[39m redirects to login when auth API request throws[32m 82[2mms[22m[39m
+     [32m✓[39m redirects to login when matches API request fails[32m 17[2mms[22m[39m
+     [32m✓[39m redirects to login when predictions API request fails during initial load[32m 12[2mms[22m[39m
+     [32m✓[39m sorts unsorted fixture data by kickoff time and selects earliest open fixture[32m 75[2mms[22m[39m
+     [32m✓[39m uses edge-case fixture mock data and selects the earliest open fixture[32m 35[2mms[22m[39m
+[31m     [31m×[31m renders predictions page with fixture, progress, and Irish formatted kick-off date[39m[32m 118[2mms[22m[39m
+     [32m✓[39m shows saved predictions with formatted fixture date[32m 31[2mms[22m[39m
+     [32m✓[39m shows empty predictions state[32m 55[2mms[22m[39m
+     [32m✓[39m shows partial predictions progress when only some matches have predictions[32m 41[2mms[22m[39m
+     [32m✓[39m selects the first unpredicted open fixture automatically[32m 40[2mms[22m[39m
+     [32m✓[39m shows full predictions progress when all matches have predictions[32m 46[2mms[22m[39m
+     [32m✓[39m shows COMPLETE status for completed fixtures[32m 24[2mms[22m[39m
+     [32m✓[39m treats an incomplete fixture as locked when kick-off time is in the past[32m 46[2mms[22m[39m
+     [32m✓[39m shows countdown for open fixtures[32m 29[2mms[22m[39m
+     [32m✓[39m hides countdown and disables inputs when completed fixture is selected[32m 147[2mms[22m[39m
+     [32m✓[39m shows existing prediction card when locked fixture has a prediction[32m 112[2mms[22m[39m
+     [32m✓[39m allows selecting another fixture from the fixture list[32m 112[2mms[22m[39m
+     [32m✓[39m clears score inputs when switching from editing prediction to unpredicted fixture[32m 214[2mms[22m[39m
+     [33m[2m✓[22m[39m updates an existing prediction successfully [33m 449[2mms[22m[39m
+     [33m[2m✓[22m[39m allows user interaction by selecting a fixture, entering scores, and saving [33m 349[2mms[22m[39m
+     [32m✓[39m allows zero-zero score prediction[32m 234[2mms[22m[39m
+     [32m✓[39m shows saving state while save request is processing[32m 299[2mms[22m[39m
+     [32m✓[39m saves a new prediction successfully[32m 253[2mms[22m[39m
+     [32m✓[39m refreshes prediction data after saving a prediction[32m 272[2mms[22m[39m
+     [32m✓[39m shows validation error when both score inputs are empty[32m 91[2mms[22m[39m
+     [32m✓[39m shows validation error when home score is empty[32m 203[2mms[22m[39m
+     [32m✓[39m shows validation error when away score is empty[32m 200[2mms[22m[39m
+     [32m✓[39m shows API error message when saving prediction fails with non-403 response[32m 249[2mms[22m[39m
+     [32m✓[39m shows fallback API error message when save fails without error text[32m 268[2mms[22m[39m
+     [32m✓[39m shows network error message when save API throws[32m 267[2mms[22m[39m
+     [32m✓[39m handles refresh predictions API failure after successful save attempt[32m 252[2mms[22m[39m
+     [32m✓[39m shows locked fixture error when API returns 403[32m 248[2mms[22m[39m
+     [32m✓[39m shows no matches available when no fixtures exist[32m 16[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/app/predictions/page.test.tsx[2m > [22mPredictionsPage[2m > [22mrenders predictions page with fixture, progress, and Irish formatted kick-off date
+[31m[1mError[22m: [2mexpect([22m[31melement[31m[2m).toBeInTheDocument()[22m
+
+[31melement could not be found in the document[31m[39m
+[36m [2m❯[22m src/app/predictions/page.test.tsx:[2m375:7[22m[39m
+    [90m373|[39m         name[33m:[39m [32m"Predictions"[39m[33m,[39m
+    [90m374|[39m       })
+    [90m375|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m   |[39m       [31m^[39m
+    [90m376|[39m
+    [90m377|[39m     [34mexpect[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m20 failed[39m[22m[2m | [22m[1m[32m35 passed[39m[22m[90m (55)[39m
+[2m   Start at [22m 15:42:33
+[2m   Duration [22m 5.74s
+
+[1m[30m[41m FAIL [49m[39m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[30m[44m RERUN [49m[39m[22m [34m[2msrc/app/predictions/page.tsx [22m[34mx4 [34m[39m
+
+ [31m❯[39m src/app/admin/audit/page.test.tsx [2m([22m[2m19 tests[22m[2m | [22m[31m19 failed[39m[2m)[22m[33m 17269[2mms[22m[39m
+[31m     [31m×[31m renders loading state before audit data loads[39m[32m 56[2mms[22m[39m
+[31m     [31m×[31m fetches audit history on render[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m redirects to login when audit API returns 401[39m[33m 1019[2mms[22m[39m
+[31m     [31m×[31m redirects to dashboard when audit API returns 403[39m[33m 1009[2mms[22m[39m
+[31m     [31m×[31m renders audit table with headings[39m[33m 1016[2mms[22m[39m
+[31m     [31m×[31m renders audit rows with match names and score changes[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m renders admin user names[39m[33m 1014[2mms[22m[39m
+[31m     [31m×[31m renders Irish formatted audit dates[39m[33m 1012[2mms[22m[39m
+[31m     [31m×[31m renders empty audit state[39m[33m 1013[2mms[22m[39m
+[31m     [31m×[31m renders fallback match label when match relationship is missing[39m[33m 1015[2mms[22m[39m
+[31m     [31m×[31m renders fallback admin id when admin user relationship is missing[39m[33m 1015[2mms[22m[39m
+[31m     [31m×[31m shows pagination controls when audit rows exist[39m[33m 1012[2mms[22m[39m
+[31m     [31m×[31m disables previous button on first page[39m[33m 1009[2mms[22m[39m
+[31m     [31m×[31m disables next button on final page[39m[33m 1014[2mms[22m[39m
+[31m     [31m×[31m loads next page of audit results[39m[33m 1010[2mms[22m[39m
+[31m     [31m×[31m returns to previous page of audit results[39m[33m 1011[2mms[22m[39m
+[31m     [31m×[31m handles audit API throwing by ending loading state[39m[32m 7[2mms[22m[39m
+[31m     [31m×[31m falls back to one page when totalPages is missing[39m[33m 1006[2mms[22m[39m
+[31m     [31m×[31m falls back to empty audit array when audits is missing[39m[33m 1004[2mms[22m[39m
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when auth API request throws
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:45:12.963Z'[39m,
+  error: Error: Network error
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:255:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when matches API request fails
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:45:13.030Z'[39m,
+  error: Error: Matches API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:277:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mredirects to login when predictions API request fails during initial load
+[22m[39mPredictions page load failed: {
+  timestamp: [32m'2026-08-04T14:45:13.044Z'[39m,
+  error: Error: Predictions API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:305:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mshows network error message when save API throws
+[22m[39mPrediction save failed: {
+  timestamp: [32m'2026-08-04T14:45:17.266Z'[39m,
+  error: Error: Save API unavailable
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:1377:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+[90mstderr[2m | src/app/predictions/page.test.tsx[2m > [22m[2mPredictionsPage[2m > [22m[2mhandles refresh predictions API failure after successful save attempt
+[22m[39mPrediction save failed: {
+  timestamp: [32m'2026-08-04T14:45:17.535Z'[39m,
+  error: Error: Refresh predictions failed
+      at C:/Projects/sixnations-predictor/src/app/predictions/page.test.tsx:1422:9
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+ [31m❯[39m src/app/predictions/page.test.tsx [2m([22m[2m36 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 5079[2mms[22m[39m
+     [32m✓[39m renders loading state before data loads[32m 37[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when auth request is not ok[32m 73[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when authenticated is false[32m 78[2mms[22m[39m
+     [32m✓[39m redirects to login when auth API request throws[32m 67[2mms[22m[39m
+     [32m✓[39m redirects to login when matches API request fails[32m 16[2mms[22m[39m
+     [32m✓[39m redirects to login when predictions API request fails during initial load[32m 16[2mms[22m[39m
+     [32m✓[39m sorts unsorted fixture data by kickoff time and selects earliest open fixture[32m 54[2mms[22m[39m
+     [32m✓[39m uses edge-case fixture mock data and selects the earliest open fixture[32m 36[2mms[22m[39m
+[31m     [31m×[31m renders predictions page with fixture, progress, and Irish formatted kick-off date[39m[32m 123[2mms[22m[39m
+     [32m✓[39m shows saved predictions with formatted fixture date[32m 26[2mms[22m[39m
+     [32m✓[39m shows empty predictions state[32m 48[2mms[22m[39m
+     [32m✓[39m shows partial predictions progress when only some matches have predictions[32m 50[2mms[22m[39m
+     [32m✓[39m selects the first unpredicted open fixture automatically[32m 33[2mms[22m[39m
+     [32m✓[39m shows full predictions progress when all matches have predictions[32m 22[2mms[22m[39m
+     [32m✓[39m shows COMPLETE status for completed fixtures[32m 35[2mms[22m[39m
+     [32m✓[39m treats an incomplete fixture as locked when kick-off time is in the past[32m 61[2mms[22m[39m
+     [32m✓[39m shows countdown for open fixtures[32m 25[2mms[22m[39m
+     [32m✓[39m hides countdown and disables inputs when completed fixture is selected[32m 121[2mms[22m[39m
+     [32m✓[39m shows existing prediction card when locked fixture has a prediction[32m 148[2mms[22m[39m
+     [32m✓[39m allows selecting another fixture from the fixture list[32m 122[2mms[22m[39m
+     [32m✓[39m clears score inputs when switching from editing prediction to unpredicted fixture[32m 236[2mms[22m[39m
+     [33m[2m✓[22m[39m updates an existing prediction successfully [33m 464[2mms[22m[39m
+     [33m[2m✓[22m[39m allows user interaction by selecting a fixture, entering scores, and saving [33m 334[2mms[22m[39m
+     [32m✓[39m allows zero-zero score prediction[32m 250[2mms[22m[39m
+     [33m[2m✓[22m[39m shows saving state while save request is processing [33m 301[2mms[22m[39m
+     [32m✓[39m saves a new prediction successfully[32m 267[2mms[22m[39m
+     [33m[2m✓[22m[39m refreshes prediction data after saving a prediction [33m 301[2mms[22m[39m
+     [32m✓[39m shows validation error when both score inputs are empty[32m 83[2mms[22m[39m
+     [32m✓[39m shows validation error when home score is empty[32m 184[2mms[22m[39m
+     [32m✓[39m shows validation error when away score is empty[32m 166[2mms[22m[39m
+     [32m✓[39m shows API error message when saving prediction fails with non-403 response[32m 250[2mms[22m[39m
+     [32m✓[39m shows fallback API error message when save fails without error text[32m 267[2mms[22m[39m
+     [32m✓[39m shows network error message when save API throws[32m 229[2mms[22m[39m
+     [32m✓[39m handles refresh predictions API failure after successful save attempt[32m 272[2mms[22m[39m
+     [32m✓[39m shows locked fixture error when API returns 403[32m 267[2mms[22m[39m
+     [32m✓[39m shows no matches available when no fixtures exist[32m 16[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/app/predictions/page.test.tsx[2m > [22mPredictionsPage[2m > [22mrenders predictions page with fixture, progress, and Irish formatted kick-off date
+[31m[1mError[22m: [2mexpect([22m[31melement[31m[2m).toBeInTheDocument()[22m
+
+[31melement could not be found in the document[31m[39m
+[36m [2m❯[22m src/app/predictions/page.test.tsx:[2m375:7[22m[39m
+    [90m373|[39m         name[33m:[39m [32m"Predictions"[39m[33m,[39m
+    [90m374|[39m       })
+    [90m375|[39m     )[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m   |[39m       [31m^[39m
+    [90m376|[39m
+    [90m377|[39m     [34mexpect[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m20 failed[39m[22m[2m | [22m[1m[32m35 passed[39m[22m[90m (55)[39m
+[2m   Start at [22m 15:45:10
+[2m   Duration [22m 5.75s
+
+[1m[30m[41m FAIL [49m[39m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[30m[44m RERUN [49m[39m[22m [34m[2msrc/app/admin/audit/page.tsx [22m[34mx1 [34m[39m
+
+ [31m❯[39m src/app/predictions/page.test.tsx [2m([22m[2m36 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 5079[2mms[22m[39m
+     [32m✓[39m renders loading state before data loads[32m 37[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when auth request is not ok[32m 73[2mms[22m[39m
+     [32m✓[39m redirects unauthenticated user to login when authenticated is false[32m 78[2mms[22m[39m
+     [32m✓[39m redirects to login when auth API request throws[32m 67[2mms[22m[39m
+     [32m✓[39m redirects to login when matches API request fails[32m 16[2mms[22m[39m
+     [32m✓[39m redirects to login when predictions API request fails during initial load[32m 16[2mms[22m[39m
+     [32m✓[39m sorts unsorted fixture data by kickoff time and selects earliest open fixture[32m 54[2mms[22m[39m
+     [32m✓[39m uses edge-case fixture mock data and selects the earliest open fixture[32m 36[2mms[22m[39m
+[31m     [31m×[31m renders predictions page with fixture, progress, and Irish formatted kick-off date[39m[32m 123[2mms[22m[39m
+     [32m✓[39m shows saved predictions with formatted fixture date[32m 26[2mms[22m[39m
+     [32m✓[39m shows empty predictions state[32m 48[2mms[22m[39m
+     [32m✓[39m shows partial predictions progress when only some matches have predictions[32m 50[2mms[22m[39m
+     [32m✓[39m selects the first unpredicted open fixture automatically[32m 33[2mms[22m[39m
+     [32m✓[39m shows full predictions progress when all matches have predictions[32m 22[2mms[22m[39m
+     [32m✓[39m shows COMPLETE status for completed fixtures[32m 35[2mms[22m[39m
+     [32m✓[39m treats an incomplete fixture as locked when kick-off time is in the past[32m 61[2mms[22m[39m
+     [32m✓[39m shows countdown for open fixtures[32m 25[2mms[22m[39m
+     [32m✓[39m hides countdown and disables inputs when completed fixture is selected[32m 121[2mms[22m[39m
+     [32m✓[39m shows existing prediction card when locked fixture has a prediction[32m 148[2mms[22m[39m
+     [32m✓[39m allows selecting another fixture from the fixture list[32m 122[2mms[22m[39m
+     [32m✓[39m clears score inputs when switching from editing prediction to unpredicted fixture[32m 236[2mms[22m[39m
+     [33m[2m✓[22m[39m updates an existing prediction successfully [33m 464[2mms[22m[39m
+     [33m[2m✓[22m[39m allows user interaction by selecting a fixture, entering scores, and saving [33m 334[2mms[22m[39m
+     [32m✓[39m allows zero-zero score prediction[32m 250[2mms[22m[39m
+     [33m[2m✓[22m[39m shows saving state while save request is processing [33m 301[2mms[22m[39m
+     [32m✓[39m saves a new prediction successfully[32m 267[2mms[22m[39m
+     [33m[2m✓[22m[39m refreshes prediction data after saving a prediction [33m 301[2mms[22m[39m
+     [32m✓[39m shows validation error when both score inputs are empty[32m 83[2mms[22m[39m
+     [32m✓[39m shows validation error when home score is empty[32m 184[2mms[22m[39m
+     [32m✓[39m shows validation error when away score is empty[32m 166[2mms[22m[39m
+     [32m✓[39m shows API error message when saving prediction fails with non-403 response[32m 250[2mms[22m[39m
+     [32m✓[39m shows fallback API error message when save fails without error text[32m 267[2mms[22m[39m
+     [32m✓[39m shows network error message when save API throws[32m 229[2mms[22m[39m
+     [32m✓[39m handles refresh predictions API failure after successful save attempt[32m 272[2mms[22m[39m
+     [32m✓[39m shows locked fixture error when API returns 403[32m 267[2mms[22m[39m
+     [32m✓[39m shows no matches available when no fixtures exist[32m 16[2mms[22m[39m
+[90mstderr[2m | src/app/admin/audit/page.test.tsx[2m > [22m[2mAuditPage[2m > [22m[2mhandles audit API throwing by ending loading state
+[22m[39mAudit history load failed: {
+  timestamp: [32m'2026-08-04T16:39:36.994Z'[39m,
+  error: Error: Audit API unavailable
+      at C:/Projects/sixnations-predictor/src/app/admin/audit/page.test.tsx:599:7
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+      at new Promise (<anonymous>)
+      at runWithCancel [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+      at new Promise (<anonymous>)
+      at runWithTimeout [90m(file:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
+      at [90mfile:///C:/Projects/sixnations-predictor/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+}
+
+ [32m✓[39m src/app/admin/audit/page.test.tsx [2m([22m[2m19 tests[22m[2m)[22m[33m 628[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m54 passed[39m[22m[90m (55)[39m
+[2m   Start at [22m 17:39:34
+[2m   Duration [22m 1.10s
+
+[1m[30m[42m PASS [49m[39m[22m [32mWaiting for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m

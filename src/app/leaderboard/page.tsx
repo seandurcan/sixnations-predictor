@@ -3,6 +3,7 @@
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
+import PageContainer from "@/components/layout/PageContainer";
 import Select from "@/components/ui/Select";
 import {
   useEffect,
@@ -350,324 +351,328 @@ export default function LeaderboardPage() {
 
   return (
     <main className="p-8">
-      <PageHeader
-        title="Leaderboard"
-        subtitle="Current tournament standings"
-      />
+      <PageContainer>
+        <PageHeader
+          title="Leaderboard"
+          subtitle="Current tournament standings"
+        />
 
-      <p className="mb-6 text-slate-500">
-        Total Players: {totalRecords}
-      </p>
+        <p className="mb-6 text-slate-500">
+          Total Players: {totalRecords}
+        </p>
 
-      <div className="mb-6 flex flex-wrap items-center gap-4">
-        <label
-          htmlFor="leaderboard-sort"
-          className="font-semibold text-slate-700"
-        >
-          Sort By
-        </label>
+        <Card title="Leaderboard">
+          <div className="mb-4 flex justify-end">
+            <div className="flex items-center gap-3">
+              <label
+                htmlFor="leaderboard-sort"
+                className="font-semibold text-slate-700"
+              >
+                Sort By
+              </label>
 
-        <Select
-          id="leaderboard-sort"
-          value={sortBy}
-          onChange={(event) =>
-            handleSortChange(
-              event.target.value
-            )
-          }
-        >
-          <option value="points">
-            Total Points
-          </option>
+              <Select
+                id="leaderboard-sort"
+                value={sortBy}
+                onChange={(event) =>
+                  handleSortChange(
+                    event.target.value
+                  )
+                }
+              >
+                <option value="points">
+                  Total Points
+                </option>
 
-          <option value="difference">
-            Difference Score
-          </option>
+                <option value="difference">
+                  Difference Score
+                </option>
 
-          <option value="exact">
-            Exact Scores
-          </option>
+                <option value="exact">
+                  Exact Scores
+                </option>
 
-          <option value="error">
-            Cumulative Error
-          </option>
+                <option value="error">
+                  Cumulative Error
+                </option>
 
-          <option value="player">
-            Player Name
-          </option>
-        </Select>
-      </div>
-
-      <Card title="Leaderboard">
-        {loading && (
-          <div
-            className="py-12 text-center text-slate-500"
-            role="status"
-          >
-            Loading leaderboard...
+                <option value="player">
+                  Player Name
+                </option>
+              </Select>
+            </div>
           </div>
-        )}
 
-        {!loading && error && (
-          <div
-            className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700"
-            role="alert"
-          >
-            {error}
-          </div>
-        )}
-
-        {!loading &&
-          !error &&
-          sortedLeaderboard.length ===
-            0 && (
-            <div className="py-12 text-center text-slate-500">
-              No leaderboard entries are
-              available.
+          {loading && (
+            <div
+              className="py-12 text-center text-slate-500"
+              role="status"
+            >
+              Loading leaderboard...
             </div>
           )}
 
-        {!loading &&
-          !error &&
-          sortedLeaderboard.length >
-            0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-slate-200">
-                <thead>
-                  <tr className="bg-slate-100">
-                    <th
-                      scope="col"
-                      className="border border-slate-200 p-3"
-                    >
-                      Rank
-                    </th>
+          {!loading && error && (
+            <div
+              className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700"
+              role="alert"
+            >
+              {error}
+            </div>
+          )}
 
-                    <th
-                      scope="col"
-                      className="border border-slate-200 p-3"
-                    >
-                      Last Change
-                    </th>
+          {!loading &&
+            !error &&
+            sortedLeaderboard.length ===
+              0 && (
+              <div className="py-12 text-center text-slate-500">
+                No leaderboard entries are
+                available.
+              </div>
+            )}
 
-                    <th
-                      scope="col"
-                      className="border border-slate-200 p-0"
-                    >
-                      <button
-                        type="button"
-                        className="w-full p-3 transition-colors hover:bg-slate-50"
-                        onClick={() =>
-                          setSortBy(
+          {!loading &&
+            !error &&
+            sortedLeaderboard.length >
+              0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-slate-200">
+                  <thead>
+                    <tr className="bg-slate-100">
+                      <th
+                        scope="col"
+                        className="border border-slate-200 p-3"
+                      >
+                        Rank
+                      </th>
+
+                      <th
+                        scope="col"
+                        className="border border-slate-200 p-3"
+                      >
+                        Last Change
+                      </th>
+
+                      <th
+                        scope="col"
+                        className="border border-slate-200 p-0"
+                      >
+                        <button
+                          type="button"
+                          className="w-full p-3 transition-colors hover:bg-slate-50"
+                          onClick={() =>
+                            setSortBy(
+                              "player"
+                            )
+                          }
+                        >
+                          Player
+                          {getSortIndicator(
+                            sortBy,
                             "player"
-                          )
-                        }
-                      >
-                        Player
-                        {getSortIndicator(
-                          sortBy,
-                          "player"
-                        )}
-                      </button>
-                    </th>
+                          )}
+                        </button>
+                      </th>
 
-                    <th
-                      scope="col"
-                      className="border border-slate-200 p-0"
-                    >
-                      <button
-                        type="button"
-                        className="w-full p-3 transition-colors hover:bg-slate-50"
-                        onClick={() =>
-                          setSortBy(
+                      <th
+                        scope="col"
+                        className="border border-slate-200 p-0"
+                      >
+                        <button
+                          type="button"
+                          className="w-full p-3 transition-colors hover:bg-slate-50"
+                          onClick={() =>
+                            setSortBy(
+                              "points"
+                            )
+                          }
+                        >
+                          Points
+                          {getSortIndicator(
+                            sortBy,
                             "points"
-                          )
-                        }
-                      >
-                        Points
-                        {getSortIndicator(
-                          sortBy,
-                          "points"
-                        )}
-                      </button>
-                    </th>
+                          )}
+                        </button>
+                      </th>
 
-                    <th
-                      scope="col"
-                      className="border border-slate-200 p-0"
-                    >
-                      <button
-                        type="button"
-                        className="w-full p-3 transition-colors hover:bg-slate-50"
-                        onClick={() =>
-                          setSortBy(
+                      <th
+                        scope="col"
+                        className="border border-slate-200 p-0"
+                      >
+                        <button
+                          type="button"
+                          className="w-full p-3 transition-colors hover:bg-slate-50"
+                          onClick={() =>
+                            setSortBy(
+                              "difference"
+                            )
+                          }
+                        >
+                          Difference Score
+                          {getSortIndicator(
+                            sortBy,
                             "difference"
-                          )
-                        }
-                      >
-                        Difference Score
-                        {getSortIndicator(
-                          sortBy,
-                          "difference"
-                        )}
-                      </button>
-                    </th>
+                          )}
+                        </button>
+                      </th>
 
-                    <th
-                      scope="col"
-                      className="border border-slate-200 p-0"
-                    >
-                      <button
-                        type="button"
-                        className="w-full p-3 transition-colors hover:bg-slate-50"
-                        onClick={() =>
-                          setSortBy(
+                      <th
+                        scope="col"
+                        className="border border-slate-200 p-0"
+                      >
+                        <button
+                          type="button"
+                          className="w-full p-3 transition-colors hover:bg-slate-50"
+                          onClick={() =>
+                            setSortBy(
+                              "exact"
+                            )
+                          }
+                        >
+                          Exact Scores
+                          {getSortIndicator(
+                            sortBy,
                             "exact"
-                          )
-                        }
-                      >
-                        Exact Scores
-                        {getSortIndicator(
-                          sortBy,
-                          "exact"
-                        )}
-                      </button>
-                    </th>
+                          )}
+                        </button>
+                      </th>
 
-                    <th
-                      scope="col"
-                      className="border border-slate-200 p-0"
-                    >
-                      <button
-                        type="button"
-                        className="w-full p-3 transition-colors hover:bg-slate-50"
-                        onClick={() =>
-                          setSortBy(
+                      <th
+                        scope="col"
+                        className="border border-slate-200 p-0"
+                      >
+                        <button
+                          type="button"
+                          className="w-full p-3 transition-colors hover:bg-slate-50"
+                          onClick={() =>
+                            setSortBy(
+                              "error"
+                            )
+                          }
+                        >
+                          Cumulative Error
+                          {getSortIndicator(
+                            sortBy,
                             "error"
-                          )
-                        }
-                      >
-                        Cumulative Error
-                        {getSortIndicator(
-                          sortBy,
-                          "error"
-                        )}
-                      </button>
-                    </th>
-                  </tr>
-                </thead>
+                          )}
+                        </button>
+                      </th>
+                    </tr>
+                  </thead>
 
-                <tbody>
-                  {sortedLeaderboard.map(
-                    (player) => (
-                      <tr
-                        key={player.id}
-                        className={`text-center ${getRowClasses(
-                          player.rank
-                        )}`}
-                      >
-                        <td className="border border-slate-200 p-3 font-semibold">
-                          {getRankMedal(
+                  <tbody>
+                    {sortedLeaderboard.map(
+                      (player) => (
+                        <tr
+                          key={player.id}
+                          className={`text-center ${getRowClasses(
                             player.rank
-                          )}{" "}
-                          {player.rank}
-                        </td>
+                          )}`}
+                        >
+                          <td className="border border-slate-200 p-3 font-semibold">
+                            {getRankMedal(
+                              player.rank
+                            )}{" "}
+                            {player.rank}
+                          </td>
 
-                        <td className="border border-slate-200 p-3">
-                          {renderRankMovement(
-                            player
-                          )}
-                        </td>
+                          <td className="border border-slate-200 p-3">
+                            {renderRankMovement(
+                              player
+                            )}
+                          </td>
 
-                        <td className="border border-slate-200 p-3">
-                          {getPlayerName(
-                            player
-                          )}
-                        </td>
+                          <td className="border border-slate-200 p-3">
+                            {getPlayerName(
+                              player
+                            )}
+                          </td>
 
-                        <td className="border border-slate-200 p-3 font-bold">
-                          {
-                            player.totalPoints
-                          }
-                        </td>
+                          <td className="border border-slate-200 p-3 font-bold">
+                            {
+                              player.totalPoints
+                            }
+                          </td>
 
-                        <td className="border border-slate-200 p-3">
-                          {
-                            player.differenceScore
-                          }
-                        </td>
+                          <td className="border border-slate-200 p-3">
+                            {
+                              player.differenceScore
+                            }
+                          </td>
 
-                        <td className="border border-slate-200 p-3">
-                          {
-                            player.exactScores
-                          }
-                        </td>
+                          <td className="border border-slate-200 p-3">
+                            {
+                              player.exactScores
+                            }
+                          </td>
 
-                        <td className="border border-slate-200 p-3">
-                          {
-                            player.cumulativeError
-                          }
-                        </td>
-                      </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-      </Card>
+                          <td className="border border-slate-200 p-3">
+                            {
+                              player.cumulativeError
+                            }
+                          </td>
+                        </tr>
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+        </Card>
 
-      {!loading && !error && (
-        <>
-          <div className="mt-6 text-center text-sm text-slate-500">
-            Showing{" "}
-            {sortedLeaderboard.length} of{" "}
-            {totalRecords} players
-            {" • "}
-            Page {page} of {totalPages}
-          </div>
-
-          <div className="mt-6 flex items-center justify-center gap-4">
-            <Button
-              variant="secondary"
-              disabled={
-                page <= 1 || loading
-              }
-              onClick={() =>
-                setPage((current) =>
-                  Math.max(
-                    1,
-                    current - 1
-                  )
-                )
-              }
-            >
-              Previous
-            </Button>
-
-            <span className="text-sm font-medium text-slate-700">
+        {!loading && !error && (
+          <>
+            <div className="mt-6 text-center text-sm text-slate-500">
+              Showing{" "}
+              {sortedLeaderboard.length} of{" "}
+              {totalRecords} players
+              {" • "}
               Page {page} of {totalPages}
-            </span>
+            </div>
 
-            <Button
-              variant="secondary"
-              disabled={
-                page >= totalPages ||
-                loading
-              }
-              onClick={() =>
-                setPage((current) =>
-                  Math.min(
-                    totalPages,
-                    current + 1
+            <div className="mt-6 flex items-center justify-center gap-4">
+              <Button
+                variant="secondary"
+                disabled={
+                  page <= 1 || loading
+                }
+                onClick={() =>
+                  setPage((current) =>
+                    Math.max(
+                      1,
+                      current - 1
+                    )
                   )
-                )
-              }
-            >
-              Next
-            </Button>
-          </div>
-        </>
-      )}
+                }
+              >
+                Previous
+              </Button>
+
+              <span className="text-sm font-medium text-slate-700">
+                Page {page} of {totalPages}
+              </span>
+
+              <Button
+                variant="secondary"
+                disabled={
+                  page >= totalPages ||
+                  loading
+                }
+                onClick={() =>
+                  setPage((current) =>
+                    Math.min(
+                      totalPages,
+                      current + 1
+                    )
+                  )
+                }
+              >
+                Next
+              </Button>
+            </div>
+          </>
+        )}
+      </PageContainer>
     </main>
   );
 }

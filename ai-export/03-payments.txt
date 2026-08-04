@@ -1,0 +1,521 @@
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\create-checkout-session\route.ts
+====================================================================================================
+
+import { NextResponse } from "next/server";
+
+import { requireUser } from "@/lib/auth";
+import { stripe } from "@/lib/stripe";
+
+export async function POST() {
+  try {
+    const user =
+      await requireUser();
+
+    const session =
+      await stripe.checkout.sessions.create({
+        mode: "payment",
+
+        payment_method_types: [
+          "card",
+        ],
+
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: "eur",
+              product_data: {
+                name: "Perfect XV Competition Entry",
+                description:
+                  "Six Nations Predictor Entry Fee",
+              },
+              unit_amount: 500,
+            },
+          },
+        ],
+
+        metadata: {
+          userId: String(user.id),
+          email: user.email,
+        },
+
+        success_url:
+          `${process.env.APP_URL}/payment-success`,
+
+        cancel_url:
+          `${process.env.APP_URL}/payment-required`,
+      });
+
+    return NextResponse.json({
+      success: true,
+      checkoutUrl: session.url,
+    });
+  } catch (error) {
+    console.error(
+      "Failed to create checkout session:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "Unable to create checkout session.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\stripe\create-checkout-session\route.ts
+====================================================================================================
+
+import { NextResponse } from "next/server";
+
+import { requireUser } from "@/lib/auth";
+import { stripe } from "@/lib/stripe";
+
+export async function POST() {
+  try {
+    const user =
+      await requireUser();
+
+    const appUrl =
+      process.env.APP_URL ??
+      "http://localhost:3000";
+
+    const session =
+      await stripe.checkout.sessions.create({
+        mode: "payment",
+
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: "eur",
+             product_data: {
+  name: "Perfect XV Competition Entry",
+  description:
+    "Six Nations Predictor Entry Fee",
+  tax_code: "txcd_10000000",
+},
+              unit_amount: 500,
+            },
+          },
+        ],
+
+        metadata: {
+          userId: String(user.id),
+          email: user.email,
+        },
+
+        success_url:
+          `${appUrl}/predictions`,
+
+        cancel_url:
+          `${appUrl}/payment-required`,
+      });
+
+    return NextResponse.json({
+      success: true,
+      checkoutUrl: session.url,
+    });
+  } catch (error) {
+    console.error(
+      "Failed to create checkout session:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "Unable to create checkout session.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\stripe\webhook\route.ts
+====================================================================================================
+
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+
+import { prisma } from "@/lib/prisma";
+import { stripe } from "@/lib/stripe";
+
+export async function POST(
+  request: NextRequest
+) {
+  const body = await request.text();
+
+  const signature =
+    request.headers.get(
+      "stripe-signature"
+    );
+
+  if (!signature) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Missing signature",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+
+  let event: Stripe.Event;
+
+  try {
+    event =
+      stripe.webhooks.constructEvent(
+        body,
+        signature,
+        process.env
+          .STRIPE_WEBHOOK_SECRET!
+      );
+  } catch (error) {
+    console.error(
+      "Stripe webhook error:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "Invalid webhook signature",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+
+  if (
+    event.type ===
+    "checkout.session.completed"
+  ) {
+    const session =
+      event.data.object as Stripe.Checkout.Session;
+
+    console.log(
+      "Stripe checkout.session.completed:",
+      {
+        sessionId: session.id,
+        metadata: session.metadata,
+        customerDetails:
+          session.customer_details,
+        customerEmail:
+          session.customer_details
+            ?.email,
+      }
+    );
+
+    const email =
+      session.customer_details?.email;
+
+    if (!email) {
+      console.error(
+        "No email found in Stripe session."
+      );
+
+      return NextResponse.json({
+        received: true,
+      });
+    }
+
+    const user =
+      await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+    if (!user) {
+      console.error(
+        `No user found for email ${email}`
+      );
+
+      return NextResponse.json({
+        received: true,
+      });
+    }
+
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        paymentStatus:
+          "COMPLETED",
+        paidAt: new Date(),
+      },
+    });
+
+    const existingPayment =
+      await prisma.payment.findFirst({
+        where: {
+          providerPaymentId:
+            session.id,
+        },
+      });
+
+    if (!existingPayment) {
+      await prisma.payment.create({
+        data: {
+          userId: user.id,
+          provider: "STRIPE",
+          providerPaymentId:
+            session.id,
+          amount:
+            (session.amount_total ??
+              0) / 100,
+          currency:
+            session.currency?.toUpperCase() ??
+            "EUR",
+          status: "COMPLETED",
+          completedAt: new Date(),
+        },
+      });
+    }
+  }
+
+  return NextResponse.json({
+    received: true,
+  });
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\payment-required\page.tsx
+====================================================================================================
+
+"use client";
+
+import { useState } from "react";
+
+import Alert from "@/components/ui/Alert";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import PageHeader from "@/components/ui/PageHeader";
+
+export default function PaymentRequiredPage() {
+  const [loading, setLoading] =
+    useState(false);
+
+  async function copyStripeTestDetails() {
+    try {
+      await navigator.clipboard.writeText(
+`Card Number: 4242 4242 4242 4242
+Expiry Date: 12/28
+CVC: 123
+Eircode: F91 W1D9`
+      );
+
+      alert(
+        "Stripe test payment details copied to clipboard."
+      );
+    } catch (error) {
+      console.error(
+        "Failed to copy payment details:",
+        error
+      );
+
+      alert(
+        "Unable to copy payment details."
+      );
+    }
+  }
+
+  async function startCheckout() {
+    try {
+      setLoading(true);
+
+      const response =
+        await fetch(
+          "/api/stripe/create-checkout-session",
+          {
+            method: "POST",
+          }
+        );
+
+      const result =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !result.success
+      ) {
+        throw new Error(
+          result.error ??
+            "Checkout session creation failed."
+        );
+      }
+
+      window.location.href =
+        result.checkoutUrl;
+    } catch (error) {
+      console.error(
+        "Failed to start checkout:",
+        error
+      );
+
+      alert(
+        "Unable to start Stripe checkout."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <main className="mx-auto max-w-4xl p-6 text-[var(--brand-navy)]">
+      <PageHeader
+        title="Competition Entry Required"
+        subtitle="Complete your entry before making predictions."
+      />
+
+      <Alert
+        variant="warning"
+        className="mb-6"
+      >
+        TEST MODE • No real payment
+        will be taken.
+      </Alert>
+
+      <Card>
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-black">
+              Perfect XV Entry
+            </h2>
+
+            <p className="mt-2 text-[var(--brand-muted)]">
+              To unlock predictions,
+              complete the Stripe test
+              payment below.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-[var(--brand-border)] bg-slate-50 p-4">
+            <h3 className="mb-4 text-lg font-bold">
+              Stripe Test Card Details
+            </h3>
+
+            <div className="space-y-2">
+              <p>
+                <strong>
+                  Card Number:
+                </strong>{" "}
+                <span className="font-mono">
+                  4242 4242 4242 4242
+                </span>
+              </p>
+
+              <p>
+                <strong>
+                  Expiry Date:
+                </strong>{" "}
+                12/28
+              </p>
+
+              <p>
+                <strong>
+                  CVC:
+                </strong>{" "}
+                123
+              </p>
+
+              <p>
+                <strong>
+                  Eircode:
+                </strong>{" "}
+                F91 W1D9
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              variant="secondary"
+              onClick={
+                copyStripeTestDetails
+              }
+            >
+              Copy Test Card Details
+            </Button>
+
+            <Button
+              onClick={startCheckout}
+              disabled={loading}
+            >
+              {loading
+                ? "Connecting To Stripe..."
+                : "Pay With Stripe"}
+            </Button>
+          </div>
+
+          <div className="rounded-lg bg-[var(--brand-soft-lime)] p-4">
+            <p className="font-semibold">
+              After a successful test
+              payment your account will
+              be marked as paid and
+              predictions will become
+              available automatically.
+            </p>
+          </div>
+        </div>
+      </Card>
+    </main>
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\lib\stripe.ts
+====================================================================================================
+
+import Stripe from "stripe";
+
+const secretKey = process.env.STRIPE_SECRET_KEY;
+
+if (!secretKey) {
+  throw new Error("STRIPE_SECRET_KEY is missing from environment variables.");
+}
+
+export const stripe = new Stripe(secretKey, {
+  apiVersion: "2026-07-29.dahlia",
+});
+
+
+====================================================================================================
+FILE: src\lib\stripe.ts
+====================================================================================================
+
+import Stripe from "stripe";
+
+const secretKey = process.env.STRIPE_SECRET_KEY;
+
+if (!secretKey) {
+  throw new Error("STRIPE_SECRET_KEY is missing from environment variables.");
+}
+
+export const stripe = new Stripe(secretKey, {
+  apiVersion: "2026-07-29.dahlia",
+});
+

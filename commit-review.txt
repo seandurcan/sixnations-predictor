@@ -1,0 +1,237 @@
+On branch auth-test-alignment
+Your branch is up to date with 'origin/auth-test-alignment'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   prisma.config.ts
+	modified:   src/app/api/auth/me/route.ts
+	modified:   src/app/predictions/page.tsx
+	modified:   src/app/verify-email/page.tsx
+	modified:   src/components/ui/PasswordInput.tsx
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	ai-export/
+	apply_predictions_reference_layout.bat
+	apply_predictions_reference_layout.py
+	commit-review.txt
+	create-full-export.bat
+	create-project-zip.bat
+	export-project-for-ai.ps1
+	next.config (2).zip
+	next.config.zip
+	npm test results.txt
+	npx
+	predictions-reference-layout-cmd.zip
+	predictions-reference-layout-pass.zip
+	project-export.txt
+	review-before-commit.bat
+	scripts/
+	src/app/api/create-checkout-session/
+	src/app/api/stripe/
+	src/app/dashboard/page.tsx.predictions-reference.bak
+	src/app/payment-required/
+	src/app/predictions/Untitled.txt
+	src/components/layout/PageContainer.tsx
+	src/lib/stripe.ts
+	test-output.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+ 
+========================================== 
+MODIFIED FILES 
+========================================== 
+prisma.config.ts
+src/app/api/auth/me/route.ts
+src/app/predictions/page.tsx
+src/app/verify-email/page.tsx
+src/components/ui/PasswordInput.tsx
+ 
+========================================== 
+FULL DIFF 
+========================================== 
+diff --git a/prisma.config.ts b/prisma.config.ts
+index 831a20f..8a3464f 100644
+--- a/prisma.config.ts
++++ b/prisma.config.ts
+@@ -8,7 +8,5 @@ export default defineConfig({
+   migrations: {
+     path: "prisma/migrations",
+   },
+-  datasource: {
+-    url: process.env["DATABASE_URL"],
+-  },
++  
+ });
+diff --git a/src/app/api/auth/me/route.ts b/src/app/api/auth/me/route.ts
+index 5d4c0eb..12feeea 100644
+--- a/src/app/api/auth/me/route.ts
++++ b/src/app/api/auth/me/route.ts
+@@ -1,5 +1,4 @@
+ import { NextResponse } from "next/server";
+-
+ import { getCurrentUser } from "@/lib/auth";
+ 
+ export async function GET() {
+@@ -16,7 +15,8 @@ export async function GET() {
+         {
+           status: 401,
+           headers: {
+-            "Cache-Control": "no-store",
++            "Cache-Control":
++              "no-store",
+           },
+         }
+       );
+@@ -27,17 +27,24 @@ export async function GET() {
+         authenticated: true,
+         user: {
+           id: user.id,
+-          firstName: user.firstName,
+-          lastName: user.lastName,
++          firstName:
++            user.firstName,
++          lastName:
++            user.lastName,
+           email: user.email,
+           role: user.role,
+           totalPoints:
+             user.totalPoints,
++          paymentStatus:
++            user.paymentStatus,
++          paidAt:
++            user.paidAt,
+         },
+       },
+       {
+         headers: {
+-          "Cache-Control": "no-store",
++          "Cache-Control":
++            "no-store",
+         },
+       }
+     );
+@@ -57,7 +64,8 @@ export async function GET() {
+       {
+         status: 500,
+         headers: {
+-          "Cache-Control": "no-store",
++          "Cache-Control":
++            "no-store",
+         },
+       }
+     );
+diff --git a/src/app/predictions/page.tsx b/src/app/predictions/page.tsx
+index a9ee632..e0a82fc 100644
+--- a/src/app/predictions/page.tsx
++++ b/src/app/predictions/page.tsx
+@@ -18,8 +18,9 @@ import {
+ 
+ type User = {
+   firstName?: string | null;
++  paymentStatus?: string | null;
++  paidAt?: string | null;
+ };
+-
+ type Team = {
+   name: string;
+   shortCode: string;
+@@ -206,12 +207,14 @@ export default function PredictionsPage() {
+             meResponse
+           );
+ 
+-        if (!me.authenticated) {
+-          window.location.href =
+-            "/login";
+-          return;
+-        }
+-
++if (
++  me.user?.paymentStatus !==
++  "COMPLETED"
++) {
++  window.location.href =
++    "/payment-required";
++  return;
++}
+         const matchesResponse =
+           await fetch("/api/matches");
+ 
+diff --git a/src/app/verify-email/page.tsx b/src/app/verify-email/page.tsx
+index 4e6c759..fcc5dde 100644
+--- a/src/app/verify-email/page.tsx
++++ b/src/app/verify-email/page.tsx
+@@ -3,10 +3,14 @@
+ import Alert from "@/components/ui/Alert";
+ import Button from "@/components/ui/Button";
+ import Card from "@/components/ui/Card";
+-import { useEffect, useState } from "react";
++import {
++  Suspense,
++  useEffect,
++  useState,
++} from "react";
+ import { useSearchParams } from "next/navigation";
+ 
+-export default function VerifyEmailPage() {
++function VerifyEmailContent() {
+   const searchParams = useSearchParams();
+ 
+   const [message, setMessage] =
+@@ -149,4 +153,20 @@ export default function VerifyEmailPage() {
+       </Card>
+     </main>
+   );
++}
++
++export default function VerifyEmailPage() {
++  return (
++    <Suspense
++      fallback={
++        <main className="min-h-screen flex items-center justify-center p-6">
++          <Card className="w-full max-w-md">
++            Loading...
++          </Card>
++        </main>
++      }
++    >
++      <VerifyEmailContent />
++    </Suspense>
++  );
+ }
+\ No newline at end of file
+diff --git a/src/components/ui/PasswordInput.tsx b/src/components/ui/PasswordInput.tsx
+index d8ddde1..836645c 100644
+--- a/src/components/ui/PasswordInput.tsx
++++ b/src/components/ui/PasswordInput.tsx
+@@ -4,6 +4,9 @@ import Input from "@/components/ui/Input";
+ import { useState } from "react";
+ 
+ type PasswordInputProps = {
++  id?: string;
++  name?: string;
++  autoComplete?: string;
+   value: string;
+   onChange: (
+     e: React.ChangeEvent<HTMLInputElement>
+@@ -60,6 +63,9 @@ function getStrength(password: string) {
+ }
+ 
+ export default function PasswordInput({
++  id,
++  name,
++  autoComplete,
+   value,
+   onChange,
+   placeholder,
+@@ -80,6 +86,9 @@ export default function PasswordInput({
+     <div className="space-y-2">
+       <div className="relative">
+         <Input
++          id={id}
++          name={name}
++          autoComplete={autoComplete}
+           type={
+             showPassword
+               ? "text"

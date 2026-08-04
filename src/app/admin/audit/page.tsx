@@ -3,6 +3,7 @@
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
+import PageContainer from "@/components/layout/PageContainer";
 import {
   formatIrishDate,
   formatIsoDate,
@@ -79,133 +80,137 @@ export default function AuditPage() {
   if (loading) {
     return (
       <main className="bg-white p-8 text-[var(--brand-navy)]">
-        <PageHeader
-          title="Audit History"
-          subtitle="Loading audit records..."
-        />
+        <PageContainer>
+          <PageHeader
+            title="Audit History"
+            subtitle="Loading audit records..."
+          />
 
-        <Card>
-          Loading audit history...
-        </Card>
+          <Card>
+            Loading audit history...
+          </Card>
+        </PageContainer>
       </main>
     );
   }
 
   return (
     <main className="bg-white p-8 text-[var(--brand-navy)]">
-      <PageHeader
-        title="Audit History"
-        subtitle="Track all administrative changes to tournament results"
-      />
+      <PageContainer>
+        <PageHeader
+          title="Audit History"
+          subtitle="Track all administrative changes to tournament results"
+        />
 
-      {audits.length === 0 ? (
-        <Card title="Audit History">
-          No audit records found.
-        </Card>
-      ) : (
-        <>
+        {audits.length === 0 ? (
           <Card title="Audit History">
-            <div className="overflow-x-auto">
-              <table className="w-full border border-[var(--brand-border)]">
-                <thead>
-                  <tr className="bg-[var(--brand-soft-blue)] text-[var(--brand-navy)]">
-                    <th className="border border-[var(--brand-border)] p-3">
-                      Date
-                    </th>
-
-                    <th className="border border-[var(--brand-border)] p-3">
-                      Match
-                    </th>
-
-                    <th className="border border-[var(--brand-border)] p-3">
-                      Previous Score
-                    </th>
-
-                    <th className="border border-[var(--brand-border)] p-3">
-                      New Score
-                    </th>
-
-                    <th className="border border-[var(--brand-border)] p-3">
-                      Admin
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {audits.map(
-                    (audit) => (
-                      <tr
-                        key={audit.id}
-                        className="text-center"
-                      >
-                        <td className="border border-[var(--brand-border)] p-3 text-[var(--brand-blue)]">
-                          {formatIrishDate(
-                            audit.createdAt
-                          )}
-                        </td>
-
-                        <td className="border border-[var(--brand-border)] p-3">
-                          {audit.match
-                            ? `${audit.match.homeTeam.shortCode} v ${audit.match.awayTeam.shortCode}`
-                            : `Match ${audit.matchId}`}
-                        </td>
-
-                        <td className="border border-[var(--brand-border)] p-3 text-[var(--brand-muted)]">
-                          {audit.previousHome ??
-                            "-"}
-                          {" - "}
-                          {audit.previousAway ??
-                            "-"}
-                        </td>
-
-                        <td className="border border-[var(--brand-border)] p-3 font-semibold text-[var(--brand-orange)]">
-                          {audit.newHome}
-                          {" - "}
-                          {audit.newAway}
-                        </td>
-
-                        <td className="border border-[var(--brand-border)] p-3">
-                          {audit.adminUser
-                            ? `${audit.adminUser.firstName} ${audit.adminUser.lastName}`
-                            : audit.adminUserId}
-                        </td>
-                      </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
-            </div>
+            No audit records found.
           </Card>
+        ) : (
+          <>
+            <Card title="Audit History">
+              <div className="overflow-x-auto">
+                <table className="w-full border border-[var(--brand-border)]">
+                  <thead>
+                    <tr className="bg-[var(--brand-soft-blue)] text-[var(--brand-navy)]">
+                      <th className="border border-[var(--brand-border)] p-3">
+                        Date
+                      </th>
 
-          <div className="mt-6 flex items-center justify-center gap-4">
-            <Button
-              variant="secondary"
-              disabled={page === 1}
-              onClick={() =>
-                setPage(page - 1)
-              }
-            >
-              Previous
-            </Button>
+                      <th className="border border-[var(--brand-border)] p-3">
+                        Match
+                      </th>
 
-            <span className="text-[var(--brand-muted)]">
-              Page {page} of {totalPages}
-            </span>
+                      <th className="border border-[var(--brand-border)] p-3">
+                        Previous Score
+                      </th>
 
-            <Button
-              variant="secondary"
-              disabled={
-                page === totalPages
-              }
-              onClick={() =>
-                setPage(page + 1)
-              }
-            >
-              Next
-            </Button>
-          </div>
-        </>
-      )}
+                      <th className="border border-[var(--brand-border)] p-3">
+                        New Score
+                      </th>
+
+                      <th className="border border-[var(--brand-border)] p-3">
+                        Admin
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {audits.map(
+                      (audit) => (
+                        <tr
+                          key={audit.id}
+                          className="text-center"
+                        >
+                          <td className="border border-[var(--brand-border)] p-3 text-[var(--brand-blue)]">
+                            {formatIrishDate(
+                              audit.createdAt
+                            )}
+                          </td>
+
+                          <td className="border border-[var(--brand-border)] p-3">
+                            {audit.match
+                              ? `${audit.match.homeTeam.shortCode} v ${audit.match.awayTeam.shortCode}`
+                              : `Match ${audit.matchId}`}
+                          </td>
+
+                          <td className="border border-[var(--brand-border)] p-3 text-[var(--brand-muted)]">
+                            {audit.previousHome ??
+                              "-"}
+                            {" - "}
+                            {audit.previousAway ??
+                              "-"}
+                          </td>
+
+                          <td className="border border-[var(--brand-border)] p-3 font-semibold text-[var(--brand-orange)]">
+                            {audit.newHome}
+                            {" - "}
+                            {audit.newAway}
+                          </td>
+
+                          <td className="border border-[var(--brand-border)] p-3">
+                            {audit.adminUser
+                              ? `${audit.adminUser.firstName} ${audit.adminUser.lastName}`
+                              : audit.adminUserId}
+                          </td>
+                        </tr>
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            <div className="mt-6 flex items-center justify-center gap-4">
+              <Button
+                variant="secondary"
+                disabled={page === 1}
+                onClick={() =>
+                  setPage(page - 1)
+                }
+              >
+                Previous
+              </Button>
+
+              <span className="text-[var(--brand-muted)]">
+                Page {page} of {totalPages}
+              </span>
+
+              <Button
+                variant="secondary"
+                disabled={
+                  page === totalPages
+                }
+                onClick={() =>
+                  setPage(page + 1)
+                }
+              >
+                Next
+              </Button>
+            </div>
+          </>
+        )}
+      </PageContainer>
     </main>
   );
 }

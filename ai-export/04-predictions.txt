@@ -1,0 +1,5701 @@
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\admin\matches\route.test.ts
+====================================================================================================
+
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import { GET } from "./route";
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    match: {
+      findMany: vi.fn(),
+    },
+  },
+}));
+
+vi.mock("@/lib/auth", () => ({
+  requireAdmin: vi.fn(),
+}));
+
+import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
+
+const mockAdmin = {
+  id: 1,
+  email: "admin@example.com",
+  role: "ADMIN",
+};
+
+const mockMatches = [
+  {
+    id: 101,
+    matchNumber: 1,
+    round: 1,
+    kickoffTime: "2027-01-29T14:15:00.000Z",
+    completed: false,
+    homeTeam: {
+      name: "Ireland",
+      shortCode: "IRE",
+    },
+    awayTeam: {
+      name: "France",
+      shortCode: "FRA",
+    },
+  },
+];
+
+describe("GET /api/admin/matches", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns admin matches when admin is authenticated", async () => {
+    vi.mocked(requireAdmin).mockResolvedValueOnce(mockAdmin as any);
+
+    vi.mocked(prisma.match.findMany).mockResolvedValueOnce(
+      mockMatches as any
+    );
+
+    const response = await GET();
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual(mockMatches);
+
+    expect(prisma.match.findMany).toHaveBeenCalledWith({
+      orderBy: {
+        matchNumber: "asc",
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true,
+      },
+    });
+  });
+
+  it("returns 401 when authentication is required", async () => {
+    vi.mocked(requireAdmin).mockRejectedValueOnce(
+      new Error("Authentication required")
+    );
+
+    const response = await GET();
+
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+
+    expect(body).toEqual({
+      success: false,
+      error: "Authentication required",
+    });
+  });
+
+  it("returns 403 when admin access is required", async () => {
+    vi.mocked(requireAdmin).mockRejectedValueOnce(
+      new Error("Admin access required")
+    );
+
+    const response = await GET();
+
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+
+    expect(body).toEqual({
+      success: false,
+      error: "Admin access required",
+    });
+  });
+
+  it("returns 500 when database query fails", async () => {
+    vi.mocked(requireAdmin).mockResolvedValueOnce(mockAdmin as any);
+
+    vi.mocked(prisma.match.findMany).mockRejectedValueOnce(
+      new Error("Database unavailable")
+    );
+
+    const response = await GET();
+
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+
+    expect(body).toEqual({
+      success: false,
+      error: "Failed to load matches",
+    });
+  });
+});
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\admin\matches\route.ts
+====================================================================================================
+
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
+
+export async function GET() {
+  try {
+    await requireAdmin();
+
+    const matches =
+      await prisma.match.findMany({
+        orderBy: {
+          matchNumber: "asc",
+        },
+        include: {
+          homeTeam: true,
+          awayTeam: true,
+        },
+      });
+
+    return NextResponse.json(
+      matches
+    );
+  } catch (error) {
+    console.error(error);
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Access denied";
+
+    if (
+      message ===
+      "Authentication required"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Authentication required",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    if (
+      message ===
+      "Admin access required"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Admin access required",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "Failed to load matches",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\leaderboard\route.test.ts
+====================================================================================================
+
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import { GET } from "./route";
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    user: {
+      findMany: vi.fn(),
+    },
+    leaderboardSnapshot: {
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+    },
+  },
+}));
+
+import { prisma } from "@/lib/prisma";
+
+const mockUsers = [
+  {
+    id: 1,
+    firstName: "Aoife",
+    lastName: "Murphy",
+    totalPoints: 40,
+    exactScores: 3,
+    cumulativeError: 12,
+    registrationOrder: 1,
+    predictions: [
+      {
+        id: 101,
+        differenceScore: -4,
+      },
+      {
+        id: 102,
+        differenceScore: 2,
+      },
+    ],
+  },
+  {
+    id: 2,
+    firstName: "Sean",
+    lastName: "Durcan",
+    totalPoints: 40,
+    exactScores: 2,
+    cumulativeError: 10,
+    registrationOrder: 2,
+    predictions: [
+      {
+        id: 103,
+        differenceScore: 1,
+      },
+      {
+        id: 104,
+        differenceScore: 3,
+      },
+    ],
+  },
+  {
+    id: 3,
+    firstName: "Liam",
+    lastName: "Byrne",
+    totalPoints: 35,
+    exactScores: 5,
+    cumulativeError: 8,
+    registrationOrder: 3,
+    predictions: [
+      {
+        id: 105,
+        differenceScore: 0,
+      },
+    ],
+  },
+  {
+    id: 4,
+    firstName: "Niamh",
+    lastName: "Kelly",
+    totalPoints: 20,
+    exactScores: 1,
+    cumulativeError: 30,
+    registrationOrder: 4,
+    predictions: [],
+  },
+];
+
+const mockLatestSnapshot = {
+  id: 999,
+  snapshotNumber: 3,
+};
+
+const mockLatestSnapshots = [
+  {
+    id: 201,
+    userId: 1,
+    previousRank: 2,
+    rankMovement: 1,
+    snapshotNumber: 3,
+  },
+  {
+    id: 202,
+    userId: 2,
+    previousRank: 1,
+    rankMovement: -1,
+    snapshotNumber: 3,
+  },
+];
+
+function createRequest(
+  url = "http://localhost/api/leaderboard?page=1&pageSize=10"
+) {
+  return new Request(url);
+}
+
+describe("GET /api/leaderboard", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns sorted leaderboard data with pagination metadata", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
+      mockUsers as any
+    );
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findFirst
+    ).mockResolvedValueOnce(mockLatestSnapshot as any);
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findMany
+    ).mockResolvedValueOnce(mockLatestSnapshots as any);
+
+    const response = await GET(createRequest());
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+
+    expect(body.page).toBe(1);
+    expect(body.pageSize).toBe(10);
+    expect(body.totalRecords).toBe(4);
+    expect(body.totalPages).toBe(1);
+    expect(body.data).toHaveLength(4);
+
+    expect(body.data[0]).toMatchObject({
+      id: 1,
+      firstName: "Aoife",
+      lastName: "Murphy",
+      rank: 1,
+      totalPoints: 40,
+      differenceScore: -2,
+      previousRank: 2,
+      rankMovement: 1,
+    });
+
+    expect(body.data[1]).toMatchObject({
+      id: 2,
+      firstName: "Sean",
+      lastName: "Durcan",
+      rank: 2,
+      totalPoints: 40,
+      differenceScore: 4,
+      previousRank: 1,
+      rankMovement: -1,
+    });
+  });
+
+  it("uses total points as first sort priority", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
+      mockUsers as any
+    );
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findFirst
+    ).mockResolvedValueOnce(null);
+
+    const response = await GET(createRequest());
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+
+    expect(body.data[0].totalPoints).toBeGreaterThanOrEqual(
+      body.data[2].totalPoints
+    );
+  });
+
+  it("uses difference score as second sort priority", async () => {
+    const tiedUsers = [
+      {
+        ...mockUsers[0],
+        totalPoints: 40,
+        predictions: [
+          {
+            id: 1,
+            differenceScore: 10,
+          },
+        ],
+      },
+      {
+        ...mockUsers[1],
+        totalPoints: 40,
+        predictions: [
+          {
+            id: 2,
+            differenceScore: -3,
+          },
+        ],
+      },
+    ];
+
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
+      tiedUsers as any
+    );
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findFirst
+    ).mockResolvedValueOnce(null);
+
+    const response = await GET(createRequest());
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data[0].id).toBe(2);
+    expect(body.data[0].differenceScore).toBe(-3);
+  });
+
+  it("uses exact scores as third sort priority", async () => {
+    const tiedUsers = [
+      {
+        ...mockUsers[0],
+        totalPoints: 40,
+        exactScores: 1,
+        cumulativeError: 10,
+        predictions: [],
+      },
+      {
+        ...mockUsers[1],
+        totalPoints: 40,
+        exactScores: 4,
+        cumulativeError: 10,
+        predictions: [],
+      },
+    ];
+
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
+      tiedUsers as any
+    );
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findFirst
+    ).mockResolvedValueOnce(null);
+
+    const response = await GET(createRequest());
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data[0].id).toBe(2);
+    expect(body.data[0].exactScores).toBe(4);
+  });
+
+  it("uses cumulative error as fourth sort priority", async () => {
+    const tiedUsers = [
+      {
+        ...mockUsers[0],
+        totalPoints: 40,
+        exactScores: 2,
+        cumulativeError: 20,
+        predictions: [],
+      },
+      {
+        ...mockUsers[1],
+        totalPoints: 40,
+        exactScores: 2,
+        cumulativeError: 5,
+        predictions: [],
+      },
+    ];
+
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
+      tiedUsers as any
+    );
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findFirst
+    ).mockResolvedValueOnce(null);
+
+    const response = await GET(createRequest());
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data[0].id).toBe(2);
+    expect(body.data[0].cumulativeError).toBe(5);
+  });
+
+  it("uses registration order as final sort priority", async () => {
+    const tiedUsers = [
+      {
+        ...mockUsers[0],
+        totalPoints: 40,
+        exactScores: 2,
+        cumulativeError: 10,
+        registrationOrder: 2,
+        predictions: [],
+      },
+      {
+        ...mockUsers[1],
+        totalPoints: 40,
+        exactScores: 2,
+        cumulativeError: 10,
+        registrationOrder: 1,
+        predictions: [],
+      },
+    ];
+
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
+      tiedUsers as any
+    );
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findFirst
+    ).mockResolvedValueOnce(null);
+
+    const response = await GET(createRequest());
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data[0].id).toBe(2);
+    expect(body.data[0].registrationOrder).toBe(1);
+  });
+
+  it("returns paginated data", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
+      mockUsers as any
+    );
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findFirst
+    ).mockResolvedValueOnce(null);
+
+    const response = await GET(
+      createRequest(
+        "http://localhost/api/leaderboard?page=2&pageSize=2"
+      )
+    );
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.page).toBe(2);
+    expect(body.pageSize).toBe(2);
+    expect(body.totalRecords).toBe(4);
+    expect(body.totalPages).toBe(2);
+    expect(body.data).toHaveLength(2);
+  });
+
+  it("defaults page and pageSize when query params are missing", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
+      mockUsers as any
+    );
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findFirst
+    ).mockResolvedValueOnce(null);
+
+    const response = await GET(
+      createRequest("http://localhost/api/leaderboard")
+    );
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.page).toBe(1);
+    expect(body.pageSize).toBe(10);
+  });
+
+  it("returns at least one total page when there are no users", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce([]);
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findFirst
+    ).mockResolvedValueOnce(null);
+
+    const response = await GET(createRequest());
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.totalRecords).toBe(0);
+    expect(body.totalPages).toBe(1);
+    expect(body.data).toEqual([]);
+  });
+
+  it("does not load snapshot rows when no latest snapshot exists", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
+      mockUsers as any
+    );
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findFirst
+    ).mockResolvedValueOnce(null);
+
+    const response = await GET(createRequest());
+
+    expect(response.status).toBe(200);
+
+    expect(
+      prisma.leaderboardSnapshot.findMany
+    ).not.toHaveBeenCalled();
+  });
+
+  it("loads latest snapshot rows when latest snapshot exists", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
+      mockUsers as any
+    );
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findFirst
+    ).mockResolvedValueOnce(mockLatestSnapshot as any);
+
+    vi.mocked(
+      prisma.leaderboardSnapshot.findMany
+    ).mockResolvedValueOnce(mockLatestSnapshots as any);
+
+    const response = await GET(createRequest());
+
+    expect(response.status).toBe(200);
+
+    expect(
+      prisma.leaderboardSnapshot.findMany
+    ).toHaveBeenCalledWith({
+      where: {
+        snapshotNumber: 3,
+      },
+    });
+  });
+
+  it("throws when user query fails because route has no local error handling", async () => {
+    vi.mocked(prisma.user.findMany).mockRejectedValueOnce(
+      new Error("User query failed")
+    );
+
+    await expect(GET(createRequest())).rejects.toThrow(
+      "User query failed"
+    );
+  });
+});
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\leaderboard\route.ts
+====================================================================================================
+
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+
+  const page = Number(
+    searchParams.get("page") ?? "1"
+  );
+
+  const pageSize = Number(
+    searchParams.get("pageSize") ?? "10"
+  );
+
+  const users = await prisma.user.findMany({
+    include: {
+      predictions: true,
+    },
+  });
+
+  const latestSnapshot =
+    await prisma.leaderboardSnapshot.findFirst({
+      orderBy: {
+        snapshotNumber: "desc",
+      },
+    });
+
+  let latestSnapshots: any[] = [];
+
+  if (latestSnapshot) {
+    latestSnapshots =
+      await prisma.leaderboardSnapshot.findMany({
+        where: {
+          snapshotNumber:
+            latestSnapshot.snapshotNumber,
+        },
+      });
+  }
+
+  const leaderboard = users
+    .map((user) => {
+      const differenceScore =
+        user.predictions.reduce(
+          (total, prediction) =>
+            total +
+            prediction.differenceScore,
+          0
+        );
+
+      const snapshot =
+        latestSnapshots.find(
+          (s) => s.userId === user.id
+        );
+
+      return {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        totalPoints: user.totalPoints,
+        exactScores: user.exactScores,
+        cumulativeError:
+          user.cumulativeError,
+        differenceScore,
+        registrationOrder:
+          user.registrationOrder,
+        previousRank:
+          snapshot?.previousRank ??
+          null,
+        rankMovement:
+          snapshot?.rankMovement ??
+          null,
+      };
+    })
+    .sort((a, b) => {
+      if (
+        b.totalPoints !==
+        a.totalPoints
+      ) {
+        return (
+          b.totalPoints -
+          a.totalPoints
+        );
+      }
+
+      if (
+        a.differenceScore !==
+        b.differenceScore
+      ) {
+        return (
+          a.differenceScore -
+          b.differenceScore
+        );
+      }
+
+      if (
+        b.exactScores !==
+        a.exactScores
+      ) {
+        return (
+          b.exactScores -
+          a.exactScores
+        );
+      }
+
+      if (
+        a.cumulativeError !==
+        b.cumulativeError
+      ) {
+        return (
+          a.cumulativeError -
+          b.cumulativeError
+        );
+      }
+
+      return (
+        a.registrationOrder -
+        b.registrationOrder
+      );
+    })
+    .map((user, index) => ({
+      rank: index + 1,
+      ...user,
+    }));
+
+  const totalRecords =
+    leaderboard.length;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      totalRecords / pageSize
+    )
+  );
+
+  const pagedData =
+    leaderboard.slice(
+      (page - 1) * pageSize,
+      page * pageSize
+    );
+
+  return NextResponse.json({
+    page,
+    pageSize,
+    totalRecords,
+    totalPages,
+    data: pagedData,
+  });
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\matches\route.test.ts
+====================================================================================================
+
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import { GET } from "./route";
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    match: {
+      findMany: vi.fn(),
+    },
+  },
+}));
+
+import { prisma } from "@/lib/prisma";
+
+const mockMatches = [
+  {
+    id: 101,
+    matchNumber: 1,
+    round: 1,
+    kickoffTime: "2027-01-29T14:15:00.000Z",
+    completed: false,
+    tournament: {
+      id: 1,
+      predictionLockAt:
+        "2027-01-29T14:15:00.000Z",
+    },
+    homeTeam: {
+      name: "Ireland",
+      shortCode: "IRE",
+    },
+    awayTeam: {
+      name: "France",
+      shortCode: "FRA",
+    },
+  },
+];
+
+describe("GET /api/matches", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns matches ordered by match number with teams included", async () => {
+    vi.mocked(prisma.match.findMany).mockResolvedValueOnce(
+      mockMatches as any
+    );
+
+    const response = await GET();
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+
+    expect(body).toEqual(mockMatches);
+
+    expect(prisma.match.findMany).toHaveBeenCalledWith({
+      orderBy: {
+        matchNumber: "asc",
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true,
+        tournament: {
+          select: {
+            id: true,
+            predictionLockAt: true,
+          },
+        },
+      },
+    });
+  });
+
+  it("returns empty array when no matches exist", async () => {
+    vi.mocked(prisma.match.findMany).mockResolvedValueOnce([]);
+
+    const response = await GET();
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual([]);
+  });
+
+  it("throws when database query fails because route has no local error handling", async () => {
+    vi.mocked(prisma.match.findMany).mockRejectedValueOnce(
+      new Error("Database unavailable")
+    );
+
+    await expect(GET()).rejects.toThrow("Database unavailable");
+  });
+});
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\matches\route.ts
+====================================================================================================
+
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function GET() {
+  const matches = await prisma.match.findMany({
+    orderBy: {
+      matchNumber: "asc",
+    },
+    include: {
+      homeTeam: true,
+      awayTeam: true,
+      tournament: {
+        select: {
+          id: true,
+          predictionLockAt: true,
+        },
+      },
+    },
+  });
+
+  return NextResponse.json(matches);
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\predictions\list\route.test.ts
+====================================================================================================
+
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import { GET } from "./route";
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    prediction: {
+      findMany: vi.fn(),
+    },
+  },
+}));
+
+vi.mock("@/lib/auth", () => ({
+  requireUser: vi.fn(),
+}));
+
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
+
+const mockUser = {
+  id: 1,
+  email: "sean@example.com",
+};
+
+const mockPredictions = [
+  {
+    id: 301,
+    userId: 1,
+    matchId: 101,
+    predictedHomeScore: 24,
+    predictedAwayScore: 18,
+    match: {
+      id: 101,
+      homeTeam: {
+        name: "Ireland",
+        shortCode: "IRE",
+      },
+      awayTeam: {
+        name: "France",
+        shortCode: "FRA",
+      },
+    },
+  },
+];
+
+describe("GET /api/predictions/list", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns predictions for authenticated user", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
+
+    vi.mocked(prisma.prediction.findMany).mockResolvedValueOnce(
+      mockPredictions as any
+    );
+
+    const response = await GET();
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+
+    expect(body).toEqual(mockPredictions);
+
+    expect(prisma.prediction.findMany).toHaveBeenCalledWith({
+      where: {
+        userId: 1,
+      },
+      include: {
+        match: {
+          include: {
+            homeTeam: true,
+            awayTeam: true,
+          },
+        },
+      },
+      orderBy: {
+        matchId: "asc",
+      },
+    });
+  });
+
+  it("returns empty array when user has no predictions", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
+
+    vi.mocked(prisma.prediction.findMany).mockResolvedValueOnce([]);
+
+    const response = await GET();
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual([]);
+  });
+
+  it("returns 401 when user is not authenticated", async () => {
+    vi.mocked(requireUser).mockRejectedValueOnce(
+      new Error("Authentication required")
+    );
+
+    const response = await GET();
+
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+
+    expect(body).toEqual({
+      success: false,
+      error: "Authentication required",
+    });
+  });
+
+  it("returns 500 when database query fails", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
+
+    vi.mocked(prisma.prediction.findMany).mockRejectedValueOnce(
+      new Error("Database unavailable")
+    );
+
+    const response = await GET();
+
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+
+    expect(body).toEqual({
+      success: false,
+      error: "Failed to load predictions",
+    });
+  });
+});
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\predictions\list\route.ts
+====================================================================================================
+
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
+
+export async function GET() {
+  try {
+    const user =
+      await requireUser();
+
+    const predictions =
+      await prisma.prediction.findMany({
+        where: {
+          userId: user.id,
+        },
+        include: {
+          match: {
+            include: {
+              homeTeam: true,
+              awayTeam: true,
+            },
+          },
+        },
+        orderBy: {
+          matchId: "asc",
+        },
+      });
+
+    return NextResponse.json(
+      predictions
+    );
+  } catch (error) {
+    console.error(error);
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to load predictions";
+
+    if (
+      message ===
+      "Authentication required"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Authentication required",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "Failed to load predictions",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\predictions\route.test.ts
+====================================================================================================
+
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import { POST } from "./route";
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    match: {
+      findUnique: vi.fn(),
+    },
+    prediction: {
+      upsert: vi.fn(),
+    },
+  },
+}));
+
+vi.mock("@/lib/auth", () => ({
+  requireUser: vi.fn(),
+}));
+
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
+
+const mockUser = {
+  id: 1,
+  email: "sean@example.com",
+};
+
+const futureMatch = {
+  id: 101,
+  kickoffTime: "2099-01-29T14:15:00.000Z",
+};
+
+const pastMatch = {
+  id: 102,
+  kickoffTime: "2020-01-29T14:15:00.000Z",
+};
+
+const mockPrediction = {
+  id: 301,
+  userId: 1,
+  matchId: 101,
+  predictedHomeScore: 24,
+  predictedAwayScore: 18,
+};
+
+function createPredictionRequest(body: any) {
+  return new Request("http://localhost/api/predictions", {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+describe("POST /api/predictions", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("creates or updates prediction for authenticated user before kickoff", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
+
+    vi.mocked(prisma.match.findUnique).mockResolvedValueOnce(
+      futureMatch as any
+    );
+
+    vi.mocked(prisma.prediction.upsert).mockResolvedValueOnce(
+      mockPrediction as any
+    );
+
+    const response = await POST(
+      createPredictionRequest({
+        matchId: 101,
+        homeScore: 24,
+        awayScore: 18,
+      })
+    );
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+
+    expect(body).toEqual({
+      success: true,
+      prediction: mockPrediction,
+    });
+
+    expect(prisma.prediction.upsert).toHaveBeenCalledWith({
+      where: {
+        userId_matchId: {
+          userId: 1,
+          matchId: 101,
+        },
+      },
+      update: {
+        predictedHomeScore: 24,
+        predictedAwayScore: 18,
+      },
+      create: {
+        userId: 1,
+        matchId: 101,
+        predictedHomeScore: 24,
+        predictedAwayScore: 18,
+      },
+    });
+  });
+
+  it("returns 404 when match does not exist", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
+
+    vi.mocked(prisma.match.findUnique).mockResolvedValueOnce(null);
+
+    const response = await POST(
+      createPredictionRequest({
+        matchId: 999,
+        homeScore: 24,
+        awayScore: 18,
+      })
+    );
+
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+
+    expect(body).toEqual({
+      success: false,
+      error: "Match not found",
+    });
+
+    expect(prisma.prediction.upsert).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 when match has already kicked off", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
+
+    vi.mocked(prisma.match.findUnique).mockResolvedValueOnce(
+      pastMatch as any
+    );
+
+    const response = await POST(
+      createPredictionRequest({
+        matchId: 102,
+        homeScore: 24,
+        awayScore: 18,
+      })
+    );
+
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+
+    expect(body).toEqual({
+      success: false,
+      error:
+        "Predictions are locked because the match has already kicked off",
+    });
+
+    expect(prisma.prediction.upsert).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 when user is not authenticated", async () => {
+    vi.mocked(requireUser).mockRejectedValueOnce(
+      new Error("Authentication required")
+    );
+
+    const response = await POST(
+      createPredictionRequest({
+        matchId: 101,
+        homeScore: 24,
+        awayScore: 18,
+      })
+    );
+
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+
+    expect(body).toEqual({
+      success: false,
+      error: "Authentication required",
+    });
+  });
+
+  it("allows zero-zero prediction payload", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
+
+    vi.mocked(prisma.match.findUnique).mockResolvedValueOnce(
+      futureMatch as any
+    );
+
+    vi.mocked(prisma.prediction.upsert).mockResolvedValueOnce({
+      ...mockPrediction,
+      predictedHomeScore: 0,
+      predictedAwayScore: 0,
+    } as any);
+
+    const response = await POST(
+      createPredictionRequest({
+        matchId: 101,
+        homeScore: 0,
+        awayScore: 0,
+      })
+    );
+
+    expect(response.status).toBe(200);
+
+    expect(prisma.prediction.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        update: {
+          predictedHomeScore: 0,
+          predictedAwayScore: 0,
+        },
+        create: expect.objectContaining({
+          predictedHomeScore: 0,
+          predictedAwayScore: 0,
+        }),
+      })
+    );
+  });
+
+  it("returns 500 when prediction upsert fails", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
+
+    vi.mocked(prisma.match.findUnique).mockResolvedValueOnce(
+      futureMatch as any
+    );
+
+    vi.mocked(prisma.prediction.upsert).mockRejectedValueOnce(
+      new Error("Database unavailable")
+    );
+
+    const response = await POST(
+      createPredictionRequest({
+        matchId: 101,
+        homeScore: 24,
+        awayScore: 18,
+      })
+    );
+
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+
+    expect(body).toEqual({
+      success: false,
+      error: "Failed to save prediction",
+    });
+  });
+
+  it("returns 500 when request JSON parsing fails", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
+
+    const request = new Request(
+      "http://localhost/api/predictions",
+      {
+        method: "POST",
+        body: "{bad-json",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const response = await POST(request);
+
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+
+    expect(body).toEqual({
+      success: false,
+      error: "Failed to save prediction",
+    });
+  });
+});
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\api\predictions\route.ts
+====================================================================================================
+
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
+
+export async function POST(
+  request: Request
+) {
+  try {
+    const user =
+      await requireUser();
+
+    const body =
+      await request.json();
+
+    const match =
+      await prisma.match.findUnique({
+        where: {
+          id: body.matchId,
+        },
+      });
+
+    if (!match) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Match not found",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    const now = new Date();
+
+    if (
+      new Date(
+        match.kickoffTime
+      ) <= now
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Predictions are locked because the match has already kicked off",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    const prediction =
+      await prisma.prediction.upsert({
+        where: {
+          userId_matchId: {
+            userId: user.id,
+            matchId:
+              body.matchId,
+          },
+        },
+        update: {
+          predictedHomeScore:
+            body.homeScore,
+          predictedAwayScore:
+            body.awayScore,
+        },
+        create: {
+          userId: user.id,
+          matchId:
+            body.matchId,
+          predictedHomeScore:
+            body.homeScore,
+          predictedAwayScore:
+            body.awayScore,
+        },
+      });
+
+    return NextResponse.json({
+      success: true,
+      prediction,
+    });
+  } catch (error) {
+    console.error(error);
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to save prediction";
+
+    if (
+      message ===
+      "Authentication required"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Authentication required",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "Failed to save prediction",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\leaderboard\page.test.tsx
+====================================================================================================
+
+import {
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+import LeaderboardPage from "./page";
+
+type LeaderboardEntry = {
+  id: number;
+  rank: number;
+  firstName: string | null;
+  lastName: string | null;
+  totalPoints: number;
+  differenceScore: number;
+  exactScores: number;
+  cumulativeError: number;
+  previousRank: number | null;
+  rankMovement: number | null;
+};
+
+type LeaderboardResponse = {
+  page: number;
+  pageSize: number;
+  totalRecords?: number;
+  totalPages?: number;
+  data: LeaderboardEntry[];
+  success?: boolean;
+  error?: string;
+};
+
+const fetchMock = vi.fn<typeof fetch>();
+
+const pageOneEntries: LeaderboardEntry[] = [
+  {
+    id: 3,
+    rank: 3,
+    firstName: "Charlie",
+    lastName: "Clark",
+    totalPoints: 95,
+    differenceScore: 6,
+    exactScores: 2,
+    cumulativeError: 25,
+    previousRank: 2,
+    rankMovement: -1,
+  },
+  {
+    id: 1,
+    rank: 1,
+    firstName: "Alice",
+    lastName: "Anderson",
+    totalPoints: 120,
+    differenceScore: 10,
+    exactScores: 4,
+    cumulativeError: 15,
+    previousRank: 1,
+    rankMovement: 0,
+  },
+  {
+    id: 4,
+    rank: 4,
+    firstName: "Dave",
+    lastName: "Dunne",
+    totalPoints: 80,
+    differenceScore: 5,
+    exactScores: 1,
+    cumulativeError: 30,
+    previousRank: null,
+    rankMovement: null,
+  },
+  {
+    id: 2,
+    rank: 2,
+    firstName: "Bob",
+    lastName: "Brown",
+    totalPoints: 110,
+    differenceScore: 8,
+    exactScores: 3,
+    cumulativeError: 20,
+    previousRank: 4,
+    rankMovement: 2,
+  },
+];
+
+const pageTwoEntries: LeaderboardEntry[] = [
+  {
+    id: 5,
+    rank: 5,
+    firstName: "Eve",
+    lastName: "Evans",
+    totalPoints: 70,
+    differenceScore: 12,
+    exactScores: 1,
+    cumulativeError: 35,
+    previousRank: 5,
+    rankMovement: 0,
+  },
+  {
+    id: 6,
+    rank: 6,
+    firstName: "Frank",
+    lastName: "Flynn",
+    totalPoints: 65,
+    differenceScore: 14,
+    exactScores: 0,
+    cumulativeError: 40,
+    previousRank: 6,
+    rankMovement: 0,
+  },
+];
+
+const defaultResponse: LeaderboardResponse = {
+  page: 1,
+  pageSize: 10,
+  totalRecords: 4,
+  totalPages: 1,
+  data: pageOneEntries,
+};
+
+function createJsonResponse(
+  body: unknown,
+  status = 200
+): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: vi.fn().mockResolvedValue(body),
+  } as unknown as Response;
+}
+
+function mockLeaderboardResponse(
+  response: LeaderboardResponse = defaultResponse
+) {
+  fetchMock.mockResolvedValueOnce(
+    createJsonResponse(response)
+  );
+}
+
+function getDisplayedPlayerNames() {
+  const table = screen.getByRole("table");
+
+  const rows = within(table)
+    .getAllByRole("row")
+    .slice(1);
+
+  return rows.map((row) => {
+    const cells =
+      within(row).getAllByRole("cell");
+
+    return cells[2].textContent?.trim();
+  });
+}
+
+describe("LeaderboardPage", () => {
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it("renders the loading state while the request is pending", () => {
+    fetchMock.mockImplementation(
+      () =>
+        new Promise<Response>(() => {
+          // Deliberately unresolved.
+        })
+    );
+
+    render(<LeaderboardPage />);
+
+    expect(
+      screen.getByRole("status")
+    ).toHaveTextContent(
+      "Loading leaderboard..."
+    );
+  });
+
+  it("loads and renders leaderboard data", async () => {
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    expect(
+      await screen.findByText(
+        "Alice Anderson"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Bob Brown")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Charlie Clark")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Dave Dunne")
+    ).toBeInTheDocument();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/leaderboard?page=1&pageSize=10",
+      expect.objectContaining({
+        cache: "no-store",
+      })
+    );
+  });
+
+  it("renders the correct total player count", async () => {
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    expect(
+      screen.getByText(
+        "Total Players: 4"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(
+        /Showing 4 of 4 players/
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("sorts entries by points by default", async () => {
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    expect(
+      getDisplayedPlayerNames()
+    ).toEqual([
+      "Alice Anderson",
+      "Bob Brown",
+      "Charlie Clark",
+      "Dave Dunne",
+    ]);
+  });
+
+  it("sorts by player name using the dropdown", async () => {
+    const user = userEvent.setup();
+
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    await user.selectOptions(
+      screen.getByRole("combobox", {
+        name: /sort by/i,
+      }),
+      "player"
+    );
+
+    expect(
+      getDisplayedPlayerNames()
+    ).toEqual([
+      "Alice Anderson",
+      "Bob Brown",
+      "Charlie Clark",
+      "Dave Dunne",
+    ]);
+  });
+
+  it("sorts by difference score using the dropdown", async () => {
+    const user = userEvent.setup();
+
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    await user.selectOptions(
+      screen.getByRole("combobox", {
+        name: /sort by/i,
+      }),
+      "difference"
+    );
+
+    expect(
+      getDisplayedPlayerNames()
+    ).toEqual([
+      "Dave Dunne",
+      "Charlie Clark",
+      "Bob Brown",
+      "Alice Anderson",
+    ]);
+  });
+
+  it("sorts by exact scores using the dropdown", async () => {
+    const user = userEvent.setup();
+
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    await user.selectOptions(
+      screen.getByRole("combobox", {
+        name: /sort by/i,
+      }),
+      "exact"
+    );
+
+    expect(
+      getDisplayedPlayerNames()
+    ).toEqual([
+      "Alice Anderson",
+      "Bob Brown",
+      "Charlie Clark",
+      "Dave Dunne",
+    ]);
+  });
+
+  it("sorts by cumulative error using the dropdown", async () => {
+    const user = userEvent.setup();
+
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    await user.selectOptions(
+      screen.getByRole("combobox", {
+        name: /sort by/i,
+      }),
+      "error"
+    );
+
+    expect(
+      getDisplayedPlayerNames()
+    ).toEqual([
+      "Alice Anderson",
+      "Bob Brown",
+      "Charlie Clark",
+      "Dave Dunne",
+    ]);
+  });
+
+  it("sorts by points when the Points heading button is clicked", async () => {
+    const user = userEvent.setup();
+
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    await user.selectOptions(
+      screen.getByRole("combobox", {
+        name: /sort by/i,
+      }),
+      "difference"
+    );
+
+    expect(
+      getDisplayedPlayerNames()[0]
+    ).toBe("Dave Dunne");
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /points/i,
+      })
+    );
+
+    expect(
+      getDisplayedPlayerNames()
+    ).toEqual([
+      "Alice Anderson",
+      "Bob Brown",
+      "Charlie Clark",
+      "Dave Dunne",
+    ]);
+  });
+
+  it("sorts by player when the Player heading button is clicked", async () => {
+    const user = userEvent.setup();
+
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /player/i,
+      })
+    );
+
+    expect(
+      getDisplayedPlayerNames()
+    ).toEqual([
+      "Alice Anderson",
+      "Bob Brown",
+      "Charlie Clark",
+      "Dave Dunne",
+    ]);
+  });
+
+  it("sorts by difference when its heading button is clicked", async () => {
+    const user = userEvent.setup();
+
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /difference score/i,
+      })
+    );
+
+    expect(
+      getDisplayedPlayerNames()
+    ).toEqual([
+      "Dave Dunne",
+      "Charlie Clark",
+      "Bob Brown",
+      "Alice Anderson",
+    ]);
+  });
+
+  it("sorts by exact scores when its heading button is clicked", async () => {
+    const user = userEvent.setup();
+
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /exact scores/i,
+      })
+    );
+
+    expect(
+      getDisplayedPlayerNames()
+    ).toEqual([
+      "Alice Anderson",
+      "Bob Brown",
+      "Charlie Clark",
+      "Dave Dunne",
+    ]);
+  });
+
+  it("sorts by cumulative error when its heading button is clicked", async () => {
+    const user = userEvent.setup();
+
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /cumulative error/i,
+      })
+    );
+
+    expect(
+      getDisplayedPlayerNames()
+    ).toEqual([
+      "Alice Anderson",
+      "Bob Brown",
+      "Charlie Clark",
+      "Dave Dunne",
+    ]);
+  });
+
+  it("renders medals according to the server rank", async () => {
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    expect(
+      screen.getByText(/🥇\s*1/)
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/🥈\s*2/)
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/🥉\s*3/)
+    ).toBeInTheDocument();
+  });
+
+  it("renders rank movement indicators", async () => {
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    expect(
+      screen.getByTitle(
+        "Rank unchanged"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByTitle(
+        "Moved up 2 places"
+      )
+    ).toHaveTextContent("↑ 2");
+
+    expect(
+      screen.getByTitle(
+        "Moved down 1 place"
+      )
+    ).toHaveTextContent("↓ 1");
+
+    expect(
+      screen.getByTitle(
+        "No previous ranking"
+      )
+    ).toHaveTextContent("—");
+  });
+
+  it("disables the Previous button on the first page", async () => {
+    mockLeaderboardResponse({
+      ...defaultResponse,
+      totalRecords: 12,
+      totalPages: 2,
+    });
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    expect(
+      screen.getByRole("button", {
+        name: "Previous",
+      })
+    ).toBeDisabled();
+  });
+
+  it("disables the Next button on the final page", async () => {
+    mockLeaderboardResponse();
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    expect(
+      screen.getByRole("button", {
+        name: "Next",
+      })
+    ).toBeDisabled();
+  });
+
+  it("loads the next page when Next is clicked", async () => {
+    const user = userEvent.setup();
+
+    fetchMock.mockImplementation(
+      async (input) => {
+        const url = String(input);
+
+        if (url.includes("page=2")) {
+          return createJsonResponse({
+            page: 2,
+            pageSize: 10,
+            totalRecords: 12,
+            totalPages: 2,
+            data: pageTwoEntries,
+          });
+        }
+
+        return createJsonResponse({
+          page: 1,
+          pageSize: 10,
+          totalRecords: 12,
+          totalPages: 2,
+          data: pageOneEntries,
+        });
+      }
+    );
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Next",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Eve Evans"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Frank Flynn")
+    ).toBeInTheDocument();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/leaderboard?page=2&pageSize=10",
+      expect.objectContaining({
+        cache: "no-store",
+      })
+    );
+
+    expect(
+      screen.getAllByText(
+        "Page 2 of 2"
+      ).length
+    ).toBeGreaterThan(0);
+  });
+
+  it("returns to the first page when Previous is clicked", async () => {
+    const user = userEvent.setup();
+
+    fetchMock.mockImplementation(
+      async (input) => {
+        const url = String(input);
+
+        if (url.includes("page=2")) {
+          return createJsonResponse({
+            page: 2,
+            pageSize: 10,
+            totalRecords: 12,
+            totalPages: 2,
+            data: pageTwoEntries,
+          });
+        }
+
+        return createJsonResponse({
+          page: 1,
+          pageSize: 10,
+          totalRecords: 12,
+          totalPages: 2,
+          data: pageOneEntries,
+        });
+      }
+    );
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Next",
+      })
+    );
+
+    await screen.findByText(
+      "Eve Evans"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Previous",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Alice Anderson"
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows the empty state when no entries exist", async () => {
+    mockLeaderboardResponse({
+      page: 1,
+      pageSize: 10,
+      totalRecords: 0,
+      totalPages: 1,
+      data: [],
+    });
+
+    render(<LeaderboardPage />);
+
+    expect(
+      await screen.findByText(
+        "No leaderboard entries are available."
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(
+        "Total Players: 0"
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("uses the data length when totalRecords is missing", async () => {
+    mockLeaderboardResponse({
+      page: 1,
+      pageSize: 10,
+      totalPages: 1,
+      data: pageOneEntries,
+    });
+
+    render(<LeaderboardPage />);
+
+    await screen.findByText(
+      "Alice Anderson"
+    );
+
+    expect(
+      screen.getByText(
+        "Total Players: 4"
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows the API error when the request fails", async () => {
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse(
+        {
+          success: false,
+          error:
+            "Leaderboard service unavailable.",
+        },
+        503
+      )
+    );
+
+    render(<LeaderboardPage />);
+
+    expect(
+      await screen.findByRole("alert")
+    ).toHaveTextContent(
+      "Leaderboard service unavailable."
+    );
+
+    expect(
+      screen.queryByRole("table")
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a fallback error when the API returns invalid data", async () => {
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse({
+        page: 1,
+        totalPages: 1,
+        data: null,
+      })
+    );
+
+    render(<LeaderboardPage />);
+
+    expect(
+      await screen.findByRole("alert")
+    ).toHaveTextContent(
+      "The leaderboard returned invalid data."
+    );
+  });
+
+  it("shows a fallback error when fetch rejects", async () => {
+    fetchMock.mockRejectedValueOnce(
+      new Error("Network failure")
+    );
+
+    render(<LeaderboardPage />);
+
+    expect(
+      await screen.findByRole("alert")
+    ).toHaveTextContent(
+      "Network failure"
+    );
+  });
+
+  it("renders players with missing names safely", async () => {
+    mockLeaderboardResponse({
+      page: 1,
+      pageSize: 10,
+      totalRecords: 1,
+      totalPages: 1,
+      data: [
+        {
+          id: 99,
+          rank: 1,
+          firstName: null,
+          lastName: null,
+          totalPoints: 10,
+          differenceScore: 2,
+          exactScores: 0,
+          cumulativeError: 5,
+          previousRank: null,
+          rankMovement: null,
+        },
+      ],
+    });
+
+    render(<LeaderboardPage />);
+
+    expect(
+      await screen.findByText(
+        "Unknown Player"
+      )
+    ).toBeInTheDocument();
+  });
+});
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\leaderboard\page.tsx
+====================================================================================================
+
+"use client";
+
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import PageHeader from "@/components/ui/PageHeader";
+import Select from "@/components/ui/Select";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+type SortOption =
+  | "points"
+  | "difference"
+  | "exact"
+  | "error"
+  | "player";
+
+type LeaderboardEntry = {
+  id: number;
+  rank: number;
+  firstName: string | null;
+  lastName: string | null;
+  totalPoints: number;
+  differenceScore: number;
+  exactScores: number;
+  cumulativeError: number;
+  previousRank: number | null;
+  rankMovement: number | null;
+};
+
+type LeaderboardResponse = {
+  page: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+  data: LeaderboardEntry[];
+  success?: boolean;
+  error?: string;
+};
+
+const PAGE_SIZE = 10;
+
+function getPlayerName(
+  player: LeaderboardEntry
+) {
+  const fullName = [
+    player.firstName,
+    player.lastName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return fullName || "Unknown Player";
+}
+
+function getRankMedal(rank: number) {
+  switch (rank) {
+    case 1:
+      return "🥇";
+    case 2:
+      return "🥈";
+    case 3:
+      return "🥉";
+    default:
+      return "";
+  }
+}
+
+function getRowClasses(rank: number) {
+  switch (rank) {
+    case 1:
+      return "bg-yellow-50";
+    case 2:
+      return "bg-slate-50";
+    case 3:
+      return "bg-orange-50";
+    default:
+      return "";
+  }
+}
+
+function getSortIndicator(
+  selectedSort: SortOption,
+  column: SortOption
+) {
+  if (selectedSort !== column) {
+    return "";
+  }
+
+  switch (column) {
+    case "player":
+    case "difference":
+    case "error":
+      return " ▲";
+
+    case "points":
+    case "exact":
+      return " ▼";
+
+    default:
+      return "";
+  }
+}
+
+export default function LeaderboardPage() {
+  const [leaderboard, setLeaderboard] =
+    useState<LeaderboardEntry[]>([]);
+
+  const [page, setPage] =
+    useState(1);
+
+  const [totalPages, setTotalPages] =
+    useState(1);
+
+  const [
+    totalRecords,
+    setTotalRecords,
+  ] = useState(0);
+
+  const [sortBy, setSortBy] =
+    useState<SortOption>("points");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    const controller =
+      new AbortController();
+
+    async function loadLeaderboard() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(
+          `/api/leaderboard?page=${page}&pageSize=${PAGE_SIZE}`,
+          {
+            signal: controller.signal,
+            cache: "no-store",
+          }
+        );
+
+        const result =
+          (await response.json()) as
+            LeaderboardResponse;
+
+        if (!response.ok) {
+          throw new Error(
+            result.error ||
+              "Failed to load the leaderboard."
+          );
+        }
+
+        if (!Array.isArray(result.data)) {
+          throw new Error(
+            "The leaderboard returned invalid data."
+          );
+        }
+
+        const returnedTotalPages =
+          Math.max(
+            1,
+            Number(
+              result.totalPages ?? 1
+            )
+          );
+
+        setLeaderboard(result.data);
+
+        setTotalPages(
+          returnedTotalPages
+        );
+
+        setTotalRecords(
+          Number(
+            result.totalRecords ??
+              result.data.length
+          )
+        );
+
+        /*
+         * If records were removed while the user
+         * was viewing the final page, return them
+         * to the highest available page.
+         */
+        if (page > returnedTotalPages) {
+          setPage(returnedTotalPages);
+        }
+      } catch (loadError) {
+        if (
+          loadError instanceof DOMException &&
+          loadError.name === "AbortError"
+        ) {
+          return;
+        }
+
+        console.error(
+          "Unable to load leaderboard:",
+          loadError
+        );
+
+        setLeaderboard([]);
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Failed to load the leaderboard."
+        );
+      } finally {
+        if (
+          !controller.signal.aborted
+        ) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadLeaderboard();
+
+    return () => {
+      controller.abort();
+    };
+  }, [page]);
+
+  const sortedLeaderboard =
+    useMemo(() => {
+      const data = [
+        ...leaderboard,
+      ];
+
+      data.sort((a, b) => {
+        switch (sortBy) {
+          case "player":
+            return (
+              getPlayerName(a).localeCompare(
+                getPlayerName(b),
+                "en",
+                {
+                  sensitivity: "base",
+                }
+              ) || a.rank - b.rank
+            );
+
+          case "points":
+            return (
+              b.totalPoints -
+                a.totalPoints ||
+              a.rank - b.rank
+            );
+
+          case "difference":
+            return (
+              a.differenceScore -
+                b.differenceScore ||
+              a.rank - b.rank
+            );
+
+          case "exact":
+            return (
+              b.exactScores -
+                a.exactScores ||
+              a.rank - b.rank
+            );
+
+          case "error":
+            return (
+              a.cumulativeError -
+                b.cumulativeError ||
+              a.rank - b.rank
+            );
+
+          default:
+            return a.rank - b.rank;
+        }
+      });
+
+      return data;
+    }, [leaderboard, sortBy]);
+
+  function renderRankMovement(
+    player: LeaderboardEntry
+  ) {
+    const movement =
+      player.rankMovement;
+
+    if (
+      movement === undefined ||
+      movement === null
+    ) {
+      return (
+        <span
+          className="text-slate-400"
+          title="No previous ranking"
+        >
+          —
+        </span>
+      );
+    }
+
+    if (movement > 0) {
+      return (
+        <span
+          className="font-semibold text-green-600"
+          title={`Moved up ${movement} place${
+            movement === 1 ? "" : "s"
+          }`}
+        >
+          ↑ {movement}
+        </span>
+      );
+    }
+
+    if (movement < 0) {
+      const places =
+        Math.abs(movement);
+
+      return (
+        <span
+          className="font-semibold text-red-600"
+          title={`Moved down ${places} place${
+            places === 1 ? "" : "s"
+          }`}
+        >
+          ↓ {places}
+        </span>
+      );
+    }
+
+    return (
+      <span
+        className="text-slate-500"
+        title="Rank unchanged"
+      >
+        →
+      </span>
+    );
+  }
+
+  function handleSortChange(
+    value: string
+  ) {
+    setSortBy(value as SortOption);
+  }
+
+  return (
+    <main className="p-8">
+      <PageHeader
+        title="Leaderboard"
+        subtitle="Current tournament standings"
+      />
+
+      <p className="mb-6 text-slate-500">
+        Total Players: {totalRecords}
+      </p>
+
+      <div className="mb-6 flex flex-wrap items-center gap-4">
+        <label
+          htmlFor="leaderboard-sort"
+          className="font-semibold text-slate-700"
+        >
+          Sort By
+        </label>
+
+        <Select
+          id="leaderboard-sort"
+          value={sortBy}
+          onChange={(event) =>
+            handleSortChange(
+              event.target.value
+            )
+          }
+        >
+          <option value="points">
+            Total Points
+          </option>
+
+          <option value="difference">
+            Difference Score
+          </option>
+
+          <option value="exact">
+            Exact Scores
+          </option>
+
+          <option value="error">
+            Cumulative Error
+          </option>
+
+          <option value="player">
+            Player Name
+          </option>
+        </Select>
+      </div>
+
+      <Card title="Leaderboard">
+        {loading && (
+          <div
+            className="py-12 text-center text-slate-500"
+            role="status"
+          >
+            Loading leaderboard...
+          </div>
+        )}
+
+        {!loading && error && (
+          <div
+            className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700"
+            role="alert"
+          >
+            {error}
+          </div>
+        )}
+
+        {!loading &&
+          !error &&
+          sortedLeaderboard.length ===
+            0 && (
+            <div className="py-12 text-center text-slate-500">
+              No leaderboard entries are
+              available.
+            </div>
+          )}
+
+        {!loading &&
+          !error &&
+          sortedLeaderboard.length >
+            0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-slate-200">
+                <thead>
+                  <tr className="bg-slate-100">
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-3"
+                    >
+                      Rank
+                    </th>
+
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-3"
+                    >
+                      Last Change
+                    </th>
+
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-0"
+                    >
+                      <button
+                        type="button"
+                        className="w-full p-3 transition-colors hover:bg-slate-50"
+                        onClick={() =>
+                          setSortBy(
+                            "player"
+                          )
+                        }
+                      >
+                        Player
+                        {getSortIndicator(
+                          sortBy,
+                          "player"
+                        )}
+                      </button>
+                    </th>
+
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-0"
+                    >
+                      <button
+                        type="button"
+                        className="w-full p-3 transition-colors hover:bg-slate-50"
+                        onClick={() =>
+                          setSortBy(
+                            "points"
+                          )
+                        }
+                      >
+                        Points
+                        {getSortIndicator(
+                          sortBy,
+                          "points"
+                        )}
+                      </button>
+                    </th>
+
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-0"
+                    >
+                      <button
+                        type="button"
+                        className="w-full p-3 transition-colors hover:bg-slate-50"
+                        onClick={() =>
+                          setSortBy(
+                            "difference"
+                          )
+                        }
+                      >
+                        Difference Score
+                        {getSortIndicator(
+                          sortBy,
+                          "difference"
+                        )}
+                      </button>
+                    </th>
+
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-0"
+                    >
+                      <button
+                        type="button"
+                        className="w-full p-3 transition-colors hover:bg-slate-50"
+                        onClick={() =>
+                          setSortBy(
+                            "exact"
+                          )
+                        }
+                      >
+                        Exact Scores
+                        {getSortIndicator(
+                          sortBy,
+                          "exact"
+                        )}
+                      </button>
+                    </th>
+
+                    <th
+                      scope="col"
+                      className="border border-slate-200 p-0"
+                    >
+                      <button
+                        type="button"
+                        className="w-full p-3 transition-colors hover:bg-slate-50"
+                        onClick={() =>
+                          setSortBy(
+                            "error"
+                          )
+                        }
+                      >
+                        Cumulative Error
+                        {getSortIndicator(
+                          sortBy,
+                          "error"
+                        )}
+                      </button>
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {sortedLeaderboard.map(
+                    (player) => (
+                      <tr
+                        key={player.id}
+                        className={`text-center ${getRowClasses(
+                          player.rank
+                        )}`}
+                      >
+                        <td className="border border-slate-200 p-3 font-semibold">
+                          {getRankMedal(
+                            player.rank
+                          )}{" "}
+                          {player.rank}
+                        </td>
+
+                        <td className="border border-slate-200 p-3">
+                          {renderRankMovement(
+                            player
+                          )}
+                        </td>
+
+                        <td className="border border-slate-200 p-3">
+                          {getPlayerName(
+                            player
+                          )}
+                        </td>
+
+                        <td className="border border-slate-200 p-3 font-bold">
+                          {
+                            player.totalPoints
+                          }
+                        </td>
+
+                        <td className="border border-slate-200 p-3">
+                          {
+                            player.differenceScore
+                          }
+                        </td>
+
+                        <td className="border border-slate-200 p-3">
+                          {
+                            player.exactScores
+                          }
+                        </td>
+
+                        <td className="border border-slate-200 p-3">
+                          {
+                            player.cumulativeError
+                          }
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+      </Card>
+
+      {!loading && !error && (
+        <>
+          <div className="mt-6 text-center text-sm text-slate-500">
+            Showing{" "}
+            {sortedLeaderboard.length} of{" "}
+            {totalRecords} players
+            {" • "}
+            Page {page} of {totalPages}
+          </div>
+
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <Button
+              variant="secondary"
+              disabled={
+                page <= 1 || loading
+              }
+              onClick={() =>
+                setPage((current) =>
+                  Math.max(
+                    1,
+                    current - 1
+                  )
+                )
+              }
+            >
+              Previous
+            </Button>
+
+            <span className="text-sm font-medium text-slate-700">
+              Page {page} of {totalPages}
+            </span>
+
+            <Button
+              variant="secondary"
+              disabled={
+                page >= totalPages ||
+                loading
+              }
+              onClick={() =>
+                setPage((current) =>
+                  Math.min(
+                    totalPages,
+                    current + 1
+                  )
+                )
+              }
+            >
+              Next
+            </Button>
+          </div>
+        </>
+      )}
+    </main>
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\predictions\page.test.tsx
+====================================================================================================
+
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import PredictionsPage from "./page";
+
+const mockUser = {
+  id: 1,
+  firstName: "Sean",
+  lastName: "Durcan",
+  email: "sean@example.com",
+  role: "USER",
+};
+
+const mockMatches = [
+  {
+    id: 101,
+    round: 1,
+    completed: false,
+    kickoffTime: "2027-01-29T14:15:00.000Z",
+    homeTeam: {
+      name: "Ireland",
+      shortCode: "IRE",
+    },
+    awayTeam: {
+      name: "France",
+      shortCode: "FRA",
+    },
+  },
+  {
+    id: 102,
+    round: 1,
+    completed: false,
+    kickoffTime: "2027-01-30T16:45:00.000Z",
+    homeTeam: {
+      name: "Scotland",
+      shortCode: "SCO",
+    },
+    awayTeam: {
+      name: "England",
+      shortCode: "ENG",
+    },
+  },
+  {
+    id: 103,
+    round: 2,
+    completed: true,
+    kickoffTime: "2027-02-05T15:00:00.000Z",
+    actualHomeScore: 21,
+    actualAwayScore: 18,
+    homeTeam: {
+      name: "Wales",
+      shortCode: "WAL",
+    },
+    awayTeam: {
+      name: "Italy",
+      shortCode: "ITA",
+    },
+  },
+];
+
+const mockUnsortedMatches = [
+  mockMatches[1],
+  mockMatches[2],
+  mockMatches[0],
+];
+
+const mockPastLockedMatches = [
+  {
+    id: 104,
+    round: 1,
+    completed: false,
+    kickoffTime: "2020-01-29T14:15:00.000Z",
+    homeTeam: {
+      name: "Ireland",
+      shortCode: "IRE",
+    },
+    awayTeam: {
+      name: "France",
+      shortCode: "FRA",
+    },
+  },
+];
+
+const mockEdgeCaseMatches = [
+  {
+    id: 201,
+    round: 1,
+    completed: false,
+    kickoffTime: "2027-02-10T20:00:00.000Z",
+    homeTeam: {
+      name: "Ireland",
+      shortCode: "IRE",
+    },
+    awayTeam: {
+      name: "Scotland",
+      shortCode: "SCO",
+    },
+  },
+  {
+    id: 202,
+    round: 2,
+    completed: false,
+    kickoffTime: "2027-02-01T14:00:00.000Z",
+    homeTeam: {
+      name: "France",
+      shortCode: "FRA",
+    },
+    awayTeam: {
+      name: "Italy",
+      shortCode: "ITA",
+    },
+  },
+  {
+    id: 203,
+    round: 3,
+    completed: true,
+    kickoffTime: "2027-02-15T16:30:00.000Z",
+    actualHomeScore: 18,
+    actualAwayScore: 18,
+    homeTeam: {
+      name: "England",
+      shortCode: "ENG",
+    },
+    awayTeam: {
+      name: "Wales",
+      shortCode: "WAL",
+    },
+  },
+];
+
+const mockPredictions = [
+  {
+    id: 301,
+    matchId: 102,
+    predictedHomeScore: 24,
+    predictedAwayScore: 17,
+    match: mockMatches[1],
+  },
+];
+
+const mockZeroZeroPrediction = {
+  id: 401,
+  matchId: 101,
+  predictedHomeScore: 0,
+  predictedAwayScore: 0,
+  match: mockMatches[0],
+};
+
+function mockSuccessfulInitialLoad(
+  matches = mockMatches,
+  predictions = mockPredictions
+) {
+  vi.mocked(global.fetch)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        authenticated: true,
+        user: mockUser,
+      }),
+    } as Response)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => matches,
+    } as Response)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => predictions,
+    } as Response);
+}
+
+describe("PredictionsPage", () => {
+  const originalLocation = window.location;
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+
+    global.fetch = vi.fn();
+
+    Object.defineProperty(window, "location", {
+      value: {
+        href: "",
+        assign: vi.fn(),
+      },
+      writable: true,
+    });
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+
+    Object.defineProperty(window, "location", {
+      value: originalLocation,
+      writable: true,
+    });
+  });
+
+  it("renders loading state before data loads", async () => {
+    vi.mocked(global.fetch).mockReturnValue(
+      new Promise(() => {}) as Promise<Response>
+    );
+
+    render(<PredictionsPage />);
+
+    expect(
+      screen.getByText("Loading predictions...")
+    ).toBeInTheDocument();
+  });
+
+  it("redirects unauthenticated user to login when auth request is not ok", async () => {
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({
+        authenticated: false,
+      }),
+    } as Response);
+
+    render(<PredictionsPage />);
+
+    await waitFor(() => {
+      expect(window.location.href).toBe("/login");
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith("/api/auth/me");
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("redirects unauthenticated user to login when authenticated is false", async () => {
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        authenticated: false,
+      }),
+    } as Response);
+
+    render(<PredictionsPage />);
+
+    await waitFor(() => {
+      expect(window.location.href).toBe("/login");
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith("/api/auth/me");
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("redirects to login when auth API request throws", async () => {
+    vi.mocked(global.fetch).mockRejectedValueOnce(
+      new Error("Network error")
+    );
+
+    render(<PredictionsPage />);
+
+    await waitFor(() => {
+      expect(window.location.href).toBe("/login");
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("redirects to login when matches API request fails", async () => {
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          authenticated: true,
+          user: mockUser,
+        }),
+      } as Response)
+      .mockRejectedValueOnce(
+        new Error("Matches API unavailable")
+      );
+
+    render(<PredictionsPage />);
+
+    await waitFor(() => {
+      expect(window.location.href).toBe("/login");
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith("/api/auth/me");
+    expect(global.fetch).toHaveBeenCalledWith("/api/matches");
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("redirects to login when predictions API request fails during initial load", async () => {
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          authenticated: true,
+          user: mockUser,
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockMatches,
+      } as Response)
+      .mockRejectedValueOnce(
+        new Error("Predictions API unavailable")
+      );
+
+    render(<PredictionsPage />);
+
+    await waitFor(() => {
+      expect(window.location.href).toBe("/login");
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith("/api/auth/me");
+    expect(global.fetch).toHaveBeenCalledWith("/api/matches");
+    expect(global.fetch).toHaveBeenCalledWith("/api/predictions/list");
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("sorts unsorted fixture data by kickoff time and selects earliest open fixture", async () => {
+    mockSuccessfulInitialLoad(
+      mockUnsortedMatches,
+      []
+    );
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("Ireland Score")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("France Score")
+    ).toBeInTheDocument();
+  });
+
+  it("uses edge-case fixture mock data and selects the earliest open fixture", async () => {
+    mockSuccessfulInitialLoad(
+      mockEdgeCaseMatches,
+      []
+    );
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("France vs Italy")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("France Score")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("Italy Score")
+    ).toBeInTheDocument();
+
+    expect(
+  screen.getAllByText(/01 Feb 2027/i)[0]
+).toBeInTheDocument();
+  });
+
+  it("renders predictions page with fixture, progress, and Irish formatted kick-off date", async () => {
+    mockSuccessfulInitialLoad();
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Predictions",
+      })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Welcome Sean")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Prediction Progress")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("1 / 3")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    expect(
+  screen.getAllByText(/29 Jan 2027/i)[0]
+).toBeInTheDocument();
+
+    expect(
+  screen.getAllByText(/14:15/i)[0]
+).toBeInTheDocument();
+  });
+
+  it("shows saved predictions with formatted fixture date", async () => {
+    mockSuccessfulInitialLoad();
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("SCO 24 - 17 ENG")
+    ).toBeInTheDocument();
+
+    expect(
+  screen.getAllByText(/30 Jan 2027/i)[0]
+).toBeInTheDocument();
+
+    expect(
+  screen.getAllByText(/16:45/i)[0]
+).toBeInTheDocument();
+
+  });
+
+  it("shows empty predictions state", async () => {
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Prediction Progress")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("0 / 3")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("You have not saved any predictions yet.")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Ireland vs France")
+    ).toBeInTheDocument();
+  });
+
+  it("shows partial predictions progress when only some matches have predictions", async () => {
+    const partialPredictions = [
+      {
+        id: 501,
+        matchId: 101,
+        predictedHomeScore: 28,
+        predictedAwayScore: 20,
+        match: mockMatches[0],
+      },
+    ];
+
+    mockSuccessfulInitialLoad(mockMatches, partialPredictions);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Prediction Progress")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("1 / 3")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("IRE 28 - 20 FRA")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Scotland vs England")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("Scotland Score")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("England Score")
+    ).toBeInTheDocument();
+  });
+
+  it("selects the first unpredicted open fixture automatically", async () => {
+    const partialPredictions = [
+      {
+        id: 601,
+        matchId: 101,
+        predictedHomeScore: 28,
+        predictedAwayScore: 20,
+        match: mockMatches[0],
+      },
+    ];
+
+    mockSuccessfulInitialLoad(mockMatches, partialPredictions);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Scotland vs England")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("Scotland Score")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("England Score")
+    ).toBeInTheDocument();
+  });
+
+  it("shows full predictions progress when all matches have predictions", async () => {
+    const fullPredictions = [
+      {
+        id: 701,
+        matchId: 101,
+        predictedHomeScore: 28,
+        predictedAwayScore: 20,
+        match: mockMatches[0],
+      },
+      {
+        id: 702,
+        matchId: 102,
+        predictedHomeScore: 24,
+        predictedAwayScore: 17,
+        match: mockMatches[1],
+      },
+      {
+        id: 703,
+        matchId: 103,
+        predictedHomeScore: 19,
+        predictedAwayScore: 14,
+        match: mockMatches[2],
+      },
+    ];
+
+    mockSuccessfulInitialLoad(mockMatches, fullPredictions);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Prediction Progress")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("3 / 3")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("IRE 28 - 20 FRA")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("SCO 24 - 17 ENG")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("WAL 19 - 14 ITA")
+    ).toBeInTheDocument();
+  });
+
+  it("shows COMPLETE status for completed fixtures", async () => {
+    mockSuccessfulInitialLoad();
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("COMPLETE")
+    ).toBeInTheDocument();
+  });
+
+  it("treats an incomplete fixture as locked when kick-off time is in the past", async () => {
+    mockSuccessfulInitialLoad(
+      mockPastLockedMatches,
+      []
+    );
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    expect(
+  screen.getAllByText("LOCKED")[0]
+).toBeInTheDocument();
+
+    expect(
+      screen.queryByText("Time until predictions lock")
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("Ireland Score")
+    ).toBeDisabled();
+
+    expect(
+      screen.getByPlaceholderText("France Score")
+    ).toBeDisabled();
+
+    expect(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    ).toBeDisabled();
+  });
+
+  it("shows countdown for open fixtures", async () => {
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Time until predictions lock")
+    ).toBeInTheDocument();
+  });
+
+  it("hides countdown and disables inputs when completed fixture is selected", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /WAL v ITA/i,
+      })
+    );
+
+    expect(
+      screen.getByText("Wales vs Italy")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.queryByText("Time until predictions lock")
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText("Wales Score")
+    ).toBeDisabled();
+
+    expect(
+      screen.getByPlaceholderText("Italy Score")
+    ).toBeDisabled();
+
+    expect(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    ).toBeDisabled();
+  });
+
+  it("shows existing prediction card when locked fixture has a prediction", async () => {
+    const user = userEvent.setup();
+
+    const predictions = [
+      {
+        id: 801,
+        matchId: 103,
+        predictedHomeScore: 19,
+        predictedAwayScore: 14,
+        match: mockMatches[2],
+      },
+    ];
+
+    mockSuccessfulInitialLoad(mockMatches, predictions);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /WAL v ITA/i,
+      })
+    );
+
+    expect(
+      screen.getByText("Your Existing Prediction")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getAllByText("19 - 14")[0]
+    ).toBeInTheDocument();
+  });
+
+  it("allows selecting another fixture from the fixture list", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad();
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /SCO v ENG/i,
+      })
+    );
+
+    expect(
+      screen.getByText("Scotland vs England")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByDisplayValue("24")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByDisplayValue("17")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Editing Prediction")
+    ).toBeInTheDocument();
+  });
+
+  it("clears score inputs when switching from editing prediction to unpredicted fixture", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad();
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /SCO v ENG/i,
+      })
+    );
+
+    expect(
+      screen.getByDisplayValue("24")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByDisplayValue("17")
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /IRE v FRA/i,
+      })
+    );
+
+    expect(
+      screen.getByPlaceholderText("Ireland Score")
+    ).toHaveValue(null);
+
+    expect(
+      screen.getByPlaceholderText("France Score")
+    ).toHaveValue(null);
+
+    expect(
+      screen.queryByText("Editing Prediction")
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("updates an existing prediction successfully", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad();
+
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            id: 301,
+            matchId: 102,
+            predictedHomeScore: 30,
+            predictedAwayScore: 21,
+            match: mockMatches[1],
+          },
+        ],
+      } as Response);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /SCO v ENG/i,
+      })
+    );
+
+    const homeInput =
+      screen.getByPlaceholderText("Scotland Score");
+
+    const awayInput =
+      screen.getByPlaceholderText("England Score");
+
+    await user.clear(homeInput);
+    await user.type(homeInput, "30");
+
+    await user.clear(awayInput);
+    await user.type(awayInput, "21");
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Update Prediction",
+      })
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/predictions",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            matchId: 102,
+            homeScore: 30,
+            awayScore: 21,
+          }),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText("Prediction updated successfully.")
+    ).toBeInTheDocument();
+  });
+
+  it("allows user interaction by selecting a fixture, entering scores, and saving", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            id: 901,
+            matchId: 102,
+            predictedHomeScore: 18,
+            predictedAwayScore: 25,
+            match: mockMatches[1],
+          },
+        ],
+      } as Response);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /SCO v ENG/i,
+      })
+    );
+
+    expect(
+      screen.getByText("Scotland vs England")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Scotland Score"),
+      "18"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("England Score"),
+      "25"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/predictions",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            matchId: 102,
+            homeScore: 18,
+            awayScore: 25,
+          }),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText("Prediction saved successfully.")
+    ).toBeInTheDocument();
+  });
+
+  it("allows zero-zero score prediction", async () => {
+    /*
+      This test intentionally verifies that string value "0" is accepted.
+      Empty inputs should be rejected, but "0" is a real numeric value.
+      This protects against future validation mistakes such as:
+      if (!homeScore || !awayScore)
+      which can incorrectly reject valid zero values in score forms.
+    */
+
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          mockZeroZeroPrediction,
+        ],
+      } as Response);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Ireland Score"),
+      "0"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("France Score"),
+      "0"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/predictions",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            matchId: 101,
+            homeScore: 0,
+            awayScore: 0,
+          }),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText("Prediction saved successfully.")
+    ).toBeInTheDocument();
+
+    expect(
+      await screen.findByText("IRE 0 - 0 FRA")
+    ).toBeInTheDocument();
+  });
+
+  it("shows saving state while save request is processing", async () => {
+    const user = userEvent.setup();
+
+    let resolveSave!: (value: Response) => void;
+
+    const savePromise =
+      new Promise<Response>((resolve) => {
+        resolveSave = resolve;
+      });
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    vi.mocked(global.fetch)
+      .mockReturnValueOnce(savePromise)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            id: 1001,
+            matchId: 101,
+            predictedHomeScore: 24,
+            predictedAwayScore: 18,
+            match: mockMatches[0],
+          },
+        ],
+      } as Response);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Ireland Score"),
+      "24"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("France Score"),
+      "18"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    expect(
+      await screen.findByRole("button", {
+        name: "Saving...",
+      })
+    ).toBeDisabled();
+
+    resolveSave({
+      ok: true,
+      json: async () => ({
+        success: true,
+      }),
+    } as Response);
+
+    expect(
+      await screen.findByText("Prediction saved successfully.")
+    ).toBeInTheDocument();
+  });
+
+  it("saves a new prediction successfully", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            id: 1101,
+            matchId: 101,
+            predictedHomeScore: 28,
+            predictedAwayScore: 20,
+            match: mockMatches[0],
+          },
+        ],
+      } as Response);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Ireland Score"),
+      "28"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("France Score"),
+      "20"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/predictions",
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            matchId: 101,
+            homeScore: 28,
+            awayScore: 20,
+          }),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByText("Prediction saved successfully.")
+    ).toBeInTheDocument();
+  });
+
+  it("refreshes prediction data after saving a prediction", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    const refreshedPredictions = [
+      {
+        id: 1201,
+        matchId: 101,
+        predictedHomeScore: 31,
+        predictedAwayScore: 19,
+        match: mockMatches[0],
+      },
+    ];
+
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => refreshedPredictions,
+      } as Response);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Ireland Score"),
+      "31"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("France Score"),
+      "19"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/predictions/list"
+      );
+    });
+
+    expect(
+      await screen.findByText("IRE 31 - 19 FRA")
+    ).toBeInTheDocument();
+  });
+
+  it("shows validation error when both score inputs are empty", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Enter both scores before saving your prediction."
+      )
+    ).toBeInTheDocument();
+
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("shows validation error when home score is empty", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("France Score"),
+      "20"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Enter both scores before saving your prediction."
+      )
+    ).toBeInTheDocument();
+
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("shows validation error when away score is empty", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Ireland Score"),
+      "24"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Enter both scores before saving your prediction."
+      )
+    ).toBeInTheDocument();
+
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("shows API error message when saving prediction fails with non-403 response", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      json: async () => ({
+        success: false,
+        error: "Invalid prediction score.",
+      }),
+    } as Response);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Ireland Score"),
+      "20"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("France Score"),
+      "18"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    expect(
+      await screen.findByText("Invalid prediction score.")
+    ).toBeInTheDocument();
+  });
+
+  it("shows fallback API error message when save fails without error text", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      json: async () => ({
+        success: false,
+      }),
+    } as Response);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Ireland Score"),
+      "20"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("France Score"),
+      "18"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    expect(
+      await screen.findByText("Failed to save prediction.")
+    ).toBeInTheDocument();
+  });
+
+  it("shows network error message when save API throws", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    vi.mocked(global.fetch).mockRejectedValueOnce(
+      new Error("Save API unavailable")
+    );
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Ireland Score"),
+      "20"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("France Score"),
+      "18"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Unable to save prediction. Please try again."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("handles refresh predictions API failure after successful save attempt", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+        }),
+      } as Response)
+      .mockRejectedValueOnce(
+        new Error("Refresh predictions failed")
+      );
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Ireland Score"),
+      "24"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("France Score"),
+      "18"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/predictions/list"
+      );
+    });
+
+    expect(
+      await screen.findByText(
+        "Unable to save prediction. Please try again."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows locked fixture error when API returns 403", async () => {
+    const user = userEvent.setup();
+
+    mockSuccessfulInitialLoad(mockMatches, []);
+
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      json: async () => ({
+        success: false,
+        error: "Fixture locked.",
+      }),
+    } as Response);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("Ireland vs France")
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Ireland Score"),
+      "20"
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("France Score"),
+      "18"
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Save Prediction",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "This fixture has already kicked off. Predictions can no longer be edited."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("shows no matches available when no fixtures exist", async () => {
+    mockSuccessfulInitialLoad([], []);
+
+    render(<PredictionsPage />);
+
+    expect(
+      await screen.findByText("No matches available.")
+    ).toBeInTheDocument();
+  });
+});
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\app\predictions\page.tsx
+====================================================================================================
+
+"use client";
+
+import Alert from "@/components/ui/Alert";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import CountdownTimer from "@/components/ui/CountdownTimer";
+import Input from "@/components/ui/Input";
+import PageHeader from "@/components/ui/PageHeader";
+import StatusBadge from "@/components/ui/StatusBadge";
+import {
+  formatIrishDate,
+  formatIsoDate,
+} from "@/lib/formatIrishDate";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+type User = {
+  firstName?: string | null;
+};
+
+type Team = {
+  name: string;
+  shortCode: string;
+};
+
+type Tournament = {
+  predictionLockAt?: string | null;
+};
+
+type Match = {
+  id: number;
+  round: number;
+  kickoffTime?: string | null;
+  completed: boolean;
+  homeTeam: Team;
+  awayTeam: Team;
+  tournament?: Tournament | null;
+};
+
+type PredictionMatch = {
+  kickoffTime?: string | null;
+  homeTeam: Team;
+  awayTeam: Team;
+};
+
+type Prediction = {
+  id: number;
+  matchId: number;
+  predictedHomeScore: number;
+  predictedAwayScore: number;
+  match: PredictionMatch;
+};
+
+type AuthResponse = {
+  authenticated?: boolean;
+  user?: User | null;
+};
+
+type SavePredictionResponse = {
+  success?: boolean;
+  error?: string;
+};
+
+type MatchStatus =
+  | "OPEN"
+  | "LOCKED"
+  | "COMPLETE";
+
+async function readJson<T>(
+  response: Response
+): Promise<T> {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new Error(
+      `Invalid JSON response from ${response.url || "API"}.`
+    );
+  }
+}
+
+function getKickoffTimestamp(
+  match: Match
+): number {
+  if (!match.kickoffTime) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  const timestamp = new Date(
+    match.kickoffTime
+  ).getTime();
+
+  return Number.isFinite(timestamp)
+    ? timestamp
+    : Number.MAX_SAFE_INTEGER;
+}
+
+function isMatchLocked(
+  match: Match
+): boolean {
+  if (match.completed) {
+    return true;
+  }
+
+  const predictionLockAt =
+    match.tournament?.predictionLockAt;
+
+  if (predictionLockAt) {
+    const lockTimestamp = new Date(
+      predictionLockAt
+    ).getTime();
+
+    if (Number.isFinite(lockTimestamp)) {
+      return lockTimestamp <= Date.now();
+    }
+  }
+
+  if (match.kickoffTime) {
+    const kickoffTimestamp = new Date(
+      match.kickoffTime
+    ).getTime();
+
+    if (Number.isFinite(kickoffTimestamp)) {
+      return kickoffTimestamp <= Date.now();
+    }
+  }
+
+  return false;
+}
+function getMatchStatus(
+  match: Match
+): MatchStatus {
+  if (match.completed) {
+    return "COMPLETE";
+  }
+
+  if (isMatchLocked(match)) {
+    return "LOCKED";
+  }
+
+  return "OPEN";
+}
+
+export default function PredictionsPage() {
+  const [user, setUser] =
+    useState<User | null>(null);
+
+  const [matches, setMatches] =
+    useState<Match[]>([]);
+
+  const [
+    savedPredictions,
+    setSavedPredictions,
+  ] = useState<Prediction[]>([]);
+
+  const [
+    currentMatchId,
+    setCurrentMatchId,
+  ] = useState<number | null>(null);
+
+  const [homeScore, setHomeScore] =
+    useState("");
+
+  const [awayScore, setAwayScore] =
+    useState("");
+
+  const [editing, setEditing] =
+    useState(false);
+
+  const [
+    feedbackMessage,
+    setFeedbackMessage,
+  ] = useState("");
+
+  const [
+    successMessage,
+    setSuccessMessage,
+  ] = useState("");
+
+  const [isLocked, setIsLocked] =
+    useState(false);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function initialisePage() {
+      try {
+        const meResponse =
+          await fetch("/api/auth/me");
+
+        if (!meResponse.ok) {
+          window.location.href =
+            "/login";
+          return;
+        }
+
+        const me =
+          await readJson<AuthResponse>(
+            meResponse
+          );
+
+        if (!me.authenticated) {
+          window.location.href =
+            "/login";
+          return;
+        }
+
+        const matchesResponse =
+          await fetch("/api/matches");
+
+        if (!matchesResponse.ok) {
+          throw new Error(
+            `Matches request failed with status ${matchesResponse.status}.`
+          );
+        }
+
+        const matchesData =
+          await readJson<Match[]>(
+            matchesResponse
+          );
+
+        if (!Array.isArray(matchesData)) {
+          throw new Error(
+            "Matches API returned invalid data."
+          );
+        }
+
+        const predictionsResponse =
+          await fetch(
+            "/api/predictions/list"
+          );
+
+        if (!predictionsResponse.ok) {
+          throw new Error(
+            `Predictions request failed with status ${predictionsResponse.status}.`
+          );
+        }
+
+        const predictionsData =
+          await readJson<Prediction[]>(
+            predictionsResponse
+          );
+
+        if (
+          !Array.isArray(
+            predictionsData
+          )
+        ) {
+          throw new Error(
+            "Predictions API returned invalid data."
+          );
+        }
+
+        const sortedMatches = [
+          ...matchesData,
+        ].sort(
+          (first, second) =>
+            getKickoffTimestamp(
+              first
+            ) -
+            getKickoffTimestamp(
+              second
+            )
+        );
+
+        const predictedMatchIds =
+          new Set(
+            predictionsData.map(
+              (prediction) =>
+                prediction.matchId
+            )
+          );
+
+        const firstUnpredictedMatch =
+          sortedMatches.find(
+            (match) =>
+              !predictedMatchIds.has(
+                match.id
+              ) &&
+              !match.completed
+          );
+
+        const initialMatch =
+          firstUnpredictedMatch ??
+          sortedMatches[0] ??
+          null;
+
+        if (cancelled) {
+          return;
+        }
+
+        setUser(me.user ?? null);
+        setMatches(sortedMatches);
+        setSavedPredictions(
+          predictionsData
+        );
+
+        if (initialMatch) {
+          const initialPrediction =
+            predictionsData.find(
+              (prediction) =>
+                prediction.matchId ===
+                initialMatch.id
+            );
+
+          setCurrentMatchId(
+            initialMatch.id
+          );
+
+          setIsLocked(
+            isMatchLocked(initialMatch)
+          );
+
+          if (initialPrediction) {
+            setEditing(true);
+            setHomeScore(
+              String(
+                initialPrediction
+                  .predictedHomeScore
+              )
+            );
+            setAwayScore(
+              String(
+                initialPrediction
+                  .predictedAwayScore
+              )
+            );
+          }
+        }
+      } catch (error) {
+        console.error(
+          "Predictions page load failed:",
+          {
+            timestamp:
+              formatIsoDate(
+                new Date()
+              ),
+            error,
+          }
+        );
+
+        if (!cancelled) {
+          window.location.href =
+            "/login";
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void initialisePage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function refreshPredictions(): Promise<
+    Prediction[]
+  > {
+    const response = await fetch(
+      "/api/predictions/list"
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Predictions refresh failed with status ${response.status}.`
+      );
+    }
+
+    const data =
+      await readJson<Prediction[]>(
+        response
+      );
+
+    if (!Array.isArray(data)) {
+      throw new Error(
+        "Predictions API returned invalid data."
+      );
+    }
+
+    setSavedPredictions(data);
+
+    return data;
+  }
+
+  function goToFirstUnpredictedMatch(
+    predictions: Prediction[]
+  ) {
+    const predictedMatchIds =
+      new Set(
+        predictions.map(
+          (prediction) =>
+            prediction.matchId
+        )
+      );
+
+    const nextMatch = matches.find(
+      (match) =>
+        !predictedMatchIds.has(
+          match.id
+        ) &&
+        !match.completed
+    );
+
+    if (!nextMatch) {
+      return;
+    }
+
+    setCurrentMatchId(nextMatch.id);
+    setIsLocked(
+      isMatchLocked(nextMatch)
+    );
+  }
+
+  function getPredictionForMatch(
+    matchId: number
+  ): Prediction | undefined {
+    return savedPredictions.find(
+      (prediction) =>
+        prediction.matchId ===
+        matchId
+    );
+  }
+
+  function selectMatch(
+    matchId: number
+  ) {
+    const match = matches.find(
+      (item) => item.id === matchId
+    );
+
+    if (!match) {
+      setFeedbackMessage(
+        "The selected fixture could not be found."
+      );
+      return;
+    }
+
+    const existingPrediction =
+      getPredictionForMatch(matchId);
+
+    setCurrentMatchId(matchId);
+    setFeedbackMessage("");
+    setSuccessMessage("");
+    setIsLocked(
+      isMatchLocked(match)
+    );
+
+    if (existingPrediction) {
+      setEditing(true);
+      setHomeScore(
+        String(
+          existingPrediction
+            .predictedHomeScore
+        )
+      );
+      setAwayScore(
+        String(
+          existingPrediction
+            .predictedAwayScore
+        )
+      );
+      return;
+    }
+
+    setEditing(false);
+    setHomeScore("");
+    setAwayScore("");
+  }
+
+  function editPrediction(
+    prediction: Prediction
+  ) {
+    selectMatch(
+      prediction.matchId
+    );
+  }
+
+  async function savePrediction() {
+    if (
+      currentMatchId === null ||
+      saving
+    ) {
+      return;
+    }
+
+    if (
+      homeScore.trim() === "" ||
+      awayScore.trim() === ""
+    ) {
+      setFeedbackMessage(
+        "Enter both scores before saving your prediction."
+      );
+      return;
+    }
+
+    const parsedHomeScore =
+      Number(homeScore);
+
+    const parsedAwayScore =
+      Number(awayScore);
+
+    if (
+      !Number.isInteger(
+        parsedHomeScore
+      ) ||
+      !Number.isInteger(
+        parsedAwayScore
+      ) ||
+      parsedHomeScore < 0 ||
+      parsedAwayScore < 0
+    ) {
+      setFeedbackMessage(
+        "Scores must be whole numbers of zero or greater."
+      );
+      return;
+    }
+
+    setFeedbackMessage("");
+    setSuccessMessage("");
+    setSaving(true);
+
+    try {
+      const response = await fetch(
+        "/api/predictions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            matchId: currentMatchId,
+            homeScore:
+              parsedHomeScore,
+            awayScore:
+              parsedAwayScore,
+          }),
+        }
+      );
+
+      const result =
+        await readJson<SavePredictionResponse>(
+          response
+        );
+
+      if (
+        !response.ok ||
+        result.success !== true
+      ) {
+        if (response.status === 403) {
+          setIsLocked(true);
+
+          setFeedbackMessage(
+  "This fixture has already kicked off. Predictions can no longer be edited."
+);
+        } else {
+          setFeedbackMessage(
+            result.error ??
+              "Failed to save prediction."
+          );
+        }
+
+        return;
+      }
+
+      const wasEditing = editing;
+
+      const refreshedPredictions =
+        await refreshPredictions();
+
+      setSuccessMessage(
+        wasEditing
+          ? "Prediction updated successfully."
+          : "Prediction saved successfully."
+      );
+
+      setHomeScore("");
+      setAwayScore("");
+      setEditing(false);
+
+      goToFirstUnpredictedMatch(
+        refreshedPredictions
+      );
+    } catch (error) {
+      console.error(
+        "Prediction save failed:",
+        {
+          timestamp:
+            formatIsoDate(
+              new Date()
+            ),
+          error,
+        }
+      );
+
+      setFeedbackMessage(
+        "Unable to save prediction. Please try again."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <main className="bg-white p-8 text-[var(--brand-navy)]">
+        <PageHeader
+          title="Predictions"
+          subtitle="Loading your predictions..."
+        />
+
+        <Card>
+          Loading predictions...
+        </Card>
+      </main>
+    );
+  }
+
+  if (
+    matches.length === 0 ||
+    currentMatchId === null
+  ) {
+    return (
+      <main className="bg-white p-8 text-[var(--brand-navy)]">
+        <PageHeader
+          title="Predictions"
+          subtitle="No fixtures are currently available."
+        />
+
+        <Card>
+          No matches available.
+        </Card>
+      </main>
+    );
+  }
+
+  const currentMatch = matches.find(
+    (match) =>
+      match.id === currentMatchId
+  );
+
+  if (!currentMatch) {
+    return (
+      <main className="bg-white p-8 text-[var(--brand-navy)]">
+        <PageHeader
+          title="Predictions"
+          subtitle="The selected fixture could not be found."
+        />
+
+        <Card>
+          Match not found.
+        </Card>
+      </main>
+    );
+  }
+
+  const existingPrediction =
+    getPredictionForMatch(
+      currentMatchId
+    );
+
+  const fixtureLocked =
+    isLocked ||
+    isMatchLocked(currentMatch);
+
+  const predictionProgress =
+    `${savedPredictions.length} / ${matches.length}`;
+
+  return (
+    <main className="bg-white p-8 text-[var(--brand-navy)]">
+      <PageHeader
+        title="Predictions"
+        subtitle={`Welcome ${
+          user?.firstName ?? "Player"
+        }`}
+      />
+
+      <div className="mb-6 grid gap-4 md:grid-cols-3">
+        <Card>
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--brand-muted)]">
+            Prediction Progress
+          </p>
+
+          <p className="mt-2 text-3xl font-black text-[var(--brand-blue)]">
+            {predictionProgress}
+          </p>
+        </Card>
+
+        <Card>
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--brand-muted)]">
+            Current Fixture
+          </p>
+
+          <p className="mt-2 text-lg font-bold text-[var(--brand-navy)]">
+            {
+              currentMatch.homeTeam
+                .shortCode
+            }
+            {" v "}
+            {
+              currentMatch.awayTeam
+                .shortCode
+            }
+          </p>
+        </Card>
+
+        <Card>
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--brand-muted)]">
+            Fixture Status
+          </p>
+
+          <div className="mt-2">
+            <StatusBadge
+              status={getMatchStatus(
+                currentMatch
+              )}
+            />
+          </div>
+        </Card>
+      </div>
+
+      {successMessage && (
+        <Alert
+          variant="success"
+          title="Prediction Saved"
+          className="mb-4"
+        >
+          {successMessage}
+        </Alert>
+      )}
+
+      {editing && (
+        <Alert
+          variant="warning"
+          className="mb-4"
+        >
+          Editing Prediction
+        </Alert>
+      )}
+
+      {feedbackMessage && (
+        <Alert
+          variant="error"
+          title={
+            fixtureLocked
+              ? "🔒 Prediction Locked"
+              : "Prediction Error"
+          }
+          className="mb-4"
+        >
+          {feedbackMessage}
+        </Alert>
+      )}
+
+      {fixtureLocked &&
+        existingPrediction && (
+          <Card
+            title="Your Existing Prediction"
+            className="mb-4 bg-slate-50"
+          >
+            <p className="font-semibold text-[var(--brand-navy)]">
+              {
+                existingPrediction
+                  .predictedHomeScore
+              }
+              {" - "}
+              {
+                existingPrediction
+                  .predictedAwayScore
+              }
+            </p>
+          </Card>
+        )}
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_1.3fr]">
+        <Card title="Fixtures">
+          <div className="max-h-[720px] space-y-2 overflow-y-auto">
+            {matches.map((match) => {
+              const prediction =
+                getPredictionForMatch(
+                  match.id
+                );
+
+              const active =
+                match.id ===
+                currentMatchId;
+
+              return (
+                <button
+                  key={match.id}
+                  type="button"
+                  onClick={() =>
+                    selectMatch(match.id)
+                  }
+                  className={`w-full rounded-lg border p-3 text-left transition-colors ${
+                    active
+                      ? "border-[var(--brand-blue)] bg-[var(--brand-soft-blue)]"
+                      : "border-[var(--brand-border)] hover:bg-[var(--brand-soft-lime)]"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-bold text-[var(--brand-navy)]">
+                        {
+                          match.homeTeam
+                            .shortCode
+                        }
+                        {" v "}
+                        {
+                          match.awayTeam
+                            .shortCode
+                        }
+                      </p>
+
+                      <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                        Round {match.round}
+                      </p>
+
+                      {match.kickoffTime && (
+                        <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                          {formatIrishDate(
+                            match.kickoffTime
+                          )}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="text-right">
+                      <StatusBadge
+                        status={getMatchStatus(
+                          match
+                        )}
+                      />
+
+                      {prediction && (
+                        <p className="mt-2 text-sm font-semibold text-[var(--brand-blue)]">
+                          Predicted
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+
+        <div className="space-y-6">
+          <Card
+            title={`${currentMatch.homeTeam.name} vs ${currentMatch.awayTeam.name}`}
+          >
+            <div className="space-y-4">
+              <div className="rounded-lg border border-[var(--brand-border)] bg-[var(--brand-soft-blue)] p-4">
+                <p className="text-sm font-semibold text-[var(--brand-blue)]">
+                  Kick-off
+                </p>
+
+                <p className="mt-1 font-bold text-[var(--brand-navy)]">
+                  {currentMatch.kickoffTime
+                    ? formatIrishDate(
+                        currentMatch.kickoffTime
+                      )
+                    : "Kick-off time unavailable"}
+                </p>
+
+                <p className="mt-2 text-sm text-[var(--brand-muted)]">
+                  Round{" "}
+                  {currentMatch.round}
+                </p>
+              </div>
+
+              {!fixtureLocked && (
+  <CountdownTimer
+    targetDate={
+      currentMatch.tournament
+        ?.predictionLockAt ??
+      currentMatch.kickoffTime ??
+      ""
+    }
+    label="Time until predictions lock"
+  />
+)}
+
+              {fixtureLocked && (
+                <Alert
+                  variant="warning"
+                  title="Tournament Locked"
+                >
+                  Predictions are locked because the tournament has started.
+                </Alert>
+              )}
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Input
+                  type="number"
+                  min={0}
+                  step={1}
+                  disabled={fixtureLocked}
+                  placeholder={`${currentMatch.homeTeam.name} Score`}
+                  value={homeScore}
+                  onChange={(event) =>
+                    setHomeScore(
+                      event.target.value
+                    )
+                  }
+                />
+
+                <Input
+                  type="number"
+                  min={0}
+                  step={1}
+                  disabled={fixtureLocked}
+                  placeholder={`${currentMatch.awayTeam.name} Score`}
+                  value={awayScore}
+                  onChange={(event) =>
+                    setAwayScore(
+                      event.target.value
+                    )
+                  }
+                />
+              </div>
+
+              <Button
+                disabled={
+                  fixtureLocked ||
+                  saving
+                }
+                onClick={
+                  savePrediction
+                }
+              >
+                {saving
+                  ? "Saving..."
+                  : editing
+                    ? "Update Prediction"
+                    : "Save Prediction"}
+              </Button>
+            </div>
+          </Card>
+
+          <Card title="Your Predictions">
+            {savedPredictions.length ===
+            0 ? (
+              <p className="text-[var(--brand-muted)]">
+                You have not saved any predictions yet.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {savedPredictions.map(
+                  (prediction) => (
+                    <button
+                      key={prediction.id}
+                      type="button"
+                      onClick={() =>
+                        editPrediction(
+                          prediction
+                        )
+                      }
+                      className="w-full rounded-lg border border-[var(--brand-border)] p-3 text-left transition-colors hover:bg-[var(--brand-soft-lime)]"
+                    >
+                      <div className="font-semibold text-[var(--brand-navy)]">
+                        {
+                          prediction.match
+                            .homeTeam
+                            .shortCode
+                        }
+                        {" "}
+                        {
+                          prediction
+                            .predictedHomeScore
+                        }
+                        {" - "}
+                        {
+                          prediction
+                            .predictedAwayScore
+                        }
+                        {" "}
+                        {
+                          prediction.match
+                            .awayTeam
+                            .shortCode
+                        }
+                      </div>
+
+                      {prediction.match
+                        ?.kickoffTime && (
+                        <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                          {formatIrishDate(
+                            prediction.match
+                              .kickoffTime
+                          )}
+                        </p>
+                      )}
+                    </button>
+                  )
+                )}
+              </div>
+            )}
+          </Card>
+        </div>
+      </div>
+    </main>
+  );
+}
+

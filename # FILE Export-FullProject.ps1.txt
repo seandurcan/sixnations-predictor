@@ -1,0 +1,312 @@
+# FILE: Export-FullProject.ps1
+#
+# SAVE TO:
+# C:\Projects\sixnations-predictor\Export-FullProject.ps1
+#
+# RUN:
+#
+# powershell -ExecutionPolicy Bypass -File .\Export-FullProject.ps1
+#
+# OUTPUT:
+#
+# C:\Projects\sixnations-predictor\ai-handover
+# C:\Projects\sixnations-predictor\ai-handover.zip
+
+$ProjectRoot = "C:\Projects\sixnations-predictor"
+$ExportRoot = Join-Path $ProjectRoot "ai-handover"
+
+if (Test-Path $ExportRoot) {
+    Remove-Item $ExportRoot -Recurse -Force
+}
+
+New-Item -ItemType Directory -Path $ExportRoot -Force | Out-Null
+
+# =====================================================
+# FILE TREE
+# =====================================================
+
+cmd /c tree "$ProjectRoot" /f > (Join-Path $ExportRoot "01-FILE-TREE.txt")
+
+# =====================================================
+# FILE INVENTORY
+# =====================================================
+
+Get-ChildItem `
+    -Path $ProjectRoot `
+    -Recurse `
+    -File |
+    Sort-Object FullName |
+    Select-Object -ExpandProperty FullName |
+    Set-Content (Join-Path $ExportRoot "02-FILE-INVENTORY.txt")
+
+# =====================================================
+# SOURCE EXPORT FOLDER
+# =====================================================
+
+$SourceFolder = Join-Path $ExportRoot "SOURCE"
+
+New-Item `
+    -ItemType Directory `
+    -Path $SourceFolder `
+    -Force | Out-Null
+
+# =====================================================
+# COPY SRC
+# =====================================================
+
+if (Test-Path "$ProjectRoot\src") {
+    Copy-Item `
+        "$ProjectRoot\src" `
+        $SourceFolder `
+        -Recurse `
+        -Force
+}
+
+# =====================================================
+# COPY PRISMA
+# =====================================================
+
+if (Test-Path "$ProjectRoot\prisma") {
+    Copy-Item `
+        "$ProjectRoot\prisma" `
+        $SourceFolder `
+        -Recurse `
+        -Force
+}
+
+# =====================================================
+# COPY PUBLIC
+# =====================================================
+
+if (Test-Path "$ProjectRoot\public") {
+    Copy-Item `
+        "$ProjectRoot\public" `
+        $SourceFolder `
+        -Recurse `
+        -Force
+}
+
+# =====================================================
+# COPY CONFIG FILES
+# =====================================================
+
+$ConfigFiles = @(
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "next.config.js",
+    "next.config.mjs",
+    "next.config.ts",
+    "tailwind.config.js",
+    "tailwind.config.ts",
+    "eslint.config.js",
+    "eslint.config.mjs",
+    ".env.example"
+)
+
+foreach ($File in $ConfigFiles) {
+
+    $Path = Join-Path $ProjectRoot $File
+
+    if (Test-Path $Path) {
+        Copy-Item `
+            $Path `
+            $ExportRoot `
+            -Force
+    }
+}
+
+# =====================================================
+# MASTER SOURCE CODE EXPORT
+# =====================================================
+
+$MasterCode = Join-Path $ExportRoot "03-ALL-SOURCE-CODE.txt"
+
+Get-ChildItem `
+    -Path $ProjectRoot `
+    -Recurse `
+    -File `
+    -Include `
+        *.ts,
+        *.tsx,
+        *.js,
+        *.jsx,
+        *.json,
+        *.css,
+        *.scss,
+        *.md,
+        *.prisma,
+        *.sql |
+    Sort-Object FullName |
+    ForEach-Object {
+
+        Add-Content $MasterCode ""
+        Add-Content $MasterCode ("=" * 120)
+        Add-Content $MasterCode ("FILE: " + $_.FullName.Replace($ProjectRoot,""))
+        Add-Content $MasterCode ("=" * 120)
+        Add-Content $MasterCode ""
+
+        Get-Content $_.FullName |
+            Add-Content $MasterCode
+    }
+
+# =====================================================
+# ALL PAGES
+# =====================================================
+
+$PagesFile = Join-Path $ExportRoot "04-ALL-PAGES.txt"
+
+if (Test-Path "$ProjectRoot\src\app") {
+
+    Get-ChildItem `
+        -Path "$ProjectRoot\src\app" `
+        -Recurse `
+        -File `
+        -Include `
+            page.tsx,
+            page.ts,
+            layout.tsx,
+            layout.ts |
+        Sort-Object FullName |
+        ForEach-Object {
+
+            Add-Content $PagesFile ""
+            Add-Content $PagesFile ("=" * 120)
+            Add-Content $PagesFile ("FILE: " + $_.FullName.Replace($ProjectRoot,""))
+            Add-Content $PagesFile ("=" * 120)
+            Add-Content $PagesFile ""
+
+            Get-Content $_.FullName |
+                Add-Content $PagesFile
+        }
+}
+
+# =====================================================
+# ALL COMPONENTS
+# =====================================================
+
+$ComponentsFile = Join-Path $ExportRoot "05-ALL-COMPONENTS.txt"
+
+if (Test-Path "$ProjectRoot\src\components") {
+
+    Get-ChildItem `
+        -Path "$ProjectRoot\src\components" `
+        -Recurse `
+        -File |
+        Sort-Object FullName |
+        ForEach-Object {
+
+            Add-Content $ComponentsFile ""
+            Add-Content $ComponentsFile ("=" * 120)
+            Add-Content $ComponentsFile ("FILE: " + $_.FullName.Replace($ProjectRoot,""))
+            Add-Content $ComponentsFile ("=" * 120)
+            Add-Content $ComponentsFile ""
+
+            Get-Content $_.FullName |
+                Add-Content $ComponentsFile
+        }
+}
+
+# =====================================================
+# ALL API ROUTES
+# =====================================================
+
+$ApiFile = Join-Path $ExportRoot "06-ALL-API-ROUTES.txt"
+
+if (Test-Path "$ProjectRoot\src\app") {
+
+    Get-ChildItem `
+        -Path "$ProjectRoot\src\app" `
+        -Recurse `
+        -File `
+        -Include route.ts,route.js |
+        Sort-Object FullName |
+        ForEach-Object {
+
+            Add-Content $ApiFile ""
+            Add-Content $ApiFile ("=" * 120)
+            Add-Content $ApiFile ("FILE: " + $_.FullName.Replace($ProjectRoot,""))
+            Add-Content $ApiFile ("=" * 120)
+            Add-Content $ApiFile ""
+
+            Get-Content $_.FullName |
+                Add-Content $ApiFile
+        }
+}
+
+# =====================================================
+# PUBLIC ASSETS
+# =====================================================
+
+$PublicAssets = Join-Path $ExportRoot "07-PUBLIC-ASSETS.txt"
+
+if (Test-Path "$ProjectRoot\public") {
+
+    Get-ChildItem `
+        -Path "$ProjectRoot\public" `
+        -Recurse `
+        -File |
+        Select-Object -ExpandProperty FullName |
+        Set-Content $PublicAssets
+}
+
+# =====================================================
+# APP ROUTE MAP
+# =====================================================
+
+$RouteMap = Join-Path $ExportRoot "08-APP-ROUTE-MAP.txt"
+
+if (Test-Path "$ProjectRoot\src\app") {
+
+    Get-ChildItem `
+        -Path "$ProjectRoot\src\app" `
+        -Recurse `
+        -File `
+        -Include page.tsx,page.ts |
+        Sort-Object FullName |
+        Select-Object -ExpandProperty FullName |
+        Set-Content $RouteMap
+}
+
+# =====================================================
+# COMPONENT INVENTORY
+# =====================================================
+
+$ComponentMap = Join-Path $ExportRoot "09-COMPONENT-INVENTORY.txt"
+
+if (Test-Path "$ProjectRoot\src\components") {
+
+    Get-ChildItem `
+        -Path "$ProjectRoot\src\components" `
+        -Recurse `
+        -File |
+        Sort-Object FullName |
+        Select-Object -ExpandProperty FullName |
+        Set-Content $ComponentMap
+}
+
+# =====================================================
+# ZIP PACKAGE
+# =====================================================
+
+$ZipFile = Join-Path $ProjectRoot "ai-handover.zip"
+
+if (Test-Path $ZipFile) {
+    Remove-Item $ZipFile -Force
+}
+
+Compress-Archive `
+    -Path "$ExportRoot\*" `
+    -DestinationPath $ZipFile
+
+Write-Host ""
+Write-Host "=============================================="
+Write-Host "AI HANDOVER PACKAGE CREATED SUCCESSFULLY"
+Write-Host "=============================================="
+Write-Host ""
+Write-Host "Folder:"
+Write-Host $ExportRoot
+Write-Host ""
+Write-Host "Zip:"
+Write-Host $ZipFile
+Write-Host ""

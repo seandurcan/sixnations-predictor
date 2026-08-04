@@ -1,0 +1,1631 @@
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\layout\NavBar.tsx
+====================================================================================================
+
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+
+type User = {
+  id?: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  role?: string;
+};
+
+type NavItem = {
+  label: string;
+  href: string;
+  icon: string;
+};
+
+type AuthResponse = {
+  authenticated?: boolean;
+  user?: User;
+};
+
+const publicLinks: NavItem[] = [
+  {
+    label: "Home",
+    href: "/",
+    icon: "🏠",
+  },
+  {
+    label: "Leaderboard",
+    href: "/leaderboard",
+    icon: "🏆",
+  },
+];
+
+const authenticatedLinks: NavItem[] = [
+  {
+    label: "Dashboard",
+    href: "/dashboard",
+    icon: "📊",
+  },
+  {
+    label: "Predictions",
+    href: "/predictions",
+    icon: "📝",
+  },
+];
+
+const adminLinks: NavItem[] = [
+  {
+    label: "Admin Results",
+    href: "/admin",
+    icon: "🛠️",
+  },
+  {
+    label: "Admin Dashboard",
+    href: "/admin/dashboard",
+    icon: "📈",
+  },
+  {
+    label: "Audit",
+    href: "/admin/audit",
+    icon: "📋",
+  },
+];
+
+const guestLinks: NavItem[] = [
+  {
+    label: "Login",
+    href: "/login",
+    icon: "🔐",
+  },
+  {
+    label: "Register",
+    href: "/register",
+    icon: "✅",
+  },
+];
+
+export default function NavBar() {
+  const pathname = usePathname();
+
+  const desktopProfileMenuRef =
+    useRef<HTMLDivElement | null>(null);
+
+  const mobileProfileMenuRef =
+    useRef<HTMLDivElement | null>(null);
+
+  const [menuOpen, setMenuOpen] =
+    useState(false);
+
+  const [profileOpen, setProfileOpen] =
+    useState(false);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [authenticated, setAuthenticated] =
+    useState(false);
+
+  const [user, setUser] =
+    useState<User | null>(null);
+
+  const [loggingOut, setLoggingOut] =
+    useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadUser() {
+      try {
+        const response = await fetch(
+          "/api/auth/me",
+          {
+            credentials: "include",
+            cache: "no-store",
+          }
+        );
+
+        if (!active) {
+          return;
+        }
+
+        if (!response.ok) {
+          setAuthenticated(false);
+          setUser(null);
+          return;
+        }
+
+        const result: AuthResponse =
+          await response.json();
+
+        if (
+          result.authenticated &&
+          result.user
+        ) {
+          setAuthenticated(true);
+          setUser(result.user);
+        } else {
+          setAuthenticated(false);
+          setUser(null);
+        }
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        console.error(
+          "Unable to load authenticated user:",
+          error
+        );
+
+        setAuthenticated(false);
+        setUser(null);
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadUser();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(
+      event: MouseEvent
+    ) {
+      const target = event.target as Node;
+
+      const clickedDesktopMenu =
+        desktopProfileMenuRef.current?.contains(
+          target
+        );
+
+      const clickedMobileMenu =
+        mobileProfileMenuRef.current?.contains(
+          target
+        );
+
+      if (
+        !clickedDesktopMenu &&
+        !clickedMobileMenu
+      ) {
+        setProfileOpen(false);
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    setMenuOpen(false);
+    setProfileOpen(false);
+  }, [pathname]);
+
+  async function handleLogout() {
+    if (loggingOut) {
+      return;
+    }
+
+    setLoggingOut(true);
+
+    try {
+      const response = await fetch(
+        "/api/logout",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        console.error(
+          "Logout request failed:",
+          response.status
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Unable to complete logout request:",
+        error
+      );
+    } finally {
+      localStorage.removeItem("userId");
+
+      setAuthenticated(false);
+      setUser(null);
+      setMenuOpen(false);
+      setProfileOpen(false);
+      setLoggingOut(false);
+
+      window.location.assign("/login");
+    }
+  }
+
+  function closeMenus() {
+    setMenuOpen(false);
+    setProfileOpen(false);
+  }
+
+  function toggleMobileMenu() {
+    setMenuOpen((current) => {
+      const nextValue = !current;
+
+      if (!nextValue) {
+        setProfileOpen(false);
+      }
+
+      return nextValue;
+    });
+  }
+
+  function isActive(href: string) {
+    if (
+      href === "/" ||
+      href === "/admin"
+    ) {
+      return pathname === href;
+    }
+
+    return (
+      pathname === href ||
+      pathname.startsWith(`${href}/`)
+    );
+  }
+
+  function linkClasses(href: string) {
+    const active = isActive(href);
+
+    return [
+      "rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200",
+      active
+        ? "bg-blue-50 text-blue-600"
+        : "text-slate-700 hover:bg-lime-50 hover:text-slate-900",
+    ].join(" ");
+  }
+
+  function mobileLinkClasses(
+    href: string
+  ) {
+    const active = isActive(href);
+
+    return [
+      "flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-colors duration-200",
+      active
+        ? "bg-blue-50 text-blue-600"
+        : "text-slate-700 hover:bg-lime-50 hover:text-slate-900",
+    ].join(" ");
+  }
+
+  function dropdownLinkClasses(
+    href: string
+  ) {
+    const active = isActive(href);
+
+    return [
+      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200",
+      active
+        ? "bg-blue-50 text-blue-600"
+        : "text-slate-700 hover:bg-lime-50 hover:text-slate-900",
+    ].join(" ");
+  }
+
+  function getInitials() {
+    const firstInitial =
+      user?.firstName?.[0] ?? "";
+
+    const lastInitial =
+      user?.lastName?.[0] ?? "";
+
+    const initials =
+      `${firstInitial}${lastInitial}`.trim();
+
+    if (initials) {
+      return initials.toUpperCase();
+    }
+
+    return (
+      user?.email?.[0]?.toUpperCase() ??
+      "U"
+    );
+  }
+
+  function getDisplayName() {
+    const fullName = [
+      user?.firstName,
+      user?.lastName,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    return (
+      fullName ||
+      user?.email ||
+      "User"
+    );
+  }
+
+  const isAdmin =
+    authenticated &&
+    user?.role?.toUpperCase() === "ADMIN";
+
+  const mainLinks: NavItem[] = [
+    ...publicLinks,
+    ...(authenticated
+      ? authenticatedLinks
+      : []),
+    ...(isAdmin ? adminLinks : []),
+  ];
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+        <Link
+          href="/"
+          onClick={closeMenus}
+          className="flex items-center"
+          aria-label="Perfect XV home page"
+        >
+          <span className="relative block h-25 w-25 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <Image
+              src="/images/logo.jpeg"
+              alt="Perfect XV logo"
+              fill
+              sizes="64px"
+              className="object-cover"
+              priority
+            />
+          </span>
+        </Link>
+
+        <nav
+          className="hidden items-center gap-2 lg:flex"
+          aria-label="Main navigation"
+        >
+          {mainLinks.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={linkClasses(
+                item.href
+              )}
+              aria-current={
+                isActive(item.href)
+                  ? "page"
+                  : undefined
+              }
+            >
+              <span
+                className="mr-1"
+                aria-hidden="true"
+              >
+                {item.icon}
+              </span>
+
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="hidden items-center gap-2 lg:flex">
+          {!loading &&
+            !authenticated &&
+            guestLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={linkClasses(
+                  item.href
+                )}
+                aria-current={
+                  isActive(item.href)
+                    ? "page"
+                    : undefined
+                }
+              >
+                <span
+                  className="mr-1"
+                  aria-hidden="true"
+                >
+                  {item.icon}
+                </span>
+
+                {item.label}
+              </Link>
+            ))}
+
+          {!loading && authenticated && (
+            <div
+              ref={desktopProfileMenuRef}
+              className="relative"
+            >
+              <button
+                type="button"
+                onClick={() =>
+                  setProfileOpen(
+                    (current) => !current
+                  )
+                }
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-lime-50 hover:text-slate-900"
+                aria-haspopup="menu"
+                aria-expanded={profileOpen}
+                aria-controls="desktop-profile-menu"
+              >
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-lime-300 text-sm font-bold text-slate-900">
+                  {getInitials()}
+                </span>
+
+                <span className="max-w-40 truncate">
+                  {getDisplayName()}
+                </span>
+
+                <span
+                  className="text-xs text-slate-500"
+                  aria-hidden="true"
+                >
+                  {profileOpen ? "▲" : "▼"}
+                </span>
+              </button>
+
+              {profileOpen && (
+                <div
+                  id="desktop-profile-menu"
+                  role="menu"
+                  className="absolute right-0 mt-2 w-72 rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+                >
+                  <div className="border-b border-slate-100 px-3 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-lime-300 text-sm font-bold text-slate-900">
+                        {getInitials()}
+                      </span>
+
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-slate-900">
+                          {getDisplayName()}
+                        </p>
+
+                        {user?.email && (
+                          <p className="truncate text-sm text-slate-500">
+                            {user.email}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {user?.role && (
+                      <p className="mt-3 inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600">
+                        {user.role}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="py-2">
+                    <Link
+                      href="/dashboard"
+                      role="menuitem"
+                      className={dropdownLinkClasses(
+                        "/dashboard"
+                      )}
+                      onClick={() =>
+                        setProfileOpen(false)
+                      }
+                    >
+                      <span aria-hidden="true">
+                        📊
+                      </span>
+                      <span>My Dashboard</span>
+                    </Link>
+
+                    <Link
+                      href="/predictions"
+                      role="menuitem"
+                      className={dropdownLinkClasses(
+                        "/predictions"
+                      )}
+                      onClick={() =>
+                        setProfileOpen(false)
+                      }
+                    >
+                      <span aria-hidden="true">
+                        📝
+                      </span>
+                      <span>My Predictions</span>
+                    </Link>
+
+                    <Link
+                      href="/leaderboard"
+                      role="menuitem"
+                      className={dropdownLinkClasses(
+                        "/leaderboard"
+                      )}
+                      onClick={() =>
+                        setProfileOpen(false)
+                      }
+                    >
+                      <span aria-hidden="true">
+                        🏆
+                      </span>
+                      <span>Leaderboard</span>
+                    </Link>
+
+                    {isAdmin && (
+                      <>
+                        <div className="my-2 border-t border-slate-100" />
+
+                        <Link
+                          href="/admin"
+                          role="menuitem"
+                          className={dropdownLinkClasses(
+                            "/admin"
+                          )}
+                          onClick={() =>
+                            setProfileOpen(false)
+                          }
+                        >
+                          <span aria-hidden="true">
+                            🛠️
+                          </span>
+                          <span>Admin Results</span>
+                        </Link>
+
+                        <Link
+                          href="/admin/dashboard"
+                          role="menuitem"
+                          className={dropdownLinkClasses(
+                            "/admin/dashboard"
+                          )}
+                          onClick={() =>
+                            setProfileOpen(false)
+                          }
+                        >
+                          <span aria-hidden="true">
+                            📈
+                          </span>
+                          <span>Admin Dashboard</span>
+                        </Link>
+
+                        <Link
+                          href="/admin/audit"
+                          role="menuitem"
+                          className={dropdownLinkClasses(
+                            "/admin/audit"
+                          )}
+                          onClick={() =>
+                            setProfileOpen(false)
+                          }
+                        >
+                          <span aria-hidden="true">
+                            📋
+                          </span>
+                          <span>Audit</span>
+                        </Link>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="border-t border-slate-100 pt-2">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={handleLogout}
+                      disabled={loggingOut}
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-orange-600 transition-colors hover:bg-orange-50 hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span aria-hidden="true">
+                        🚪
+                      </span>
+
+                      <span>
+                        {loggingOut
+                          ? "Logging Out..."
+                          : "Logout"}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-lime-50 lg:hidden"
+          aria-label="Toggle navigation menu"
+          aria-expanded={menuOpen}
+          aria-controls="mobile-navigation"
+          onClick={toggleMobileMenu}
+        >
+          {menuOpen ? "Close" : "Menu"}
+        </button>
+      </div>
+
+      {menuOpen && (
+        <div
+          id="mobile-navigation"
+          className="border-t border-slate-200 bg-white px-6 py-4 lg:hidden"
+        >
+          <nav
+            className="space-y-2"
+            aria-label="Mobile navigation"
+          >
+            {mainLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={mobileLinkClasses(
+                  item.href
+                )}
+                onClick={closeMenus}
+                aria-current={
+                  isActive(item.href)
+                    ? "page"
+                    : undefined
+                }
+              >
+                <span aria-hidden="true">
+                  {item.icon}
+                </span>
+
+                <span>{item.label}</span>
+              </Link>
+            ))}
+
+            {!loading &&
+              !authenticated &&
+              guestLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={mobileLinkClasses(
+                    item.href
+                  )}
+                  onClick={closeMenus}
+                  aria-current={
+                    isActive(item.href)
+                      ? "page"
+                      : undefined
+                  }
+                >
+                  <span aria-hidden="true">
+                    {item.icon}
+                  </span>
+
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+
+            {!loading && authenticated && (
+              <div
+                ref={mobileProfileMenuRef}
+                className="mt-4 border-t border-slate-200 pt-4"
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setProfileOpen(
+                      (current) => !current
+                    )
+                  }
+                  className="flex w-full items-center justify-between rounded-lg bg-lime-50 px-3 py-3 text-left transition-colors hover:bg-lime-100"
+                  aria-haspopup="menu"
+                  aria-expanded={profileOpen}
+                  aria-controls="mobile-profile-menu"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-lime-300 text-sm font-bold text-slate-900">
+                      {getInitials()}
+                    </span>
+
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-900">
+                        {getDisplayName()}
+                      </p>
+
+                      {user?.email && (
+                        <p className="truncate text-sm text-slate-500">
+                          {user.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <span
+                    className="text-sm text-slate-500"
+                    aria-hidden="true"
+                  >
+                    {profileOpen
+                      ? "▲"
+                      : "▼"}
+                  </span>
+                </button>
+
+                {profileOpen && (
+                  <div
+                    id="mobile-profile-menu"
+                    role="menu"
+                    className="mt-3 space-y-2 rounded-lg border border-slate-200 bg-white p-2"
+                  >
+                    {user?.role && (
+                      <p className="mx-1 mb-2 inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600">
+                        {user.role}
+                      </p>
+                    )}
+
+                    <Link
+                      href="/dashboard"
+                      role="menuitem"
+                      className={mobileLinkClasses(
+                        "/dashboard"
+                      )}
+                      onClick={closeMenus}
+                    >
+                      <span aria-hidden="true">
+                        📊
+                      </span>
+                      <span>My Dashboard</span>
+                    </Link>
+
+                    <Link
+                      href="/predictions"
+                      role="menuitem"
+                      className={mobileLinkClasses(
+                        "/predictions"
+                      )}
+                      onClick={closeMenus}
+                    >
+                      <span aria-hidden="true">
+                        📝
+                      </span>
+                      <span>My Predictions</span>
+                    </Link>
+
+                    <Link
+                      href="/leaderboard"
+                      role="menuitem"
+                      className={mobileLinkClasses(
+                        "/leaderboard"
+                      )}
+                      onClick={closeMenus}
+                    >
+                      <span aria-hidden="true">
+                        🏆
+                      </span>
+                      <span>Leaderboard</span>
+                    </Link>
+
+                    {isAdmin && (
+                      <>
+                        <div className="my-2 border-t border-slate-100" />
+
+                        <Link
+                          href="/admin"
+                          role="menuitem"
+                          className={mobileLinkClasses(
+                            "/admin"
+                          )}
+                          onClick={closeMenus}
+                        >
+                          <span aria-hidden="true">
+                            🛠️
+                          </span>
+                          <span>Admin Results</span>
+                        </Link>
+
+                        <Link
+                          href="/admin/dashboard"
+                          role="menuitem"
+                          className={mobileLinkClasses(
+                            "/admin/dashboard"
+                          )}
+                          onClick={closeMenus}
+                        >
+                          <span aria-hidden="true">
+                            📈
+                          </span>
+                          <span>Admin Dashboard</span>
+                        </Link>
+
+                        <Link
+                          href="/admin/audit"
+                          role="menuitem"
+                          className={mobileLinkClasses(
+                            "/admin/audit"
+                          )}
+                          onClick={closeMenus}
+                        >
+                          <span aria-hidden="true">
+                            📋
+                          </span>
+                          <span>Audit</span>
+                        </Link>
+                      </>
+                    )}
+
+                    <div className="my-2 border-t border-slate-100" />
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={handleLogout}
+                      disabled={loggingOut}
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base font-medium text-orange-600 transition-colors duration-200 hover:bg-orange-50 hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span aria-hidden="true">
+                        🚪
+                      </span>
+
+                      <span>
+                        {loggingOut
+                          ? "Logging Out..."
+                          : "Logout"}
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </nav>
+        </div>
+      )}
+    </header>
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\layout\PageContainer.tsx
+====================================================================================================
+
+import { ReactNode } from "react";
+
+type PageContainerProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+export default function PageContainer({
+  children,
+  className = "",
+}: PageContainerProps) {
+  return (
+    <main
+      className={`mx-auto max-w-6xl p-6 ${className}`.trim()}
+    >
+      {children}
+    </main>
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\ui\Alert.tsx
+====================================================================================================
+
+import { ReactNode } from "react";
+
+type AlertVariant =
+  | "info"
+  | "success"
+  | "warning"
+  | "error";
+
+type AlertProps = {
+  children: ReactNode;
+  variant?: AlertVariant;
+  title?: string;
+  className?: string;
+};
+
+export default function Alert({
+  children,
+  variant = "info",
+  title,
+  className = "",
+}: AlertProps) {
+  const variants = {
+    info: {
+      container:
+        "bg-[var(--brand-soft-blue)] border-[rgba(0,123,255,0.35)] text-[var(--brand-navy)]",
+      title:
+        "text-[var(--brand-blue)]",
+    },
+    success: {
+      container:
+        "bg-[var(--brand-soft-lime)] border-[rgba(157,255,0,0.75)] text-[var(--brand-navy)]",
+      title:
+        "text-[var(--brand-navy)]",
+    },
+    warning: {
+      container:
+        "bg-[var(--brand-soft-orange)] border-[rgba(255,106,0,0.45)] text-[var(--brand-navy)]",
+      title:
+        "text-[var(--brand-orange)]",
+    },
+    error: {
+      container:
+        "bg-red-50 border-red-200 text-red-800",
+      title:
+        "text-red-900",
+    },
+  };
+
+  return (
+    <div
+      className={`border rounded-lg p-4 ${variants[variant].container} ${className}`}
+    >
+      {title && (
+        <div
+          className={`font-semibold mb-2 ${variants[variant].title}`}
+        >
+          {title}
+        </div>
+      )}
+
+      <div>{children}</div>
+    </div>
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\ui\Button.tsx
+====================================================================================================
+
+import {
+  ButtonHTMLAttributes,
+  ReactNode,
+} from "react";
+
+type ButtonProps =
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    children: ReactNode;
+    variant?: "primary" | "secondary";
+    fullWidth?: boolean;
+  };
+
+export default function Button({
+  children,
+  variant = "primary",
+  fullWidth = false,
+  className = "",
+  ...props
+}: ButtonProps) {
+  const baseClasses =
+    "inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2";
+
+  const variantClasses =
+    variant === "primary"
+      ? "bg-[var(--brand-blue)] text-white hover:bg-[var(--brand-blue-bright)] focus:ring-[var(--brand-blue)]"
+      : "bg-white text-[var(--brand-navy)] border border-[var(--brand-border)] hover:bg-[var(--brand-soft-lime)] focus:ring-[var(--brand-blue)]";
+
+  const widthClass = fullWidth
+    ? "w-full"
+    : "";
+
+  return (
+    <button
+      className={`${baseClasses} ${variantClasses} ${widthClass} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\ui\Card.tsx
+====================================================================================================
+
+import { ReactNode } from "react";
+
+type CardProps = {
+  children: ReactNode;
+  title?: string;
+  className?: string;
+};
+
+export default function Card({
+  children,
+  title,
+  className = "",
+}: CardProps) {
+  return (
+    <div
+      className={`bg-white border border-[var(--brand-border)] rounded-xl shadow-sm p-6 transition-shadow duration-200 hover:shadow-md ${className}`}
+    >
+      {title && (
+        <h2 className="text-xl font-bold mb-4 text-[var(--brand-navy)]">
+          {title}
+        </h2>
+      )}
+
+      {children}
+    </div>
+  );
+}
+``
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\ui\CountdownTimer.tsx
+====================================================================================================
+
+"use client";
+
+import { useEffect, useState } from "react";
+
+type CountdownTimerProps = {
+  targetDate: string | Date;
+  label?: string;
+};
+
+type TimeRemaining = {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  expired: boolean;
+};
+
+function calculateTimeRemaining(
+  targetDate: string | Date
+): TimeRemaining {
+  const target =
+    new Date(targetDate).getTime();
+
+  const now =
+    new Date().getTime();
+
+  const difference =
+    target - now;
+
+  if (difference <= 0) {
+    return {
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      expired: true,
+    };
+  }
+
+  return {
+    days: Math.floor(
+      difference /
+        (1000 * 60 * 60 * 24)
+    ),
+    hours: Math.floor(
+      (difference /
+        (1000 * 60 * 60)) %
+        24
+    ),
+    minutes: Math.floor(
+      (difference /
+        (1000 * 60)) %
+        60
+    ),
+    seconds: Math.floor(
+      (difference / 1000) %
+        60
+    ),
+    expired: false,
+  };
+}
+
+function formatNumber(value: number) {
+  return value
+    .toString()
+    .padStart(2, "0");
+}
+
+export default function CountdownTimer({
+  targetDate,
+  label = "Kick-off countdown",
+}: CountdownTimerProps) {
+  const [timeRemaining, setTimeRemaining] =
+    useState<TimeRemaining>(() =>
+      calculateTimeRemaining(targetDate)
+    );
+
+  useEffect(() => {
+    const interval =
+      window.setInterval(() => {
+        setTimeRemaining(
+          calculateTimeRemaining(
+            targetDate
+          )
+        );
+      }, 1000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [targetDate]);
+
+  if (timeRemaining.expired) {
+    return (
+      <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+        <p className="text-sm font-semibold text-green-700">
+          {label}
+        </p>
+
+        <p className="mt-1 text-lg font-bold text-green-800">
+          Kick-off has started
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <p className="text-sm font-semibold text-slate-600">
+        {label}
+      </p>
+
+      <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+        <div className="rounded bg-white p-2 shadow-sm">
+          <div className="text-2xl font-bold text-slate-900">
+            {timeRemaining.days}
+          </div>
+
+          <div className="text-xs text-slate-500">
+            Days
+          </div>
+        </div>
+
+        <div className="rounded bg-white p-2 shadow-sm">
+          <div className="text-2xl font-bold text-slate-900">
+            {formatNumber(
+              timeRemaining.hours
+            )}
+          </div>
+
+          <div className="text-xs text-slate-500">
+            Hours
+          </div>
+        </div>
+
+        <div className="rounded bg-white p-2 shadow-sm">
+          <div className="text-2xl font-bold text-slate-900">
+            {formatNumber(
+              timeRemaining.minutes
+            )}
+          </div>
+
+          <div className="text-xs text-slate-500">
+            Mins
+          </div>
+        </div>
+
+        <div className="rounded bg-white p-2 shadow-sm">
+          <div className="text-2xl font-bold text-slate-900">
+            {formatNumber(
+              timeRemaining.seconds
+            )}
+          </div>
+
+          <div className="text-xs text-slate-500">
+            Secs
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\ui\Input.tsx
+====================================================================================================
+
+import {
+  InputHTMLAttributes,
+} from "react";
+
+type InputProps =
+  InputHTMLAttributes<HTMLInputElement>;
+
+export default function Input({
+  className = "",
+  ...props
+}: InputProps) {
+  return (
+    <input
+      className={`w-full rounded-lg border border-[var(--brand-border)] bg-white px-4 py-2 text-[var(--brand-navy)] placeholder:text-[rgba(10,31,77,0.45)] outline-none transition-colors duration-200 focus:border-[var(--brand-blue)] focus:ring-2 focus:ring-[rgba(0,123,255,0.18)] disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70 ${className}`}
+      {...props}
+    />
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\ui\PageHeader.tsx
+====================================================================================================
+
+type PageHeaderProps = {
+  title: string;
+  subtitle?: string;
+  className?: string;
+};
+
+export default function PageHeader({
+  title,
+  subtitle,
+  className = "",
+}: PageHeaderProps) {
+  return (
+    <div className={`mb-8 ${className}`}>
+      <h1 className="text-4xl font-bold text-[var(--brand-navy)]">
+        {title}
+      </h1>
+
+      {subtitle && (
+        <p className="mt-2 text-[var(--brand-muted)]">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\ui\PasswordInput.tsx
+====================================================================================================
+
+"use client";
+
+import Input from "@/components/ui/Input";
+import { useState } from "react";
+
+type PasswordInputProps = {
+  id?: string;
+  name?: string;
+  autoComplete?: string;
+  value: string;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  showStrength?: boolean;
+  showCriteria?: boolean;
+};
+
+function getPasswordChecks(password: string) {
+  return {
+    minLength: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /\d/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  };
+}
+
+function getStrength(password: string) {
+  const checks = getPasswordChecks(password);
+  const score = Object.values(checks).filter(Boolean).length;
+
+  if (!password) {
+    return {
+      label: "Not started",
+      className: "bg-slate-200",
+      width: "0%",
+    };
+  }
+
+  if (score <= 2) {
+    return {
+      label: "Weak",
+      className: "bg-red-500",
+      width: "33%",
+    };
+  }
+
+  if (score <= 4) {
+    return {
+      label: "Medium",
+      className: "bg-amber-500",
+      width: "66%",
+    };
+  }
+
+  return {
+    label: "Strong",
+    className: "bg-green-600",
+    width: "100%",
+  };
+}
+
+export default function PasswordInput({
+  id,
+  name,
+  autoComplete,
+  value,
+  onChange,
+  placeholder,
+  disabled = false,
+  showStrength = false,
+  showCriteria = false,
+}: PasswordInputProps) {
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const checks =
+    getPasswordChecks(value);
+
+  const strength =
+    getStrength(value);
+
+  return (
+    <div className="space-y-2">
+      <div className="relative">
+        <Input
+          id={id}
+          name={name}
+          autoComplete={autoComplete}
+          type={
+            showPassword
+              ? "text"
+              : "password"
+          }
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          disabled={disabled}
+          className="pr-16"
+        />
+
+        <button
+          type="button"
+          onClick={() =>
+            setShowPassword(
+              !showPassword
+            )
+          }
+          disabled={disabled}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50"
+        >
+          {showPassword
+            ? "Hide"
+            : "Show"}
+        </button>
+      </div>
+
+      {showStrength && (
+        <div>
+          <div className="h-2 w-full rounded bg-slate-200 overflow-hidden">
+            <div
+              className={`h-full transition-all ${strength.className}`}
+              style={{
+                width: strength.width,
+              }}
+            />
+          </div>
+
+          <p className="text-xs text-slate-500 mt-1">
+            Password strength:{" "}
+            <span className="font-semibold">
+              {strength.label}
+            </span>
+          </p>
+        </div>
+      )}
+
+      {showCriteria && (
+        <ul className="text-xs text-slate-600 space-y-1">
+          <li
+            className={
+              checks.minLength
+                ? "text-green-700"
+                : ""
+            }
+          >
+            {checks.minLength
+              ? "✓"
+              : "•"}{" "}
+            At least 8 characters
+          </li>
+
+          <li
+            className={
+              checks.uppercase
+                ? "text-green-700"
+                : ""
+            }
+          >
+            {checks.uppercase
+              ? "✓"
+              : "•"}{" "}
+            At least one uppercase letter
+          </li>
+
+          <li
+            className={
+              checks.lowercase
+                ? "text-green-700"
+                : ""
+            }
+          >
+            {checks.lowercase
+              ? "✓"
+              : "•"}{" "}
+            At least one lowercase letter
+          </li>
+
+          <li
+            className={
+              checks.number
+                ? "text-green-700"
+                : ""
+            }
+          >
+            {checks.number
+              ? "✓"
+              : "•"}{" "}
+            At least one number
+          </li>
+
+          <li
+            className={
+              checks.special
+                ? "text-green-700"
+                : ""
+            }
+          >
+            {checks.special
+              ? "✓"
+              : "•"}{" "}
+            At least one special character
+          </li>
+        </ul>
+      )}
+    </div>
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\ui\Select.tsx
+====================================================================================================
+
+import {
+  SelectHTMLAttributes,
+} from "react";
+
+type SelectProps =
+  SelectHTMLAttributes<HTMLSelectElement>;
+
+export default function Select({
+  className = "",
+  children,
+  ...props
+}: SelectProps) {
+  return (
+    <select
+      className={`w-full rounded-lg border border-[var(--brand-border)] bg-white px-4 py-2 text-[var(--brand-navy)] outline-none transition-colors duration-200 focus:border-[var(--brand-blue)] focus:ring-2 focus:ring-[rgba(0,123,255,0.18)] disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70 ${className}`}
+      {...props}
+    >
+      {children}
+    </select>
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\ui\StatCard.tsx
+====================================================================================================
+
+import Card from "@/components/ui/Card";
+
+type StatCardProps = {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  className?: string;
+  tone?: "blue" | "lime" | "orange" | "navy";
+};
+
+export default function StatCard({
+  title,
+  value,
+  subtitle,
+  className = "",
+  tone = "blue",
+}: StatCardProps) {
+  const toneClasses = {
+    blue: "text-[var(--brand-blue)]",
+    lime: "text-[var(--brand-navy)] bg-[var(--brand-soft-lime)]",
+    orange: "text-[var(--brand-orange)]",
+    navy: "text-[var(--brand-navy)]",
+  };
+
+  const valueClass =
+    tone === "lime"
+      ? "inline-flex rounded-lg px-3 py-1 text-4xl font-bold"
+      : `text-4xl font-bold ${toneClasses[tone]}`;
+
+  return (
+    <Card
+      title={title}
+      className={className}
+    >
+      <div className="space-y-2">
+        <div className={valueClass}>
+          {value}
+        </div>
+
+        {subtitle && (
+          <div className="text-sm text-[var(--brand-muted)]">
+            {subtitle}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+
+====================================================================================================
+FILE: C:\Projects\sixnations-predictor\src\components\ui\StatusBadge.tsx
+====================================================================================================
+
+type StatusBadgeProps = {
+  status: string;
+};
+
+export default function StatusBadge({
+  status,
+}: StatusBadgeProps) {
+  const normalizedStatus =
+    status?.toUpperCase?.() ?? "";
+
+  const statusClasses = {
+    OPEN: "bg-[var(--brand-soft-lime)] text-[var(--brand-navy)] border-[rgba(157,255,0,0.75)]",
+    LOCKED:
+      "bg-[var(--brand-soft-orange)] text-[var(--brand-orange)] border-[rgba(255,106,0,0.45)]",
+    COMPLETE:
+      "bg-[var(--brand-soft-blue)] text-[var(--brand-blue)] border-[rgba(0,123,255,0.35)]",
+    COMPLETED:
+      "bg-[var(--brand-soft-blue)] text-[var(--brand-blue)] border-[rgba(0,123,255,0.35)]",
+    VERIFIED:
+      "bg-[var(--brand-soft-lime)] text-[var(--brand-navy)] border-[rgba(157,255,0,0.75)]",
+    PAID:
+      "bg-[var(--brand-soft-lime)] text-[var(--brand-navy)] border-[rgba(157,255,0,0.75)]",
+    UNPAID:
+      "bg-[var(--brand-soft-orange)] text-[var(--brand-orange)] border-[rgba(255,106,0,0.45)]",
+  };
+
+  const className =
+    statusClasses[
+      normalizedStatus as keyof typeof statusClasses
+    ] ??
+    "bg-white text-[var(--brand-navy)] border-[var(--brand-border)]";
+
+  return (
+    <span
+      className={`inline-flex rounded-full border px-3 py-1 text-sm font-semibold ${className}`}
+    >
+      {status}
+    </span>
+  );
+}
+
