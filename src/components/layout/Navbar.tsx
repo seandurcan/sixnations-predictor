@@ -1,3 +1,4 @@
+// @/components/NavBar.tsx
 "use client";
 
 import Image from "next/image";
@@ -23,6 +24,13 @@ type AuthResponse = {
   authenticated?: boolean;
   user?: User;
 };
+
+const QR_CODE_SRC =
+  "/dynamic-qr-router/public/flexible-qr-code.png";
+
+const QR_BASE_SIZE = 250;
+const QR_DISPLAY_SIZE = Math.round(QR_BASE_SIZE * 1.2);
+const QR_WINDOW_SIZE = Math.round(QR_DISPLAY_SIZE * 1.1);
 
 const publicLinks: NavItem[] = [
   {
@@ -66,6 +74,11 @@ const adminLinks: NavItem[] = [
     href: "/admin/audit",
     icon: "📋",
   },
+  {
+    label: "Operational Docs",
+    href: "/admin/docs",
+    icon: "📖",
+  },
 ];
 
 const guestLinks: NavItem[] = [
@@ -87,6 +100,9 @@ export default function NavBar() {
   const desktopProfileMenuRef =
     useRef<HTMLDivElement | null>(null);
 
+  const desktopAdminMenuRef =
+    useRef<HTMLDivElement | null>(null);
+
   const mobileProfileMenuRef =
     useRef<HTMLDivElement | null>(null);
 
@@ -94,6 +110,9 @@ export default function NavBar() {
     useState(false);
 
   const [profileOpen, setProfileOpen] =
+    useState(false);
+
+  const [adminOpen, setAdminOpen] =
     useState(false);
 
   const [loading, setLoading] =
@@ -181,6 +200,11 @@ export default function NavBar() {
           target
         );
 
+      const clickedAdminMenu =
+        desktopAdminMenuRef.current?.contains(
+          target
+        );
+
       const clickedMobileMenu =
         mobileProfileMenuRef.current?.contains(
           target
@@ -191,6 +215,10 @@ export default function NavBar() {
         !clickedMobileMenu
       ) {
         setProfileOpen(false);
+      }
+
+      if (!clickedAdminMenu) {
+        setAdminOpen(false);
       }
     }
 
@@ -210,6 +238,7 @@ export default function NavBar() {
   useEffect(() => {
     setMenuOpen(false);
     setProfileOpen(false);
+    setAdminOpen(false);
   }, [pathname]);
 
   async function handleLogout() {
@@ -246,6 +275,7 @@ export default function NavBar() {
       setUser(null);
       setMenuOpen(false);
       setProfileOpen(false);
+      setAdminOpen(false);
       setLoggingOut(false);
 
       window.location.assign("/login");
@@ -255,6 +285,117 @@ export default function NavBar() {
   function closeMenus() {
     setMenuOpen(false);
     setProfileOpen(false);
+    setAdminOpen(false);
+  }
+
+  function openConnect() {
+    closeMenus();
+
+    const qrCodeUrl = new URL(
+      QR_CODE_SRC,
+      window.location.origin
+    ).href;
+
+    const left = Math.max(
+      0,
+      Math.round(
+        window.screenX +
+          (window.outerWidth - QR_WINDOW_SIZE) / 2
+      )
+    );
+
+    const top = Math.max(
+      0,
+      Math.round(
+        window.screenY +
+          (window.outerHeight - QR_WINDOW_SIZE) / 2
+      )
+    );
+
+    const popup = window.open(
+      "",
+      "perfect-xv-connect-qr",
+      [
+        "popup=yes",
+        `width=${QR_WINDOW_SIZE}`,
+        `height=${QR_WINDOW_SIZE}`,
+        `left=${left}`,
+        `top=${top}`,
+        "resizable=no",
+        "scrollbars=no",
+        "toolbar=no",
+        "menubar=no",
+        "location=no",
+        "status=no",
+      ].join(",")
+    );
+
+    if (!popup) {
+      window.open(qrCodeUrl, "_blank");
+      return;
+    }
+
+    popup.document.open();
+    popup.document.write(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Perfect XV Connect</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #ffffff;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      body {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: ${(QR_WINDOW_SIZE - QR_DISPLAY_SIZE) / 2}px;
+      }
+      img {
+        display: block;
+        width: ${QR_DISPLAY_SIZE}px;
+        height: ${QR_DISPLAY_SIZE}px;
+        object-fit: contain;
+      }
+      button {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        z-index: 2;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: 0;
+        border-radius: 9999px;
+        background: rgba(241, 245, 249, 0.95);
+        color: #334155;
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 28px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+      }
+    </style>
+  </head>
+  <body>
+    <button type="button" aria-label="Close" onclick="window.close()">×</button>
+    <img src="${qrCodeUrl}" alt="Perfect XV Connect QR code" />
+  </body>
+</html>`);
+    popup.document.close();
+    popup.opener = null;
+    popup.focus();
   }
 
   function toggleMobileMenu() {
@@ -263,6 +404,7 @@ export default function NavBar() {
 
       if (!nextValue) {
         setProfileOpen(false);
+        setAdminOpen(false);
       }
 
       return nextValue;
@@ -365,7 +507,6 @@ export default function NavBar() {
     ...(authenticated
       ? authenticatedLinks
       : []),
-    ...(isAdmin ? adminLinks : []),
   ];
 
   return (
@@ -416,6 +557,58 @@ export default function NavBar() {
               {item.label}
             </Link>
           ))}
+
+          {/* Grouped Admin Dropdown for Desktop */}
+          {isAdmin && (
+            <div
+              ref={desktopAdminMenuRef}
+              className="relative"
+            >
+              <button
+                type="button"
+                onClick={() =>
+                  setAdminOpen(
+                    (current) => !current
+                  )
+                }
+                className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-lime-50 hover:text-slate-900"
+                aria-haspopup="menu"
+                aria-expanded={adminOpen}
+              >
+                <span aria-hidden="true">🛠️</span>
+                <span>Admin</span>
+                <span className="text-xs text-slate-500">
+                  {adminOpen ? "▲" : "▼"}
+                </span>
+              </button>
+
+              {adminOpen && (
+                <div
+                  role="menu"
+                  className="absolute left-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+                >
+                  {adminLinks.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      role="menuitem"
+                      className={dropdownLinkClasses(
+                        item.href
+                      )}
+                      onClick={() =>
+                        setAdminOpen(false)
+                      }
+                    >
+                      <span aria-hidden="true">
+                        {item.icon}
+                      </span>
+                      <span>{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
@@ -559,59 +752,17 @@ export default function NavBar() {
                       <span>Leaderboard</span>
                     </Link>
 
-                    {isAdmin && (
-                      <>
-                        <div className="my-2 border-t border-slate-100" />
-
-                        <Link
-                          href="/admin"
-                          role="menuitem"
-                          className={dropdownLinkClasses(
-                            "/admin"
-                          )}
-                          onClick={() =>
-                            setProfileOpen(false)
-                          }
-                        >
-                          <span aria-hidden="true">
-                            🛠️
-                          </span>
-                          <span>Admin Results</span>
-                        </Link>
-
-                        <Link
-                          href="/admin/dashboard"
-                          role="menuitem"
-                          className={dropdownLinkClasses(
-                            "/admin/dashboard"
-                          )}
-                          onClick={() =>
-                            setProfileOpen(false)
-                          }
-                        >
-                          <span aria-hidden="true">
-                            📈
-                          </span>
-                          <span>Admin Dashboard</span>
-                        </Link>
-
-                        <Link
-                          href="/admin/audit"
-                          role="menuitem"
-                          className={dropdownLinkClasses(
-                            "/admin/audit"
-                          )}
-                          onClick={() =>
-                            setProfileOpen(false)
-                          }
-                        >
-                          <span aria-hidden="true">
-                            📋
-                          </span>
-                          <span>Audit</span>
-                        </Link>
-                      </>
-                    )}
+                    {/* Relocated Connect utility inside profile dropdown */}
+                    <div className="my-2 border-t border-slate-100" />
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={openConnect}
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-lime-50 hover:text-slate-900"
+                    >
+                      <span aria-hidden="true">📱</span>
+                      <span>Connect (QR Code)</span>
+                    </button>
                   </div>
 
                   <div className="border-t border-slate-100 pt-2">
@@ -681,6 +832,39 @@ export default function NavBar() {
                 <span>{item.label}</span>
               </Link>
             ))}
+
+            {/* Mobile Admin Links Section */}
+            {isAdmin && (
+              <div className="pt-2 pb-2 border-t border-slate-200">
+                <p className="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+                  Admin Tools
+                </p>
+                {adminLinks.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={mobileLinkClasses(
+                      item.href
+                    )}
+                    onClick={closeMenus}
+                  >
+                    <span aria-hidden="true">
+                      {item.icon}
+                    </span>
+                    <span>{item.label}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={openConnect}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base font-medium text-slate-700 transition-colors duration-200 hover:bg-lime-50 hover:text-slate-900"
+            >
+              <span aria-hidden="true">📱</span>
+              <span>Connect (QR Code)</span>
+            </button>
 
             {!loading &&
               !authenticated &&
@@ -804,54 +988,6 @@ export default function NavBar() {
                       </span>
                       <span>Leaderboard</span>
                     </Link>
-
-                    {isAdmin && (
-                      <>
-                        <div className="my-2 border-t border-slate-100" />
-
-                        <Link
-                          href="/admin"
-                          role="menuitem"
-                          className={mobileLinkClasses(
-                            "/admin"
-                          )}
-                          onClick={closeMenus}
-                        >
-                          <span aria-hidden="true">
-                            🛠️
-                          </span>
-                          <span>Admin Results</span>
-                        </Link>
-
-                        <Link
-                          href="/admin/dashboard"
-                          role="menuitem"
-                          className={mobileLinkClasses(
-                            "/admin/dashboard"
-                          )}
-                          onClick={closeMenus}
-                        >
-                          <span aria-hidden="true">
-                            📈
-                          </span>
-                          <span>Admin Dashboard</span>
-                        </Link>
-
-                        <Link
-                          href="/admin/audit"
-                          role="menuitem"
-                          className={mobileLinkClasses(
-                            "/admin/audit"
-                          )}
-                          onClick={closeMenus}
-                        >
-                          <span aria-hidden="true">
-                            📋
-                          </span>
-                          <span>Audit</span>
-                        </Link>
-                      </>
-                    )}
 
                     <div className="my-2 border-t border-slate-100" />
 

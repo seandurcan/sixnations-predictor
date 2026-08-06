@@ -1,0 +1,170 @@
+// @/components/ui/PageHeader.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+
+type PageHeaderProps = {
+  title: string;
+  subtitle?: string;
+  className?: string;
+};
+
+/*
+ * The image must exist at:
+ * C:\Projects\sixnations-predictor\public\dynamic-qr-router\public\qr-code.png
+ *
+ * Files inside the Next.js public folder are referenced from the site root.
+ * Change only this value if your QR image has a different filename.
+ */
+const QR_CODE_SRC = "/dynamic-qr-router/public/qr-code.png";
+
+// The previous QR area was 192px (Tailwind w-48/h-48).
+// Display it 20% larger, then make the popup 10% larger than the displayed QR.
+const ORIGINAL_QR_SIZE_PX = 192;
+const DISPLAYED_QR_SIZE_PX = Math.round(ORIGINAL_QR_SIZE_PX * 1.2);
+const POPUP_SIZE_PX = Math.round(DISPLAYED_QR_SIZE_PX * 1.1);
+const QR_PERCENT_OF_POPUP = `${100 / 1.1}%`;
+
+export default function PageHeader({
+  title,
+  subtitle,
+  className = "",
+}: PageHeaderProps) {
+  const [isConnectOpen, setIsConnectOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isConnectOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsConnectOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isConnectOpen]);
+
+  return (
+    <>
+      {/* Navigation / Header elements */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-[var(--brand-border)] text-sm bg-white px-6">
+        <nav className="flex flex-wrap items-center gap-6">
+          <a
+            href="/"
+            className="font-bold text-[var(--brand-navy)] hover:text-[var(--brand-blue)]"
+          >
+            Home
+          </a>
+          <a
+            href="/leaderboard"
+            className="font-semibold text-[var(--brand-muted)] hover:text-[var(--brand-navy)] flex items-center gap-1"
+          >
+            🏆 Leaderboard
+          </a>
+          <a
+            href="/dashboard"
+            className="font-semibold text-[var(--brand-muted)] hover:text-[var(--brand-navy)] flex items-center gap-1"
+          >
+            📊 Dashboard
+          </a>
+          <a
+            href="/predictions"
+            className="font-semibold text-[var(--brand-muted)] hover:text-[var(--brand-navy)] flex items-center gap-1"
+          >
+            📝 Predictions
+          </a>
+          <a
+            href="/admin/results"
+            className="font-semibold text-[var(--brand-muted)] hover:text-[var(--brand-navy)] flex items-center gap-1"
+          >
+            🛠️ Admin Results
+          </a>
+          <a
+            href="/admin/dashboard"
+            className="font-semibold text-[var(--brand-muted)] hover:text-[var(--brand-navy)] flex items-center gap-1"
+          >
+            📈 Admin Dashboard
+          </a>
+          <a
+            href="/admin/audit"
+            className="font-semibold text-[var(--brand-muted)] hover:text-[var(--brand-navy)] flex items-center gap-1"
+          >
+            📋 Audit
+          </a>
+          <button
+            type="button"
+            onClick={() => setIsConnectOpen(true)}
+            className="font-semibold text-[var(--brand-muted)] hover:text-[var(--brand-navy)] flex items-center gap-1 bg-transparent border-none cursor-pointer p-0"
+            aria-haspopup="dialog"
+            aria-expanded={isConnectOpen}
+          >
+            📱 Connect
+          </button>
+        </nav>
+
+        <div className="flex items-center space-x-2 cursor-pointer select-none">
+          <div className="w-7 h-7 rounded-full bg-[var(--brand-navy)] text-white flex items-center justify-center font-bold text-xs">
+            SD
+          </div>
+          <span className="font-semibold text-xs text-[var(--brand-navy)]">
+            Sean Durcan
+          </span>
+          <span className="text-[10px] text-[var(--brand-muted)]">▼</span>
+        </div>
+      </div>
+
+      {/* Connect QR-code popup */}
+      {isConnectOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onMouseDown={() => setIsConnectOpen(false)}
+          role="presentation"
+        >
+          <div
+            className="relative flex items-center justify-center rounded-xl bg-white shadow-2xl"
+            style={{
+              width: `min(${POPUP_SIZE_PX}px, calc(100vw - 2rem))`,
+              aspectRatio: "1 / 1",
+            }}
+            onMouseDown={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Connect QR code"
+          >
+            <button
+              type="button"
+              onClick={() => setIsConnectOpen(false)}
+              className="absolute -right-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 bg-white text-lg font-bold text-gray-600 shadow-md transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--brand-blue)]"
+              aria-label="Close Connect popup"
+              title="Close"
+            >
+              ✕
+            </button>
+
+            <img
+              src={QR_CODE_SRC}
+              alt="QR code for connecting to Perfect XV"
+              className="block object-contain"
+              style={{
+                width: QR_PERCENT_OF_POPUP,
+                height: QR_PERCENT_OF_POPUP,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Actual Page Header Content */}
+      <div className={className}>
+        <h1 className="text-4xl font-bold text-[var(--brand-navy)]">
+          {title}
+        </h1>
+
+        {subtitle && (
+          <p className="mt-2 text-[var(--brand-muted)]">{subtitle}</p>
+        )}
+      </div>
+    </>
+  );
+}

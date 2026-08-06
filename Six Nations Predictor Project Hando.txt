@@ -1,0 +1,264 @@
+Six Nations Predictor Project Handover Document
+
+Project: Six Nations Predictor
+ Owner: Sean Durcan
+ Application Type: Web-based rugby prediction competition platform
+ Status: Active Development
+ Generated: August 2026
+
+1. Executive Summary
+
+The Six Nations Predictor is a subscription-based prediction platform allowing users to submit score predictions for Six Nations rugby fixtures, compete on a live leaderboard, and determine tournament winners through a defined scoring system.
+
+The application includes:
+
+User registration and authentication
+Email verification
+Password reset functionality
+Stripe payment processing
+Match prediction submission
+Automated leaderboard calculations
+Tournament administration
+Result management
+Audit logging
+Tournament winner determination
+Multi-year tournament support
+
+The system is built using:
+
+Next.js
+TypeScript
+React
+Prisma ORM
+PostgreSQL
+Stripe
+Tailwind CSS
+Vitest Testing Framework
+2. Current Architecture
+Frontend
+Next.js App Router
+React Components
+Tailwind CSS
+Responsive design
+Backend
+Next.js API Routes
+Prisma ORM
+PostgreSQL database
+External Services
+Stripe
+
+Used for:
+
+Competition entry fee collection
+Payment verification
+Payment status tracking
+Email Service
+
+Used for:
+
+Email verification
+Password reset
+3. Core Business Process
+User Journey
+User registers account
+User verifies email address
+User pays competition entry fee
+User enters predictions
+Predictions lock at tournament deadline
+Results are entered by administrator
+Scores are calculated
+Leaderboard updates automatically
+Winner is determined at tournament completion
+4. Database Overview
+Major Entities
+User
+
+Stores:
+
+Name
+Email
+Mobile
+Password
+Role
+Payment status
+Verification status
+Points totals
+Exact score counts
+Tournament
+
+Stores:
+
+Year
+Name
+Status
+Draft
+Open
+Locked
+Completed
+First kickoff date
+Prediction lock date
+Team
+
+Stores Six Nations teams and related metadata.
+
+Match
+
+Stores:
+
+Fixture details
+Kickoff times
+Venue information
+Results
+Status
+Prediction
+
+Stores:
+
+User prediction
+Calculated points
+Exact score indicator
+Error calculations
+Payment
+
+Stores:
+
+Stripe reference
+Amount
+Currency
+Status
+Leaderboard Snapshot
+
+Stores periodic ranking history.
+
+Score Audit
+
+Stores all administrator result amendments.
+
+Tournament Winner
+
+Stores final winner information.
+
+5. Existing Administration Features
+Admin Dashboard
+
+Provides:
+
+Registered users count
+Verified users count
+Prediction count
+Fixture statistics
+Current leader
+Top 10 leaderboard
+Recent audit activity
+Winner display
+Result Entry
+
+Allows administrators to:
+
+Select fixtures
+Enter final scores
+Update completed matches
+Trigger leaderboard recalculation
+Audit History
+
+Records:
+
+Match updated
+Previous score
+New score
+Admin responsible
+Date and time of change
+6. Security Features
+
+Current security controls include:
+
+Authentication
+Role-based access control
+Session management
+Email verification
+Password reset tokens
+Admin-only routes
+Audit logging
+7. Outstanding Enhancements
+
+Known future enhancements include:
+
+Tournament Administration
+Create tournaments from Admin section
+Add fixtures through Admin section
+Amend tournament records
+Full tournament lifecycle management
+Maintenance Improvements
+Move maintenance and reset scripts into Admin area
+Additional Admin Tooling
+Tournament creation wizard
+Fixture management
+Team management
+Historical tournament management
+
+(These items are from the current project backlog.)
+
+8. Recommended Documentation Still Required
+
+The following documents should be created before production launch:
+
+Legal
+Privacy Policy
+Terms and Conditions
+Cookie Policy
+Competition Rules
+Operational
+Administrator Guide
+Deployment Guide
+Disaster Recovery Procedure
+Database Backup Procedure
+Technical
+Architecture Diagram
+API Documentation
+Environment Variable Reference
+Prisma Database Documentation
+9. Environment Information Required
+
+The following credentials and configuration should be handed over securely:
+
+Production URL
+Database connection details
+Stripe account details
+Email provider credentials
+Domain registrar access
+Hosting platform access
+SSL certificate information
+Git repository access
+Deployment credentials
+
+Do not store passwords in this document.
+
+10. Handover Checklist
+Source Control
+ Repository access granted
+ Branch strategy explained
+ Deployment process documented
+Infrastructure
+ Hosting access transferred
+ Domain access transferred
+ Database access transferred
+ SSL certificates transferred
+Third Party Services
+ Stripe access transferred
+ Email provider access transferred
+Documentation
+ Technical documentation supplied
+ Admin documentation supplied
+ Legal documentation supplied
+Testing
+ Build process verified
+ Test suite executed successfully
+ Production deployment verified
+Operational Sign-Off
+ New owner confirmed access
+ Recovery procedures tested
+ Handover completed
+
+End of Handover Document.
+
+Sources: Project architecture, schema, administration features, payments, audit history, tournament structure, leaderboard design, and user management were identified from the Six Nations Predictor project export and related files.
