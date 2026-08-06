@@ -5,10 +5,17 @@ import {
   buildPredictionReminderEmail,
 } from "@/lib/email/reminderTemplates";
 
-export async function recordVerificationReminder(userId: string) {
+export async function recordVerificationReminder(userId: any) {
   return await prisma.user.update({
     where: { id: userId },
     data: { lastVerificationReminderAt: new Date() },
+  });
+}
+
+export async function recordPredictionReminder(userId: any) {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { lastPredictionReminderAt: new Date() },
   });
 }
 
@@ -106,11 +113,7 @@ export async function processReminders() {
         });
       }
 
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { lastPredictionReminderAt: new Date() },
-      });
-
+      await recordPredictionReminder(user.id);
       predictionSentCount++;
     } catch (err) {
       console.error(
