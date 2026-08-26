@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 
-export async function GET() {
-  try {
-    await requireAdmin();
+export async function GET(request: NextRequest) {
+  const auth = await requireAdmin(request);
 
+  if (!auth.authorized) {
+    return auth.response;
+  }
+
+  try {
     const setting =
       await prisma.systemSetting.findUnique({
         where: {
@@ -40,9 +44,13 @@ export async function GET() {
 export async function POST(
   request: NextRequest
 ) {
-  try {
-    await requireAdmin();
+  const auth = await requireAdmin(request);
 
+  if (!auth.authorized) {
+    return auth.response;
+  }
+
+  try {
     const body =
       await request.json();
 
