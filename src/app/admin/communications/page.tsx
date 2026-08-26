@@ -423,4 +423,3 @@ export default function CommunicationsPage() {
     </main>
   );
 }
-```[cite: 2]
