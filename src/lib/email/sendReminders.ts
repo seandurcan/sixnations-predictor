@@ -1,5 +1,3 @@
-FILE: src/lib/email/sendReminders.ts
-
 import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 import {
