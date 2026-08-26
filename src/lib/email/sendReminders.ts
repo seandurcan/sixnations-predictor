@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 import {
   buildPredictionReminderEmail,
@@ -17,27 +16,22 @@ export async function sendVerificationReminder(
   },
   finalReminder = false
 ) {
-  const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL!;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
-  const email =
-    buildVerificationReminderEmail(
-      user.firstName,
-      appUrl,
-      finalReminder
-    );
+  const email = buildVerificationReminderEmail(
+    user.firstName,
+    appUrl,
+    finalReminder
+  );
 
   await resend.emails.send({
-    from:
-      "Six Nations Predictor <noreply@sixnationspredictor.com>",
+    from: "Six Nations Predictor <noreply@sixnationspredictor.com>",
     to: user.email,
     subject: email.subject,
-    html: email.html,
+    text: email.text,
   });
 
-  await recordVerificationReminder(
-    user.id
-  );
+  await recordVerificationReminder(user.id);
 }
 
 export async function sendPredictionReminder(
@@ -48,37 +42,20 @@ export async function sendPredictionReminder(
   },
   finalReminder = false
 ) {
-  const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL!;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
-  const totalFixtures =
-    await prisma.match.count();
-
-  const predictionCount =
-    await prisma.prediction.count({
-      where: {
-        userId: user.id,
-      },
-    });
-
-  const email =
-    buildPredictionReminderEmail(
-      user.firstName,
-      predictionCount,
-      totalFixtures,
-      appUrl,
-      finalReminder
-    );
+  const email = buildPredictionReminderEmail(
+    user.firstName,
+    appUrl,
+    finalReminder
+  );
 
   await resend.emails.send({
-    from:
-      "Six Nations Predictor <noreply@sixnationspredictor.com>",
+    from: "Six Nations Predictor <noreply@sixnationspredictor.com>",
     to: user.email,
     subject: email.subject,
-    html: email.html,
+    text: email.text,
   });
 
-  await recordPredictionReminder(
-    user.id
-  );
+  await recordPredictionReminder(user.id);
 }
