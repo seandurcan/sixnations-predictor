@@ -378,7 +378,7 @@ async function sendActionEmail({
   ].join("\n");
 
   const { data, error } = await resend.emails.send({
-    from: "Six Nations Predictor <onboarding@resend.dev>",
+    from: "Perfect XV <noreply@perfect-xv.org>",
     to: email,
     subject,
     html,
