@@ -21,15 +21,13 @@ function escapeHtml(value: string): string {
 
 /**
  * Returns the configured application URL without a trailing slash.
+ * Falls back to the production domain if APP_URL is unavailable.
  */
 function getAppUrl(): string {
-  const appUrl = process.env.APP_URL?.trim().replace(/\/+$/, "");
-
-  if (!appUrl) {
-    throw new Error("APP_URL environment variable is not configured.");
-  }
-
-  return appUrl;
+  return (
+    process.env.APP_URL?.trim().replace(/\/+$/, "") ||
+    "https://perfect-xv.org"
+  );
 }
 
 /**
@@ -327,7 +325,7 @@ function createActionEmailHtml({
                   line-height: 18px;
                 "
               >
-                Six Nations Predictor
+                Perfect XV
               </td>
             </tr>
           </table>
@@ -415,7 +413,7 @@ export async function sendPasswordResetEmail(
     expiryText:
       "This password-reset link expires in 1 hour.",
     previewText:
-      "Use this secure link to reset your Six Nations Predictor password.",
+      "Use this secure link to reset your Perfect XV password.",
   });
 
   console.log("PASSWORD RESET EMAIL RESULT:", result);
@@ -435,7 +433,7 @@ export async function sendEmailVerificationEmail(
     subject: "Verify your email address",
     heading: "Verify Your Email",
     introduction:
-      "Thank you for registering for the Six Nations Predictor.",
+      "Thank you for registering for Perfect XV.",
     instruction:
       "Click the button below to verify your email address.",
     buttonLabel: "Verify Email",
@@ -445,7 +443,7 @@ export async function sendEmailVerificationEmail(
     expiryText:
       "This email-verification link expires in 1 hour.",
     previewText:
-      "Verify your email address for the Six Nations Predictor.",
+      "Verify your email address for Perfect XV.",
   });
 
   console.log("EMAIL VERIFICATION RESULT:", result);
