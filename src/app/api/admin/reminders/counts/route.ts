@@ -1,14 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import {
   getUsersNeedingPredictionReminder,
   getUsersNeedingVerificationReminder,
 } from "@/lib/reminders/reminderService";
 
-export async function GET() {
-  try {
-    await requireAdmin();
+export async function GET(request: NextRequest) {
+  const auth = await requireAdmin(request);
 
+  if (!auth.authorized) {
+    return auth.response;
+  }
+
+  try {
     const verificationUsers =
       await getUsersNeedingVerificationReminder();
 
