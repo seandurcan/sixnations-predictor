@@ -30,7 +30,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Reminders processed successfully",
-      sent: results?.sent ?? 0,
+      sent:
+  results.verificationSentCount +
+  results.predictionSentCount,
       results,
     });
   } catch (error) {
