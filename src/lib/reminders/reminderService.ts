@@ -64,6 +64,13 @@ export async function getUsersNeedingVerificationReminder(
 export async function getUsersNeedingPredictionReminder(
   allowDailyOverride = isManualOverrideActive()
 ) {
+  if (allowDailyOverride) {
+    return prisma.user.findMany({
+      where: { emailVerified: true, deletedAt: null },
+      include: { predictions: { select: { matchId: true } } },
+    });
+  }
+
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const activeTournament = await prisma.tournament.findFirst({
     where: { status: { in: ["OPEN", "LOCKED"] } },
@@ -87,8 +94,7 @@ export async function getUsersNeedingPredictionReminder(
   return users.filter(
     (user) =>
       user.predictions.length < matchIds.length &&
-      (allowDailyOverride ||
-        !user.lastPredictionReminderAt ||
+      (!user.lastPredictionReminderAt ||
         user.lastPredictionReminderAt <= sevenDaysAgo)
   );
 }
