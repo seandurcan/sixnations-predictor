@@ -17,6 +17,24 @@ const APP_URL = (
   .replace(/\/+$/, "");
 
 const FROM_ADDRESS = "Perfect XV <noreply@perfect-xv.org>";
+const MANUAL_OVERRIDE_UNTIL = new Date("2026-09-07T08:00:00.000Z");
+
+function isManualOverrideActive() {
+  return Date.now() < MANUAL_OVERRIDE_UNTIL.getTime();
+}
+
+function isTodayInDublin(value: Date | null) {
+  if (!value) return false;
+
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Dublin",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  return formatter.format(value) === formatter.format(new Date());
+}
 
 export async function recordVerificationReminder(userId: number) {
   return prisma.user.update({
@@ -32,24 +50,31 @@ export async function recordPredictionReminder(userId: number) {
   });
 }
 
-export async function getUsersNeedingVerificationReminder() {
+export async function getUsersNeedingVerificationReminder(
+  allowDailyOverride = isManualOverrideActive()
+) {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  return prisma.user.findMany({
+  const users = await prisma.user.findMany({
     where: {
       emailVerified: false,
       deletedAt: null,
       createdAt: { lte: oneDayAgo },
-      OR: [
-        { lastVerificationReminderAt: null },
-        { lastVerificationReminderAt: { lte: sevenDaysAgo } },
-      ],
     },
   });
+
+  return users.filter((user) =>
+    allowDailyOverride
+      ? !isTodayInDublin(user.lastVerificationReminderAt)
+      : !user.lastVerificationReminderAt ||
+        user.lastVerificationReminderAt <= sevenDaysAgo
+  );
 }
 
-export async function getUsersNeedingPredictionReminder() {
+export async function getUsersNeedingPredictionReminder(
+  allowDailyOverride = isManualOverrideActive()
+) {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const activeTournament = await prisma.tournament.findFirst({
     where: { status: { in: ["OPEN", "LOCKED"] } },
@@ -73,8 +98,10 @@ export async function getUsersNeedingPredictionReminder() {
   return users.filter(
     (user) =>
       user.predictions.length < matchIds.length &&
-      (!user.lastPredictionReminderAt ||
-        user.lastPredictionReminderAt <= sevenDaysAgo)
+      (allowDailyOverride
+        ? !isTodayInDublin(user.lastPredictionReminderAt)
+        : !user.lastPredictionReminderAt ||
+          user.lastPredictionReminderAt <= sevenDaysAgo)
   );
 }
 
@@ -166,5 +193,11 @@ export async function processReminders(action: ReminderAction) {
     }
   }
 
-  return { action, sentCount, failedCount };
+  return {
+    action,
+    sentCount,
+    failedCount,
+    manualOverrideActive: isManualOverrideActive(),
+    manualOverrideUntil: MANUAL_OVERRIDE_UNTIL.toISOString(),
+  };
 }
