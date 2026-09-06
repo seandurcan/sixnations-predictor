@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 import {
@@ -5,15 +6,27 @@ import {
   buildPredictionReminderEmail,
 } from "@/lib/email/reminderTemplates";
 
-export async function recordVerificationReminder(userId: any) {
-  return await prisma.user.update({
+export type ReminderAction = "verification" | "prediction";
+
+const APP_URL = (
+  process.env.APP_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "https://perfect-xv.org"
+)
+  .trim()
+  .replace(/\/+$/, "");
+
+const FROM_ADDRESS = "Perfect XV <noreply@perfect-xv.org>";
+
+export async function recordVerificationReminder(userId: number) {
+  return prisma.user.update({
     where: { id: userId },
     data: { lastVerificationReminderAt: new Date() },
   });
 }
 
-export async function recordPredictionReminder(userId: any) {
-  return await prisma.user.update({
+export async function recordPredictionReminder(userId: number) {
+  return prisma.user.update({
     where: { id: userId },
     data: { lastPredictionReminderAt: new Date() },
   });
@@ -23,12 +36,11 @@ export async function getUsersNeedingVerificationReminder() {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  return await prisma.user.findMany({
+  return prisma.user.findMany({
     where: {
       emailVerified: false,
-      createdAt: {
-        lte: oneDayAgo,
-      },
+      deletedAt: null,
+      createdAt: { lte: oneDayAgo },
       OR: [
         { lastVerificationReminderAt: null },
         { lastVerificationReminderAt: { lte: sevenDaysAgo } },
@@ -41,90 +53,118 @@ export async function getUsersNeedingPredictionReminder() {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const activeTournament = await prisma.tournament.findFirst({
     where: { status: { in: ["OPEN", "LOCKED"] } },
-    include: { matches: true },
+    include: { matches: { select: { id: true } } },
+    orderBy: { firstKickoff: "asc" },
   });
 
-  if (!activeTournament) return [];
-  const totalFixtures = activeTournament.matches.length;
+  if (!activeTournament || activeTournament.matches.length === 0) return [];
 
+  const matchIds = activeTournament.matches.map((match) => match.id);
   const users = await prisma.user.findMany({
-    where: { emailVerified: true },
-    include: { predictions: true },
+    where: { emailVerified: true, deletedAt: null },
+    include: {
+      predictions: {
+        where: { matchId: { in: matchIds } },
+        select: { matchId: true },
+      },
+    },
   });
 
   return users.filter(
     (user) =>
-      user.predictions.length < totalFixtures &&
-      (!user.lastPredictionReminderAt || user.lastPredictionReminderAt <= sevenDaysAgo)
+      user.predictions.length < matchIds.length &&
+      (!user.lastPredictionReminderAt ||
+        user.lastPredictionReminderAt <= sevenDaysAgo)
   );
 }
 
-export async function processReminders() {
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  let verificationSentCount = 0;
-  let predictionSentCount = 0;
+async function sendOrThrow(message: {
+  to: string;
+  subject: string;
+  text: string;
+}) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is not configured.");
+  }
 
-  // 1. Process Verification Reminders
-  const unverifiedUsers = await getUsersNeedingVerificationReminder();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const { error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    ...message,
+  });
 
-  for (const user of unverifiedUsers) {
-    const isFinal = user.lastVerificationReminderAt !== null;
-    const { subject, text } = buildVerificationReminderEmail(
-      user.firstName,
-      appUrl,
-      isFinal
-    );
+  if (error) {
+    throw new Error(error.message || "Resend rejected the email.");
+  }
+}
 
-    try {
-      if (process.env.RESEND_API_KEY) {
-        await resend.emails.send({
-          from: "Six Nations Predictor <noreply@resend.dev>",
-          to: user.email,
-          subject,
-          text,
+export async function processReminders(action: ReminderAction) {
+  let sentCount = 0;
+  let failedCount = 0;
+
+  if (action === "verification") {
+    const users = await getUsersNeedingVerificationReminder();
+
+    for (const user of users) {
+      let token: string | null = null;
+
+      try {
+        token = crypto.randomUUID() + crypto.randomUUID();
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+        const isFinal = user.lastVerificationReminderAt !== null;
+        const verificationUrl =
+          `${APP_URL}/verify-email?token=${encodeURIComponent(token)}`;
+        const { subject, text } = buildVerificationReminderEmail(
+          user.firstName,
+          verificationUrl,
+          isFinal
+        );
+
+        await prisma.emailVerification.create({
+          data: { userId: user.id, token, expiresAt },
+        });
+
+        await sendOrThrow({ to: user.email, subject, text });
+        token = null;
+
+        await recordVerificationReminder(user.id);
+
+        sentCount++;
+      } catch (error) {
+        if (token) {
+          await prisma.emailVerification
+            .delete({ where: { token } })
+            .catch(() => undefined);
+        }
+        failedCount++;
+        console.error("Verification reminder failed:", {
+          userId: user.id,
+          error: error instanceof Error ? error.message : String(error),
         });
       }
+    }
+  } else {
+    const users = await getUsersNeedingPredictionReminder();
 
-      await recordVerificationReminder(user.id);
-      verificationSentCount++;
-    } catch (err) {
-      console.error(`Failed to send verification reminder to ${user.email}:`, err);
+    for (const user of users) {
+      try {
+        const { subject, text } = buildPredictionReminderEmail(
+          user.firstName,
+          APP_URL,
+          false
+        );
+
+        await sendOrThrow({ to: user.email, subject, text });
+        await recordPredictionReminder(user.id);
+        sentCount++;
+      } catch (error) {
+        failedCount++;
+        console.error("Prediction reminder failed:", {
+          userId: user.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
   }
 
-  // 2. Process Prediction Reminders
-  const usersNeedingPrediction = await getUsersNeedingPredictionReminder();
-
-  for (const user of usersNeedingPrediction) {
-    const { subject, text } = buildPredictionReminderEmail(
-      user.firstName,
-      appUrl,
-      false
-    );
-
-    try {
-      if (process.env.RESEND_API_KEY) {
-        await resend.emails.send({
-          from: "Six Nations Predictor <noreply@resend.dev>",
-          to: user.email,
-          subject,
-          text,
-        });
-      }
-
-      await recordPredictionReminder(user.id);
-      predictionSentCount++;
-    } catch (err) {
-      console.error(
-        `Failed to send prediction reminder to ${user.email}:`,
-        err
-      );
-    }
-  }
-
-  return {
-    verificationSentCount,
-    predictionSentCount,
-  };
+  return { action, sentCount, failedCount };
 }

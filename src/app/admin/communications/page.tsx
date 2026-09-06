@@ -7,16 +7,17 @@ import Card from "@/components/ui/Card";
 import PageContainer from "@/components/layout/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
 
-type DashboardResponse = {
-  metrics: {
-    verificationRemindersDue: number;
-    predictionRemindersDue: number;
-    automaticRemindersEnabled: boolean;
-    finalReminderPending: boolean;
-    finalReminderDate: string | null;
-    lastReminderRun: string | null;
-    nextReminderRun: string | null;
-  };
+type CountsResponse = {
+  success: boolean;
+  verificationRemindersDue: number;
+  predictionRemindersDue: number;
+  error?: string;
+};
+
+type SettingsResponse = {
+  success: boolean;
+  automaticRemindersEnabled: boolean;
+  error?: string;
 };
 
 export default function CommunicationsPage() {
@@ -65,47 +66,35 @@ export default function CommunicationsPage() {
 
   async function loadDashboardData() {
     try {
-      const response = await fetch(
-        "/api/admin/dashboard",
-        {
+      const [countsResponse, settingsResponse] = await Promise.all([
+        fetch("/api/admin/reminders/counts", {
           cache: "no-store",
           credentials: "include",
-        }
-      );
+        }),
+        fetch("/api/admin/settings", {
+          cache: "no-store",
+          credentials: "include",
+        }),
+      ]);
 
-      const result =
-        (await response.json()) as DashboardResponse;
+      const counts = (await countsResponse.json()) as CountsResponse;
+      const settings = (await settingsResponse.json()) as SettingsResponse;
 
-      setAutomaticRemindersEnabled(
-        result.metrics.automaticRemindersEnabled
-      );
+      if (!countsResponse.ok || !counts.success) {
+        throw new Error(counts.error || "Unable to load reminder counts.");
+      }
+      if (!settingsResponse.ok || !settings.success) {
+        throw new Error(settings.error || "Unable to load reminder settings.");
+      }
 
-      setVerificationRemindersDue(
-        result.metrics.verificationRemindersDue ?? 0
-      );
-
-      setPredictionRemindersDue(
-        result.metrics.predictionRemindersDue ?? 0
-      );
-
-      setFinalReminderPending(
-        result.metrics.finalReminderPending
-      );
-
-      setFinalReminderDate(
-        result.metrics.finalReminderDate
-      );
-
-      setLastReminderRun(
-        result.metrics.lastReminderRun
-      );
-
-      setNextReminderRun(
-        result.metrics.nextReminderRun
-      );
-    } catch {
+      setVerificationRemindersDue(counts.verificationRemindersDue ?? 0);
+      setPredictionRemindersDue(counts.predictionRemindersDue ?? 0);
+      setAutomaticRemindersEnabled(settings.automaticRemindersEnabled);
+    } catch (error) {
       setError(
-        "Unable to load communications data."
+        error instanceof Error
+          ? error.message
+          : "Unable to load communications data."
       );
     }
   }
@@ -181,13 +170,26 @@ export default function CommunicationsPage() {
           }
         );
 
-      const result =
-        await response.json();
+      const responseText = await response.text();
+      let result: {
+        success?: boolean;
+        sent?: number;
+        failed?: number;
+        error?: string;
+      };
 
-      if (!result.success) {
+      try {
+        result = JSON.parse(responseText);
+      } catch {
+        throw new Error(
+          `Reminder service returned HTTP ${response.status} instead of a valid response.`
+        );
+      }
+
+      if (!response.ok || !result.success) {
         setError(
           result.error ??
-            "Request failed."
+            `Request failed with HTTP ${response.status}.`
         );
         return;
       }

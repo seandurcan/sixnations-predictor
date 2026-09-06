@@ -16,11 +16,14 @@ export async function sendVerificationReminder(
   },
   finalReminder = false
 ) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
+  const appUrl =
+    process.env.APP_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "https://perfect-xv.org";
 
   const email = buildVerificationReminderEmail(
     user.firstName,
-    appUrl,
+    `${appUrl.replace(/\/+$/, "")}/verify-email`,
     finalReminder
   );
 

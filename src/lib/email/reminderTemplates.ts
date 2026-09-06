@@ -1,13 +1,13 @@
 export function buildVerificationReminderEmail(
   firstName: string,
-  appUrl: string,
+  verificationUrl: string,
   finalReminder = false
 ) {
   const subject = finalReminder
     ? "Final Reminder: Verify your email address"
     : "Reminder: Please verify your email address";
 
-  const text = `Hi ${firstName},\n\nPlease verify your email address to ensure your account remains active.\n\n${appUrl}/verify\n\nBest regards,\nThe Competition Team`;
+  const text = `Hi ${firstName},\n\nPlease verify your email address to ensure your account remains active.\n\n${verificationUrl}\n\nThis verification link expires in 1 hour.\n\nBest regards,\nThe Perfect XV Team`;
 
   return { subject, text };
 }

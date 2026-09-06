@@ -26,13 +26,23 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const results = await processReminders();
+    if (action !== "verification" && action !== "prediction") {
+      return NextResponse.json(
+        { success: false, error: "Invalid reminder action." },
+        { status: 400 }
+      );
+    }
+
+    const results = await processReminders(action);
     return NextResponse.json({
-      success: true,
-      message: "Reminders processed successfully",
-      sent:
-  results.verificationSentCount +
-  results.predictionSentCount,
+      success: results.failedCount === 0,
+      message: "Reminder batch processed.",
+      sent: results.sentCount,
+      failed: results.failedCount,
+      error:
+        results.failedCount > 0
+          ? `${results.failedCount} email(s) failed. No failed email was marked as sent.`
+          : undefined,
       results,
     });
   } catch (error) {
