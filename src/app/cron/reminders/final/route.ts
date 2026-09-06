@@ -55,64 +55,46 @@ export async function GET(
       });
     }
 
-    const alreadyRunToday =
-      await prisma.systemSetting.findUnique({
-        where: {
-          key: "lastFinalReminderRun",
-        },
-      });
-
-    const today =
-      new Date().toISOString().split("T")[0];
-
-    if (
-      alreadyRunToday?.value === today
-    ) {
-      return NextResponse.json({
-        success: true,
-        skipped: true,
-        reason:
-          "Final reminder already sent today",
-      });
-    }
-
-    const nextMatch =
-      await prisma.match.findFirst({
-        where: {
-          completed: false,
-        },
-        orderBy: {
-          kickoffTime: "asc",
-        },
-      });
-
-    if (!nextMatch) {
-      return NextResponse.json({
-        success: true,
-        skipped: true,
-        reason:
-          "No upcoming fixtures",
-      });
-    }
-
     const now = new Date();
+    const tournament = await prisma.tournament.findFirst({
+      where: {
+        status: { in: ["OPEN", "LOCKED"] },
+        firstKickoff: { gt: now },
+      },
+      orderBy: { firstKickoff: "asc" },
+    });
 
-    const isFirstFixtureDay =
-      now.toDateString() ===
-      nextMatch.kickoffTime.toDateString();
-
-    const isNineAM =
-      now.getHours() === 9;
-
-    if (
-      !isFirstFixtureDay ||
-      !isNineAM
-    ) {
+    if (!tournament) {
       return NextResponse.json({
         success: true,
         skipped: true,
-        reason:
-          "Not final reminder time",
+        reason: "No upcoming open tournament",
+      });
+    }
+
+    const finalReminderAt = new Date(
+      tournament.firstKickoff.getTime() - 2 * 60 * 60 * 1000
+    );
+
+    if (now < finalReminderAt || now >= tournament.firstKickoff) {
+      return NextResponse.json({
+        success: true,
+        skipped: true,
+        reason: "Not final reminder time",
+        finalReminderAt: finalReminderAt.toISOString(),
+      });
+    }
+
+    const alreadyRun = await prisma.systemSetting.findUnique({
+      where: { key: "lastFinalReminderRun" },
+    });
+
+    const runKey = String(tournament.id);
+    if (alreadyRun?.value === runKey) {
+      return NextResponse.json({
+        success: true,
+        skipped: true,
+        reason: "Final reminder already sent for this tournament",
       });
     }
 
@@ -120,6 +102,7 @@ export async function GET(
       await prisma.user.findMany({
         where: {
           emailVerified: false,
+          deletedAt: null,
         },
         select: {
           id: true,
@@ -184,11 +167,11 @@ export async function GET(
         key: "lastFinalReminderRun",
       },
       update: {
-        value: today,
+        value: runKey,
       },
       create: {
         key: "lastFinalReminderRun",
-        value: today,
+        value: runKey,
       },
     });
 
@@ -198,6 +181,7 @@ export async function GET(
       predictionSent,
       finalReminderRun: true,
       runTimestamp,
+      finalReminderAt: finalReminderAt.toISOString(),
     });
   } catch (error) {
     console.error(

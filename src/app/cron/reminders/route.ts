@@ -1,6 +1,23 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+function nearestSaturdayOneMonthBefore(firstKickoff: Date) {
+  const year = firstKickoff.getUTCFullYear();
+  const month = firstKickoff.getUTCMonth() - 1;
+  const day = firstKickoff.getUTCDate();
+  const lastDayOfTargetMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const oneMonthBefore = new Date(
+    Date.UTC(year, month, Math.min(day, lastDayOfTargetMonth))
+  );
+  const dayOfWeek = oneMonthBefore.getUTCDay();
+  const daysBack = (dayOfWeek + 1) % 7;
+  const daysForward = (6 - dayOfWeek + 7) % 7;
+  const offset = daysBack <= daysForward ? -daysBack : daysForward;
+
+  oneMonthBefore.setUTCDate(oneMonthBefore.getUTCDate() + offset);
+  return oneMonthBefore;
+}
+
 export async function GET(
   request: Request
 ) {
@@ -50,18 +67,31 @@ export async function GET(
 
     const now = new Date();
 
-    const isSaturday =
-      now.getDay() === 6;
+    const tournament = await prisma.tournament.findFirst({
+      where: {
+        status: { in: ["OPEN", "LOCKED"] },
+        firstKickoff: { gt: now },
+      },
+      orderBy: { firstKickoff: "asc" },
+    });
 
-    const isNineAM =
-      now.getHours() === 9;
-
-    if (!isSaturday || !isNineAM) {
+    if (!tournament) {
       return NextResponse.json({
         success: true,
         skipped: true,
-        reason:
-          "Not scheduled reminder time",
+        reason: "No upcoming open tournament",
+      });
+    }
+
+    const reminderStart = nearestSaturdayOneMonthBefore(tournament.firstKickoff);
+
+    if (now < reminderStart || now >= tournament.firstKickoff) {
+      return NextResponse.json({
+        success: true,
+        skipped: true,
+        reason: "Outside the tournament reminder window",
+        reminderStart: reminderStart.toISOString(),
+        firstKickoff: tournament.firstKickoff.toISOString(),
       });
     }
 
@@ -131,6 +161,8 @@ export async function GET(
       success: true,
       verificationSent,
       predictionSent,
+      reminderStart: reminderStart.toISOString(),
+      firstKickoff: tournament.firstKickoff.toISOString(),
     });
   } catch (error) {
     console.error(
