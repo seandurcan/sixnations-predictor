@@ -19,22 +19,11 @@ const APP_URL = (
 const FROM_ADDRESS = "Perfect XV <noreply@perfect-xv.org>";
 const MANUAL_OVERRIDE_UNTIL = new Date("2026-09-07T08:00:00.000Z");
 
-function isManualOverrideActive() {
+export function isManualOverrideActive() {
   return Date.now() < MANUAL_OVERRIDE_UNTIL.getTime();
 }
 
-function isTodayInDublin(value: Date | null) {
-  if (!value) return false;
-
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Dublin",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  return formatter.format(value) === formatter.format(new Date());
-}
+export const MANUAL_OVERRIDE_UNTIL_ISO = MANUAL_OVERRIDE_UNTIL.toISOString();
 
 export async function recordVerificationReminder(userId: number) {
   return prisma.user.update({
@@ -64,11 +53,11 @@ export async function getUsersNeedingVerificationReminder(
     },
   });
 
-  return users.filter((user) =>
-    allowDailyOverride
-      ? !isTodayInDublin(user.lastVerificationReminderAt)
-      : !user.lastVerificationReminderAt ||
-        user.lastVerificationReminderAt <= sevenDaysAgo
+  return users.filter(
+    (user) =>
+      allowDailyOverride ||
+      !user.lastVerificationReminderAt ||
+      user.lastVerificationReminderAt <= sevenDaysAgo
   );
 }
 
@@ -98,10 +87,9 @@ export async function getUsersNeedingPredictionReminder(
   return users.filter(
     (user) =>
       user.predictions.length < matchIds.length &&
-      (allowDailyOverride
-        ? !isTodayInDublin(user.lastPredictionReminderAt)
-        : !user.lastPredictionReminderAt ||
-          user.lastPredictionReminderAt <= sevenDaysAgo)
+      (allowDailyOverride ||
+        !user.lastPredictionReminderAt ||
+        user.lastPredictionReminderAt <= sevenDaysAgo)
   );
 }
 
@@ -198,6 +186,6 @@ export async function processReminders(action: ReminderAction) {
     sentCount,
     failedCount,
     manualOverrideActive: isManualOverrideActive(),
-    manualOverrideUntil: MANUAL_OVERRIDE_UNTIL.toISOString(),
+    manualOverrideUntil: MANUAL_OVERRIDE_UNTIL_ISO,
   };
 }

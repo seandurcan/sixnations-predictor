@@ -20,10 +20,22 @@ type SettingsResponse = {
   error?: string;
 };
 
+type TestUser = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  emailVerified: boolean;
+};
+
 export default function CommunicationsPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [testUsers, setTestUsers] = useState<TestUser[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState("");
+  const [testingWindowActive, setTestingWindowActive] = useState(false);
+  const [testingWindowExpiresAt, setTestingWindowExpiresAt] = useState<string | null>(null);
 
   const [
     automaticRemindersEnabled,
@@ -66,7 +78,7 @@ export default function CommunicationsPage() {
 
   async function loadDashboardData() {
     try {
-      const [countsResponse, settingsResponse] = await Promise.all([
+      const [countsResponse, settingsResponse, testingResponse] = await Promise.all([
         fetch("/api/admin/reminders/counts", {
           cache: "no-store",
           credentials: "include",
@@ -75,10 +87,15 @@ export default function CommunicationsPage() {
           cache: "no-store",
           credentials: "include",
         }),
+        fetch("/api/admin/reminder-testing", {
+          cache: "no-store",
+          credentials: "include",
+        }),
       ]);
 
       const counts = (await countsResponse.json()) as CountsResponse;
       const settings = (await settingsResponse.json()) as SettingsResponse;
+      const testing = await testingResponse.json();
 
       if (!countsResponse.ok || !counts.success) {
         throw new Error(counts.error || "Unable to load reminder counts.");
@@ -86,16 +103,51 @@ export default function CommunicationsPage() {
       if (!settingsResponse.ok || !settings.success) {
         throw new Error(settings.error || "Unable to load reminder settings.");
       }
+      if (!testingResponse.ok || !testing.success) {
+        throw new Error(testing.error || "Unable to load reminder testing controls.");
+      }
 
       setVerificationRemindersDue(counts.verificationRemindersDue ?? 0);
       setPredictionRemindersDue(counts.predictionRemindersDue ?? 0);
       setAutomaticRemindersEnabled(settings.automaticRemindersEnabled);
+      setTestUsers(testing.users ?? []);
+      setTestingWindowActive(Boolean(testing.active));
+      setTestingWindowExpiresAt(testing.expiresAt ?? null);
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
           : "Unable to load communications data."
       );
+    }
+  }
+
+  async function markSelectedUserUnverified() {
+    if (!selectedUserId) {
+      setError("Select a user first.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setMessage("");
+      setError("");
+      const response = await fetch("/api/admin/reminder-testing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ userId: Number(selectedUserId) }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Unable to mark the user unverified.");
+      }
+      setMessage(result.message);
+      await loadDashboardData();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Unable to mark the user unverified.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -253,6 +305,40 @@ export default function CommunicationsPage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <Card title="Reminder Emails">
             <div className="space-y-4">
+              {testingWindowActive && (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
+                  <p className="font-semibold">Temporary reminder testing</p>
+                  <p className="mb-3 text-sm text-slate-600">
+                    Repeated manual verification and prediction sends are available until{
+                      testingWindowExpiresAt
+                        ? ` ${new Date(testingWindowExpiresAt).toLocaleString("en-IE", { timeZone: "Europe/Dublin" })}`
+                        : " 09:00 tomorrow"
+                    }. Automatic reminders remain separate.
+                  </p>
+                  <select
+                    className="mb-3 w-full rounded-md border border-slate-300 bg-white px-3 py-2"
+                    value={selectedUserId}
+                    onChange={(event) => setSelectedUserId(event.target.value)}
+                    disabled={loading}
+                  >
+                    <option value="">Select a user to mark unverified</option>
+                    {testUsers.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.firstName} {user.lastName} — {user.email}{user.emailVerified ? "" : " (unverified)"}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    fullWidth
+                    variant="secondary"
+                    disabled={loading || !selectedUserId}
+                    onClick={markSelectedUserUnverified}
+                  >
+                    Mark Selected User Unverified
+                  </Button>
+                </div>
+              )}
+
               <Button
                 fullWidth
                 disabled={loading}
