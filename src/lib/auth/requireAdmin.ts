@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { SESSION_COOKIE } from "@/lib/auth";
 
 export async function requireAdmin(request: NextRequest) {
   try {
-    const sessionToken = request.cookies.get("session")?.value;
+    const sessionToken = request.cookies.get(SESSION_COOKIE)?.value;
 
     if (!sessionToken) {
       return {
