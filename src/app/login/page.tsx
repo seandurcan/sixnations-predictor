@@ -32,6 +32,12 @@ export default function LoginPage() {
   const [loading, setLoading] =
     useState(false);
 
+  const [resending, setResending] =
+    useState(false);
+
+  const [verificationMessage, setVerificationMessage] =
+    useState("");
+
   function validateForm() {
     if (!form.email.trim()) {
       return "Email is required.";
@@ -118,6 +124,45 @@ export default function LoginPage() {
     }
   }
 
+  async function handleResendVerification() {
+    const email = form.email.trim().toLowerCase();
+
+    setError("");
+    setVerificationMessage("");
+
+    if (!email) {
+      setError("Enter your email address before requesting a verification email.");
+      return;
+    }
+
+    setResending(true);
+
+    try {
+      const response = await fetch("/api/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const result = (await response.json().catch(() => null)) as LoginResponse | null;
+
+      if (!response.ok || result?.success !== true) {
+        throw new Error(result?.error || "Unable to resend the verification email.");
+      }
+
+      setVerificationMessage(
+        "If this address is registered and unverified, a new verification email has been sent."
+      );
+    } catch (resendError) {
+      setError(
+        resendError instanceof Error
+          ? resendError.message
+          : "Unable to resend the verification email."
+      );
+    } finally {
+      setResending(false);
+    }
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
       <Card className="w-full max-w-md">
@@ -136,6 +181,12 @@ export default function LoginPage() {
               title="Login Failed"
             >
               {error}
+            </Alert>
+          )}
+
+          {verificationMessage && (
+            <Alert variant="success" title="Verification Email">
+              {verificationMessage}
             </Alert>
           )}
 
@@ -204,6 +255,16 @@ export default function LoginPage() {
             {loading
               ? "Logging in..."
               : "Login"}
+          </Button>
+
+          <Button
+            type="button"
+            fullWidth
+            variant="secondary"
+            disabled={loading || resending}
+            onClick={handleResendVerification}
+          >
+            {resending ? "Sending..." : "Resend Verification Email"}
           </Button>
 
           <div className="grid gap-3 sm:grid-cols-2">

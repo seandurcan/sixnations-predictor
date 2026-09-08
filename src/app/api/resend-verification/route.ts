@@ -7,13 +7,19 @@ export async function POST(
   request: Request
 ) {
   try {
-    const body =
-      await request.json();
+    const body = await request.json();
+    const email = typeof body.email === "string"
+      ? body.email.trim().toLowerCase()
+      : "";
+
+    if (!email) {
+      return NextResponse.json({ success: true });
+    }
 
     const user =
       await prisma.user.findUnique({
         where: {
-          email: body.email,
+          email,
         },
       });
 

@@ -193,6 +193,37 @@ describe("LoginPage", () => {
     );
   });
 
+  it("renders the resend-verification control", () => {
+    render(<LoginPage />);
+
+    expect(
+      screen.getByRole("button", { name: "Resend Verification Email" })
+    ).toBeInTheDocument();
+  });
+
+  it("resends verification using the entered email address", async () => {
+    fetchMock.mockResolvedValueOnce(createJsonResponse({ success: true }));
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(getEmailInput(), " Sean@Example.com ");
+    await user.click(
+      screen.getByRole("button", { name: "Resend Verification Email" })
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "sean@example.com" }),
+      });
+    });
+
+    expect(
+      await screen.findByText(/a new verification email has been sent/i)
+    ).toBeInTheDocument();
+  });
+
   it("allows an email address to be entered", async () => {
     const user = userEvent.setup();
 
