@@ -76,6 +76,31 @@ export async function POST(
         },
       });
 
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: match.tournamentId },
+      include: { matches: { select: { id: true } } },
+    });
+    if (tournament) {
+      const predictionCount = await prisma.prediction.count({
+        where: {
+          userId: user.id,
+          matchId: { in: tournament.matches.map((item) => item.id) },
+        },
+      });
+      const completedEntry =
+        predictionCount === tournament.matches.length &&
+        user.tournamentPointsGuess !== null;
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          predictionsSubmitted: completedEntry,
+          predictionSubmittedAt:
+            completedEntry && !user.predictionSubmittedAt ? new Date() : undefined,
+        },
+      });
+    }
+
     return NextResponse.json({
       success: true,
       prediction,

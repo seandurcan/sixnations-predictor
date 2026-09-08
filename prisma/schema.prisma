@@ -38,6 +38,7 @@ model User {
   registrationOrder     Int
   predictionsSubmitted  Boolean                @default(false)
   predictionSubmittedAt DateTime?
+  tournamentPointsGuess Int?
 
   lastVerificationReminderAt DateTime?
   lastPredictionReminderAt   DateTime?
@@ -178,6 +179,8 @@ model Prediction {
   differenceScore    Int      @default(0)
 
   exactScore         Boolean  @default(false)
+  correctMargin      Boolean  @default(false)
+  correctResult      Boolean  @default(false)
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -243,6 +246,8 @@ model LeaderboardSnapshot {
   totalPoints     Int
   cumulativeError Int
   exactScores     Int
+  correctMargins  Int        @default(0)
+  correctResults  Int        @default(0)
   generatedAt     DateTime   @default(now())
   tournament      Tournament @relation(fields: [tournamentId], references: [id])
   user            User       @relation(fields: [userId], references: [id])
@@ -265,10 +270,14 @@ model ScoreAudit {
 
 model TournamentWinner {
   id           Int      @id @default(autoincrement())
-  tournamentId Int      @unique
+  tournamentId Int
   userId       Int
   finalPoints  Int
+  rank         Int      @default(1)
   createdAt    DateTime @default(now())
+
+  @@unique([tournamentId, userId])
+  @@index([tournamentId, rank])
 }
 
 model SystemSetting {

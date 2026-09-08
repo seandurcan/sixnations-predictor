@@ -17,6 +17,9 @@ vi.mock("@/lib/prisma", () => ({
       findFirst: vi.fn(),
       findMany: vi.fn(),
     },
+    tournament: {
+      findFirst: vi.fn(),
+    },
   },
 }));
 
@@ -30,15 +33,20 @@ const mockUsers = [
     totalPoints: 40,
     exactScores: 3,
     cumulativeError: 12,
+    tournamentPointsGuess: 600,
     registrationOrder: 1,
     predictions: [
       {
         id: 101,
         differenceScore: -4,
+        correctMargin: true,
+        correctResult: true,
       },
       {
         id: 102,
         differenceScore: 2,
+        correctMargin: false,
+        correctResult: true,
       },
     ],
   },
@@ -49,15 +57,20 @@ const mockUsers = [
     totalPoints: 40,
     exactScores: 2,
     cumulativeError: 10,
+    tournamentPointsGuess: 610,
     registrationOrder: 2,
     predictions: [
       {
         id: 103,
         differenceScore: 1,
+        correctMargin: false,
+        correctResult: true,
       },
       {
         id: 104,
         differenceScore: 3,
+        correctMargin: false,
+        correctResult: true,
       },
     ],
   },
@@ -68,11 +81,14 @@ const mockUsers = [
     totalPoints: 35,
     exactScores: 5,
     cumulativeError: 8,
+    tournamentPointsGuess: 620,
     registrationOrder: 3,
     predictions: [
       {
         id: 105,
         differenceScore: 0,
+        correctMargin: true,
+        correctResult: true,
       },
     ],
   },
@@ -83,6 +99,7 @@ const mockUsers = [
     totalPoints: 20,
     exactScores: 1,
     cumulativeError: 30,
+    tournamentPointsGuess: null,
     registrationOrder: 4,
     predictions: [],
   },
@@ -119,6 +136,7 @@ function createRequest(
 describe("GET /api/leaderboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(prisma.tournament.findFirst).mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -151,25 +169,25 @@ describe("GET /api/leaderboard", () => {
     expect(body.data).toHaveLength(4);
 
     expect(body.data[0]).toMatchObject({
-      id: 1,
-      firstName: "Aoife",
-      lastName: "Murphy",
-      rank: 1,
-      totalPoints: 40,
-      differenceScore: -2,
-      previousRank: 2,
-      rankMovement: 1,
-    });
-
-    expect(body.data[1]).toMatchObject({
       id: 2,
       firstName: "Sean",
       lastName: "Durcan",
-      rank: 2,
+      rank: 1,
       totalPoints: 40,
       differenceScore: 4,
       previousRank: 1,
       rankMovement: -1,
+    });
+
+    expect(body.data[1]).toMatchObject({
+      id: 1,
+      firstName: "Aoife",
+      lastName: "Murphy",
+      rank: 2,
+      totalPoints: 40,
+      differenceScore: -2,
+      previousRank: 2,
+      rankMovement: 1,
     });
   });
 
@@ -193,27 +211,17 @@ describe("GET /api/leaderboard", () => {
     );
   });
 
-  it("uses difference score as second sort priority", async () => {
+  it("uses lowest aggregate score error as second sort priority", async () => {
     const tiedUsers = [
       {
         ...mockUsers[0],
         totalPoints: 40,
-        predictions: [
-          {
-            id: 1,
-            differenceScore: 10,
-          },
-        ],
+        cumulativeError: 20,
       },
       {
         ...mockUsers[1],
         totalPoints: 40,
-        predictions: [
-          {
-            id: 2,
-            differenceScore: -3,
-          },
-        ],
+        cumulativeError: 5,
       },
     ];
 
@@ -231,7 +239,7 @@ describe("GET /api/leaderboard", () => {
 
     expect(response.status).toBe(200);
     expect(body.data[0].id).toBe(2);
-    expect(body.data[0].differenceScore).toBe(-3);
+    expect(body.data[0].cumulativeError).toBe(5);
   });
 
   it("uses exact scores as third sort priority", async () => {
@@ -269,21 +277,21 @@ describe("GET /api/leaderboard", () => {
     expect(body.data[0].exactScores).toBe(4);
   });
 
-  it("uses cumulative error as fourth sort priority", async () => {
+  it("uses correct margins as fourth sort priority", async () => {
     const tiedUsers = [
       {
         ...mockUsers[0],
         totalPoints: 40,
         exactScores: 2,
         cumulativeError: 20,
-        predictions: [],
+        predictions: [{ id: 1, differenceScore: 0, correctMargin: false, correctResult: true }],
       },
       {
         ...mockUsers[1],
         totalPoints: 40,
         exactScores: 2,
-        cumulativeError: 5,
-        predictions: [],
+        cumulativeError: 20,
+        predictions: [{ id: 2, differenceScore: 0, correctMargin: true, correctResult: true }],
       },
     ];
 
@@ -301,10 +309,10 @@ describe("GET /api/leaderboard", () => {
 
     expect(response.status).toBe(200);
     expect(body.data[0].id).toBe(2);
-    expect(body.data[0].cumulativeError).toBe(5);
+    expect(body.data[0].correctMargins).toBe(1);
   });
 
-  it("uses registration order as final sort priority", async () => {
+  it("keeps fully tied entrants joint and uses competition ranking", async () => {
     const tiedUsers = [
       {
         ...mockUsers[0],
@@ -312,6 +320,7 @@ describe("GET /api/leaderboard", () => {
         exactScores: 2,
         cumulativeError: 10,
         registrationOrder: 2,
+        tournamentPointsGuess: null,
         predictions: [],
       },
       {
@@ -320,6 +329,7 @@ describe("GET /api/leaderboard", () => {
         exactScores: 2,
         cumulativeError: 10,
         registrationOrder: 1,
+        tournamentPointsGuess: null,
         predictions: [],
       },
     ];
@@ -337,8 +347,7 @@ describe("GET /api/leaderboard", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.data[0].id).toBe(2);
-    expect(body.data[0].registrationOrder).toBe(1);
+    expect(body.data.map((entry: any) => entry.rank)).toEqual([1, 1]);
   });
 
   it("returns paginated data", async () => {

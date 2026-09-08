@@ -1,148 +1,70 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { assignCompetitionRanks } from "@/lib/scoring";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-
-  const page = Number(
-    searchParams.get("page") ?? "1"
-  );
-
-  const pageSize = Number(
-    searchParams.get("pageSize") ?? "10"
-  );
-
+  const page = Number(searchParams.get("page") ?? "1");
+  const pageSize = Number(searchParams.get("pageSize") ?? "10");
   const users = await prisma.user.findMany({
-    include: {
-      predictions: true,
-    },
+    include: { predictions: true },
   });
+  const tournament = await prisma.tournament.findFirst({
+    orderBy: { firstKickoff: "asc" },
+    include: { matches: true },
+  });
+  const tournamentComplete =
+    Boolean(tournament?.matches.length) && tournament!.matches.every((match) => match.completed);
+  const actualPoints = tournamentComplete
+    ? tournament!.matches.reduce(
+        (total, match) => total + (match.actualHomeScore ?? 0) + (match.actualAwayScore ?? 0),
+        0
+      )
+    : null;
+  const latestSnapshot = await prisma.leaderboardSnapshot.findFirst({
+    orderBy: { snapshotNumber: "desc" },
+  });
+  const snapshots = latestSnapshot
+    ? await prisma.leaderboardSnapshot.findMany({
+        where: { snapshotNumber: latestSnapshot.snapshotNumber },
+      })
+    : [];
 
-  const latestSnapshot =
-    await prisma.leaderboardSnapshot.findFirst({
-      orderBy: {
-        snapshotNumber: "desc",
-      },
-    });
-
-  let latestSnapshots: any[] = [];
-
-  if (latestSnapshot) {
-    latestSnapshots =
-      await prisma.leaderboardSnapshot.findMany({
-        where: {
-          snapshotNumber:
-            latestSnapshot.snapshotNumber,
-        },
-      });
-  }
-
-  const leaderboard = users
-    .map((user) => {
-      const differenceScore =
-        user.predictions.reduce(
-          (total, prediction) =>
-            total +
-            prediction.differenceScore,
-          0
-        );
-
-      const snapshot =
-        latestSnapshots.find(
-          (s) => s.userId === user.id
-        );
-
+  const rankedUsers = assignCompetitionRanks(users.map((user) => {
+      const snapshot = snapshots.find((item) => item.userId === user.id);
       return {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         totalPoints: user.totalPoints,
         exactScores: user.exactScores,
-        cumulativeError:
-          user.cumulativeError,
-        differenceScore,
-        registrationOrder:
-          user.registrationOrder,
-        previousRank:
-          snapshot?.previousRank ??
-          null,
-        rankMovement:
-          snapshot?.rankMovement ??
-          null,
+        cumulativeError: user.cumulativeError,
+        differenceScore: user.predictions.reduce(
+          (total, prediction) => total + prediction.differenceScore,
+          0
+        ),
+        correctMargins: user.predictions.filter((prediction) => prediction.correctMargin).length,
+        correctResults: user.predictions.filter((prediction) => prediction.correctResult).length,
+        tournamentPointsError:
+          actualPoints !== null && user.tournamentPointsGuess !== null
+            ? Math.abs(user.tournamentPointsGuess - actualPoints)
+            : null,
+        predictionSubmittedAt: user.predictionSubmittedAt,
+        registrationOrder: user.registrationOrder,
+        previousRank: snapshot?.previousRank ?? null,
+        rankMovement: snapshot?.rankMovement ?? null,
       };
-    })
-    .sort((a, b) => {
-      if (
-        b.totalPoints !==
-        a.totalPoints
-      ) {
-        return (
-          b.totalPoints -
-          a.totalPoints
-        );
-      }
-
-      if (
-        a.differenceScore !==
-        b.differenceScore
-      ) {
-        return (
-          a.differenceScore -
-          b.differenceScore
-        );
-      }
-
-      if (
-        b.exactScores !==
-        a.exactScores
-      ) {
-        return (
-          b.exactScores -
-          a.exactScores
-        );
-      }
-
-      if (
-        a.cumulativeError !==
-        b.cumulativeError
-      ) {
-        return (
-          a.cumulativeError -
-          b.cumulativeError
-        );
-      }
-
-      return (
-        a.registrationOrder -
-        b.registrationOrder
-      );
-    })
-    .map((user, index) => ({
-      rank: index + 1,
-      ...user,
     }));
 
-  const totalRecords =
-    leaderboard.length;
+  const leaderboard = rankedUsers;
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(
-      totalRecords / pageSize
-    )
-  );
-
-  const pagedData =
-    leaderboard.slice(
-      (page - 1) * pageSize,
-      page * pageSize
-    );
-
+  const totalRecords = leaderboard.length;
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
   return NextResponse.json({
     page,
     pageSize,
     totalRecords,
     totalPages,
-    data: pagedData,
+    data: leaderboard.slice((page - 1) * pageSize, page * pageSize),
   });
 }

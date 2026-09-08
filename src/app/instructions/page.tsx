@@ -35,6 +35,9 @@ export default function InstructionsPage() {
                   <strong className="text-[var(--brand-navy)]">Save Changes:</strong> Submit or update your predictions anytime before the match officially kicks off.
                 </li>
                 <li>
+                  <strong className="text-[var(--brand-navy)]">Enter the Tournament Tie-Break:</strong> Predict the total points scored across all 15 matches.
+                </li>
+                <li>
                   <strong className="text-[var(--brand-navy)]">Automatic Locking:</strong> Once kick-off is reached, fixtures lock automatically to ensure a fair competition for all players.
                 </li>
               </ol>
@@ -50,18 +53,24 @@ export default function InstructionsPage() {
 
               <div className="grid gap-4 sm:grid-cols-2 mt-4">
                 <div className="rounded-lg bg-[rgba(0,123,255,0.04)] p-4 border border-[rgba(0,123,255,0.15)]">
-                  <h4 className="font-bold text-[var(--brand-navy)] mb-1">Correct Outcome</h4>
-                  <p className="text-sm">Earn base points for correctly predicting which team wins or if the match ends in a draw.</p>
+                  <h4 className="font-bold text-[var(--brand-navy)] mb-1">Correct Outcome — 3 points</h4>
+                  <p className="text-sm">Correctly predict the winning team or a draw.</p>
                 </div>
 
                 <div className="rounded-lg bg-[var(--brand-soft-lime)] p-4 border border-emerald-200">
-                  <h4 className="font-bold text-[var(--brand-navy)] mb-1">Exact Score Bonus</h4>
-                  <p className="text-sm">Get maximum points by nailing the exact scoreline for both teams, separating top predictors on the table.</p>
+                  <h4 className="font-bold text-[var(--brand-navy)] mb-1">Correct Margin — 2 bonus points</h4>
+                  <p className="text-sm">Predict the exact winning margin, including a zero margin for a draw.</p>
+                </div>
+
+                <div className="rounded-lg bg-amber-50 p-4 border border-amber-200">
+                  <h4 className="font-bold text-[var(--brand-navy)] mb-1">Exact Score — 3 bonus points</h4>
+                  <p className="text-sm">An exact score earns all three awards for a maximum of 8 points.</p>
                 </div>
               </div>
 
               <ul className="list-disc space-y-2 pl-5 pt-2">
-                <li>Points differential tracks how close your score predictions are overall across the tournament.</li>
+                <li>Ties are separated by lowest aggregate score error, exact scores, correct margins and correct results.</li>
+                <li>Remaining ties use the closest tournament-points prediction. Entrants still level share the place.</li>
                 <li>Climb the live leaderboard automatically as match results are finalized and processed by admins.</li>
               </ul>
             </div>

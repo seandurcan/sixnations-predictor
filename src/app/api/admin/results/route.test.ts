@@ -12,6 +12,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     match: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
       update: vi.fn(),
       count: vi.fn(),
     },
@@ -35,7 +36,8 @@ vi.mock("@/lib/prisma", () => ({
       update: vi.fn(),
     },
     tournamentWinner: {
-      upsert: vi.fn(),
+      deleteMany: vi.fn(),
+      createMany: vi.fn(),
     },
   },
 }));
@@ -55,6 +57,7 @@ const mockAdmin = {
 
 const existingMatch = {
   id: 101,
+  tournamentId: 1,
   actualHomeScore: null,
   actualAwayScore: null,
   completed: false,
@@ -62,6 +65,7 @@ const existingMatch = {
 
 const updatedMatch = {
   id: 101,
+  tournamentId: 1,
   actualHomeScore: 28,
   actualAwayScore: 20,
   completed: true,
@@ -97,7 +101,7 @@ const mockUsersAfterPredictionUpdate = [
     registrationOrder: 1,
     predictions: [
       {
-        pointsAwarded: 13,
+        pointsAwarded: 8,
         errorValue: 0,
         exactScore: true,
         differenceScore: 0,
@@ -121,7 +125,7 @@ const mockUsersAfterPredictionUpdate = [
 const mockRefreshedUsers = [
   {
     id: 10,
-    totalPoints: 13,
+    totalPoints: 8,
     exactScores: 1,
     cumulativeError: 0,
     registrationOrder: 1,
@@ -194,6 +198,10 @@ function mockSuccessfulResultSave({
 
   vi.mocked(prisma.user.update).mockResolvedValue({} as any);
 
+  vi.mocked(prisma.match.findMany).mockResolvedValue([
+    updatedMatch,
+  ] as any);
+
   vi.mocked(
     prisma.leaderboardSnapshot.findFirst
   ).mockResolvedValueOnce(latestSnapshot as any);
@@ -216,9 +224,8 @@ function mockSuccessfulResultSave({
     {} as any
   );
 
-  vi.mocked(
-    prisma.tournamentWinner.upsert
-  ).mockResolvedValue({} as any);
+  vi.mocked(prisma.tournamentWinner.deleteMany).mockResolvedValue({ count: 0 } as any);
+  vi.mocked(prisma.tournamentWinner.createMany).mockResolvedValue({ count: 1 } as any);
 }
 
 describe("POST /api/admin/results", () => {
@@ -293,7 +300,7 @@ describe("POST /api/admin/results", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
-  it("awards exact score prediction with 13 points", async () => {
+  it("awards exact score prediction with 8 points", async () => {
     mockSuccessfulResultSave();
 
     await POST(
@@ -309,9 +316,11 @@ describe("POST /api/admin/results", () => {
         id: 301,
       },
       data: {
-        pointsAwarded: 13,
+        pointsAwarded: 8,
         errorValue: 0,
         exactScore: true,
+        correctMargin: true,
+        correctResult: true,
         differenceScore: -0,
       },
     });
@@ -336,6 +345,8 @@ describe("POST /api/admin/results", () => {
         pointsAwarded: 3,
         errorValue: 9,
         exactScore: false,
+        correctMargin: false,
+        correctResult: true,
         differenceScore: -5,
       },
     });
@@ -360,6 +371,8 @@ describe("POST /api/admin/results", () => {
         pointsAwarded: 0,
         errorValue: 16,
         exactScore: false,
+        correctMargin: false,
+        correctResult: false,
         differenceScore: 16,
       },
     });
@@ -488,7 +501,7 @@ describe("POST /api/admin/results", () => {
     );
   });
 
-  it("completes tournament and upserts winner when all matches are completed", async () => {
+  it("completes tournament and stores every joint winner when all matches are completed", async () => {
     mockSuccessfulResultSave({
       completedMatches: 15,
       totalMatches: 15,
@@ -513,19 +526,11 @@ describe("POST /api/admin/results", () => {
       },
     });
 
-    expect(prisma.tournamentWinner.upsert).toHaveBeenCalledWith({
-      where: {
-        tournamentId: 1,
-      },
-      update: {
-        userId: 10,
-        finalPoints: 13,
-      },
-      create: {
-        tournamentId: 1,
-        userId: 10,
-        finalPoints: 13,
-      },
+    expect(prisma.tournamentWinner.deleteMany).toHaveBeenCalledWith({
+      where: { tournamentId: 1 },
+    });
+    expect(prisma.tournamentWinner.createMany).toHaveBeenCalledWith({
+      data: [{ tournamentId: 1, userId: 10, finalPoints: 8, rank: 1 }],
     });
   });
 
@@ -545,7 +550,8 @@ describe("POST /api/admin/results", () => {
 
     expect(response.status).toBe(200);
     expect(prisma.tournament.update).not.toHaveBeenCalled();
-    expect(prisma.tournamentWinner.upsert).not.toHaveBeenCalled();
+    expect(prisma.tournamentWinner.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.tournamentWinner.createMany).not.toHaveBeenCalled();
   });
 
   it("handles draw result and exact drawn prediction", async () => {
@@ -586,7 +592,7 @@ describe("POST /api/admin/results", () => {
           registrationOrder: 1,
           predictions: [
             {
-              pointsAwarded: 13,
+              pointsAwarded: 8,
               errorValue: 0,
               exactScore: true,
               differenceScore: 0,
@@ -597,7 +603,7 @@ describe("POST /api/admin/results", () => {
       .mockResolvedValueOnce([
         {
           id: 10,
-          totalPoints: 13,
+          totalPoints: 8,
           exactScores: 1,
           cumulativeError: 0,
           registrationOrder: 1,
@@ -610,6 +616,10 @@ describe("POST /api/admin/results", () => {
       ] as any);
 
     vi.mocked(prisma.user.update).mockResolvedValue({} as any);
+
+    vi.mocked(prisma.match.findMany).mockResolvedValue([
+      { ...updatedMatch, actualHomeScore: 18, actualAwayScore: 18 },
+    ] as any);
 
     vi.mocked(
       prisma.leaderboardSnapshot.findFirst
@@ -638,9 +648,11 @@ describe("POST /api/admin/results", () => {
         id: 401,
       },
       data: {
-        pointsAwarded: 13,
+        pointsAwarded: 8,
         errorValue: 0,
         exactScore: true,
+        correctMargin: true,
+        correctResult: true,
         differenceScore: -0,
       },
     });

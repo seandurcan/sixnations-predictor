@@ -13,9 +13,11 @@ import {
 
 type SortOption =
   | "points"
-  | "difference"
   | "exact"
   | "error"
+  | "margins"
+  | "results"
+  | "tiebreak"
   | "player";
 
 type LeaderboardEntry = {
@@ -27,6 +29,9 @@ type LeaderboardEntry = {
   differenceScore: number;
   exactScores: number;
   cumulativeError: number;
+  correctMargins?: number;
+  correctResults?: number;
+  tournamentPointsError?: number | null;
   previousRank: number | null;
   rankMovement: number | null;
 };
@@ -93,12 +98,14 @@ function getSortIndicator(
 
   switch (column) {
     case "player":
-    case "difference":
     case "error":
+    case "tiebreak":
       return " ▲";
 
     case "points":
     case "exact":
+    case "margins":
+    case "results":
       return " ▼";
 
     default:
@@ -255,13 +262,6 @@ export default function LeaderboardPage() {
               a.rank - b.rank
             );
 
-          case "difference":
-            return (
-              a.differenceScore -
-                b.differenceScore ||
-              a.rank - b.rank
-            );
-
           case "exact":
             return (
               b.exactScores -
@@ -275,6 +275,16 @@ export default function LeaderboardPage() {
                 b.cumulativeError ||
               a.rank - b.rank
             );
+
+          case "margins":
+            return (b.correctMargins ?? 0) - (a.correctMargins ?? 0) || a.rank - b.rank;
+
+          case "results":
+            return (b.correctResults ?? 0) - (a.correctResults ?? 0) || a.rank - b.rank;
+
+          case "tiebreak":
+            return (a.tournamentPointsError ?? Number.MAX_SAFE_INTEGER) -
+              (b.tournamentPointsError ?? Number.MAX_SAFE_INTEGER) || a.rank - b.rank;
 
           default:
             return a.rank - b.rank;
@@ -384,16 +394,24 @@ export default function LeaderboardPage() {
                   Total Points
                 </option>
 
-                <option value="difference">
-                  Difference Score
-                </option>
-
                 <option value="exact">
                   Exact Scores
                 </option>
 
                 <option value="error">
-                  Cumulative Error
+                  Aggregate Score Error
+                </option>
+
+                <option value="margins">
+                  Correct Margins
+                </option>
+
+                <option value="results">
+                  Correct Results
+                </option>
+
+                <option value="tiebreak">
+                  Tournament Tie-Break
                 </option>
 
                 <option value="player">
@@ -504,14 +522,14 @@ export default function LeaderboardPage() {
                           className="w-full p-3 transition-colors hover:bg-slate-50"
                           onClick={() =>
                             setSortBy(
-                              "difference"
+                              "error"
                             )
                           }
                         >
-                          Difference Score
+                          Aggregate Score Error
                           {getSortIndicator(
                             sortBy,
-                            "difference"
+                            "error"
                           )}
                         </button>
                       </th>
@@ -537,26 +555,9 @@ export default function LeaderboardPage() {
                         </button>
                       </th>
 
-                      <th
-                        scope="col"
-                        className="border border-slate-200 p-0"
-                      >
-                        <button
-                          type="button"
-                          className="w-full p-3 transition-colors hover:bg-slate-50"
-                          onClick={() =>
-                            setSortBy(
-                              "error"
-                            )
-                          }
-                        >
-                          Cumulative Error
-                          {getSortIndicator(
-                            sortBy,
-                            "error"
-                          )}
-                        </button>
-                      </th>
+                      <th scope="col" className="border border-slate-200 p-3">Correct Margins</th>
+                      <th scope="col" className="border border-slate-200 p-3">Correct Results</th>
+                      <th scope="col" className="border border-slate-200 p-3">Tournament Tie-Break</th>
                     </tr>
                   </thead>
 
@@ -596,7 +597,7 @@ export default function LeaderboardPage() {
 
                           <td className="border border-slate-200 p-3">
                             {
-                              player.differenceScore
+                              player.cumulativeError
                             }
                           </td>
 
@@ -607,9 +608,17 @@ export default function LeaderboardPage() {
                           </td>
 
                           <td className="border border-slate-200 p-3">
-                            {
-                              player.cumulativeError
-                            }
+                            {player.correctMargins ?? 0}
+                          </td>
+
+                          <td className="border border-slate-200 p-3">
+                            {player.correctResults ?? 0}
+                          </td>
+
+                          <td className="border border-slate-200 p-3">
+                            {player.tournamentPointsError == null
+                              ? "Pending"
+                              : `${player.tournamentPointsError} points`}
                           </td>
                         </tr>
                       )

@@ -32,6 +32,8 @@ export default function PredictionsPage() {
   const [isLocked, setIsLocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [tournamentPointsGuess, setTournamentPointsGuess] = useState("");
+  const [savingTieBreakers, setSavingTieBreakers] = useState(false);
 
   const homeScoreInputRef = useRef<HTMLInputElement>(null);
   const awayScoreInputRef = useRef<HTMLInputElement>(null);
@@ -58,6 +60,7 @@ export default function PredictionsPage() {
       }
 
       setUser(me.user);
+      setTournamentPointsGuess(me.user.tournamentPointsGuess?.toString() ?? "");
 
       const matchesResponse = await fetch("/api/matches");
       const matchesData = await matchesResponse.json();
@@ -96,6 +99,33 @@ export default function PredictionsPage() {
       });
 
       window.location.href = "/login";
+    }
+  }
+
+  async function saveTieBreakers() {
+    if (tournamentPointsGuess === "") {
+      setLockMessage("Enter the tournament points tie-break prediction.");
+      return;
+    }
+
+    try {
+      setSavingTieBreakers(true);
+      setLockMessage("");
+      setSuccessMessage("");
+      const response = await fetch("/api/predictions/tiebreakers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tournamentPointsGuess }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Unable to save tie-break predictions.");
+      }
+      setSuccessMessage("Tournament tie-break predictions saved successfully.");
+    } catch (error) {
+      setLockMessage(error instanceof Error ? error.message : "Unable to save tie-break predictions.");
+    } finally {
+      setSavingTieBreakers(false);
     }
   }
 
@@ -356,6 +386,26 @@ export default function PredictionsPage() {
             <span>
               {savedPredictions.length} / {matches.length}
             </span>
+          </div>
+        </Card>
+
+        <Card title="Tournament Tie-Break Predictions" className="mb-6">
+          <p className="mb-4 text-sm text-[var(--brand-muted)]">
+            These predictions separate entrants who finish level after match scoring.
+          </p>
+          <div className="max-w-md">
+            <Input
+              type="number"
+              min="0"
+              placeholder="Total tournament points"
+              value={tournamentPointsGuess}
+              onChange={(event) => setTournamentPointsGuess(event.target.value)}
+            />
+          </div>
+          <div className="mt-4">
+            <Button disabled={savingTieBreakers} onClick={saveTieBreakers}>
+              {savingTieBreakers ? "Saving..." : "Save Tie-Break Predictions"}
+            </Button>
           </div>
         </Card>
 

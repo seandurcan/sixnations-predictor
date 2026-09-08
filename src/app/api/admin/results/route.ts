@@ -1,15 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
-
-function getWinner(
-  home: number,
-  away: number
-) {
-  if (home > away) return "HOME";
-  if (away > home) return "AWAY";
-  return "DRAW";
-}
+import { assignCompetitionRanks, calculateMatchScore } from "@/lib/scoring";
 
 export async function POST(
   request: Request
@@ -82,82 +74,25 @@ export async function POST(
         },
       });
 
-    const actualWinner =
-      getWinner(
+    for (const prediction of predictions) {
+      const score = calculateMatchScore(
+        prediction.predictedHomeScore,
+        prediction.predictedAwayScore,
         body.homeScore,
         body.awayScore
       );
-
-    const actualDifference =
-      body.homeScore -
-      body.awayScore;
-
-    for (const prediction of predictions) {
-      let pointsAwarded = 0;
-
-      const predictedWinner =
-        getWinner(
-          prediction.predictedHomeScore,
-          prediction.predictedAwayScore
-        );
-
-      if (
-        predictedWinner ===
-        actualWinner
-      ) {
-        pointsAwarded += 3;
-      }
-
-      const exactScore =
-        prediction.predictedHomeScore ===
-          body.homeScore &&
-        prediction.predictedAwayScore ===
-          body.awayScore;
-
-      if (exactScore) {
-        pointsAwarded += 10;
-      }
-
-      const errorValue =
-        Math.abs(
-          prediction.predictedHomeScore -
-            body.homeScore
-        ) +
-        Math.abs(
-          prediction.predictedAwayScore -
-            body.awayScore
-        );
-
-      const predictedDifference =
-        prediction.predictedHomeScore -
-        prediction.predictedAwayScore;
-
-      const differenceGap =
-        Math.abs(
-          predictedDifference -
-            actualDifference
-        );
-
-      let differenceScore =
-        differenceGap;
-
-      if (
-        predictedWinner ===
-        actualWinner
-      ) {
-        differenceScore =
-          -differenceGap;
-      }
 
       await prisma.prediction.update({
         where: {
           id: prediction.id,
         },
         data: {
-          pointsAwarded,
-          errorValue,
-          exactScore,
-          differenceScore,
+          pointsAwarded: score.pointsAwarded,
+          errorValue: score.errorValue,
+          exactScore: score.exactScore,
+          correctMargin: score.correctMargin,
+          correctResult: score.correctResult,
+          differenceScore: score.differenceScore,
         },
       });
     }
@@ -231,9 +166,19 @@ export async function POST(
         },
       });
 
-    const rankings =
-      refreshedUsers
-        .map((user) => {
+    const tournamentMatches = await prisma.match.findMany({
+      where: { tournamentId: match.tournamentId },
+    });
+    const tournamentComplete = tournamentMatches.every((item) => item.completed);
+    const actualTournamentPoints = tournamentComplete
+      ? tournamentMatches.reduce(
+          (total, item) => total + (item.actualHomeScore ?? 0) + (item.actualAwayScore ?? 0),
+          0
+        )
+      : null;
+
+    const rankings = assignCompetitionRanks(
+      refreshedUsers.map((user) => {
           const differenceScore =
             user.predictions.reduce(
               (
@@ -254,56 +199,18 @@ export async function POST(
             cumulativeError:
               user.cumulativeError,
             differenceScore,
+            correctMargins: user.predictions.filter((prediction) => prediction.correctMargin).length,
+            correctResults: user.predictions.filter((prediction) => prediction.correctResult).length,
+            tournamentPointsError:
+              actualTournamentPoints !== null && user.tournamentPointsGuess !== null
+                ? Math.abs(user.tournamentPointsGuess - actualTournamentPoints)
+                : null,
+            predictionSubmittedAt: user.predictionSubmittedAt,
             registrationOrder:
               user.registrationOrder,
           };
         })
-        .sort((a, b) => {
-          if (
-            b.totalPoints !==
-            a.totalPoints
-          ) {
-            return (
-              b.totalPoints -
-              a.totalPoints
-            );
-          }
-
-          if (
-            a.differenceScore !==
-            b.differenceScore
-          ) {
-            return (
-              a.differenceScore -
-              b.differenceScore
-            );
-          }
-
-          if (
-            b.exactScores !==
-            a.exactScores
-          ) {
-            return (
-              b.exactScores -
-              a.exactScores
-            );
-          }
-
-          if (
-            a.cumulativeError !==
-            b.cumulativeError
-          ) {
-            return (
-              a.cumulativeError -
-              b.cumulativeError
-            );
-          }
-
-          return (
-            a.registrationOrder -
-            b.registrationOrder
-          );
-        });
+    );
 
     const previousSnapshots =
       latestSnapshot
@@ -325,8 +232,7 @@ export async function POST(
       const user =
         rankings[index];
 
-      const rank =
-        index + 1;
+      const rank = user.rank;
 
       const previousSnapshot =
         previousSnapshots.find(
@@ -352,7 +258,7 @@ export async function POST(
       await prisma.leaderboardSnapshot.create(
         {
           data: {
-            tournamentId: 1,
+            tournamentId: match.tournamentId,
             userId: user.id,
             snapshotNumber,
             rank,
@@ -364,6 +270,8 @@ export async function POST(
               user.cumulativeError,
             exactScores:
               user.exactScores,
+            correctMargins: user.correctMargins,
+            correctResults: user.correctResults,
           },
         }
       );
@@ -373,11 +281,12 @@ export async function POST(
       await prisma.match.count({
         where: {
           completed: true,
+          tournamentId: match.tournamentId,
         },
       });
 
     const totalMatches =
-      await prisma.match.count();
+      await prisma.match.count({ where: { tournamentId: match.tournamentId } });
 
     if (
       completedMatches ===
@@ -385,7 +294,7 @@ export async function POST(
     ) {
       await prisma.tournament.update({
         where: {
-          id: 1,
+          id: match.tournamentId,
         },
         data: {
           status:
@@ -393,25 +302,19 @@ export async function POST(
         },
       });
 
-      const winner =
-        rankings[0];
+      const jointWinners = rankings.filter((entrant) => entrant.rank === 1);
 
-      if (winner) {
-        await prisma.tournamentWinner.upsert({
-          where: {
-            tournamentId: 1,
-          },
-          update: {
+      if (jointWinners.length > 0) {
+        await prisma.tournamentWinner.deleteMany({
+          where: { tournamentId: match.tournamentId },
+        });
+        await prisma.tournamentWinner.createMany({
+          data: jointWinners.map((winner) => ({
+            tournamentId: match.tournamentId,
             userId: winner.id,
-            finalPoints:
-              winner.totalPoints,
-          },
-          create: {
-            tournamentId: 1,
-            userId: winner.id,
-            finalPoints:
-              winner.totalPoints,
-          },
+            finalPoints: winner.totalPoints,
+            rank: 1,
+          })),
         });
       }
     }

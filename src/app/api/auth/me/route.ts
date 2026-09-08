@@ -39,6 +39,8 @@ export async function GET() {
             user.paymentStatus,
           paidAt:
             user.paidAt,
+          tournamentPointsGuess:
+            user.tournamentPointsGuess,
         },
       },
       {
