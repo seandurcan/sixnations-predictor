@@ -34,6 +34,7 @@ export default function PredictionsPage() {
   const [saving, setSaving] = useState(false);
   const [tournamentPointsGuess, setTournamentPointsGuess] = useState("");
   const [savingTieBreakers, setSavingTieBreakers] = useState(false);
+  const [quickPicking, setQuickPicking] = useState(false);
 
   const homeScoreInputRef = useRef<HTMLInputElement>(null);
   const awayScoreInputRef = useRef<HTMLInputElement>(null);
@@ -134,6 +135,33 @@ export default function PredictionsPage() {
     const data = await response.json();
     setSavedPredictions(data);
     return data;
+  }
+
+  async function runQuickPick() {
+    try {
+      setQuickPicking(true);
+      setLockMessage("");
+      setSuccessMessage("");
+      const response = await fetch("/api/predictions/quick-pick", {
+        method: "POST",
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Quick Pick failed.");
+      }
+
+      setTournamentPointsGuess(String(result.tournamentPointsGuess));
+      const refreshedPredictions = await refreshPredictions();
+      setSuccessMessage(
+        `Quick Pick saved predictions for ${result.saved} fixtures and set the tournament tie-break.`
+      );
+      goToFirstUnpredictedMatch(refreshedPredictions);
+    } catch (error) {
+      setLockMessage(error instanceof Error ? error.message : "Quick Pick failed.");
+    } finally {
+      setQuickPicking(false);
+    }
   }
 
   function goToFirstUnpredictedMatch(predictions: any[]) {
@@ -387,6 +415,19 @@ export default function PredictionsPage() {
               {savedPredictions.length} / {matches.length}
             </span>
           </div>
+        </Card>
+
+        <Card title="Quick Pick (Testing)" className="mb-6">
+          <p className="mb-4 text-sm text-[var(--brand-muted)]">
+            Generate and save random scores for every unlocked fixture. Existing unlocked predictions will be replaced.
+          </p>
+          <Button
+            fullWidth
+            disabled={quickPicking || matches.every((match) => isMatchLocked(match))}
+            onClick={runQuickPick}
+          >
+            {quickPicking ? "Generating Quick Pick..." : "Generate Quick Pick"}
+          </Button>
         </Card>
 
         <Card title="Tournament Tie-Break Predictions" className="mb-6">

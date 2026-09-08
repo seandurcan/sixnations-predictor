@@ -87,6 +87,10 @@ describe('PredictionsPage', () => {
     ).toBeInTheDocument();
 
     expect(
+      screen.getByRole("button", { name: "Generate Quick Pick" })
+    ).toBeInTheDocument();
+
+    expect(
       screen.getByText("IRE v FRA")
     ).toBeInTheDocument();
 
@@ -97,6 +101,41 @@ describe('PredictionsPage', () => {
     expect(
       screen.getAllByText(/14:15/i)[0]
     ).toBeInTheDocument();
+  });
+
+  it("allows every authenticated user to generate a Quick Pick", async () => {
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ authenticated: true, user: { firstName: "Test" } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [{
+          id: 1,
+          homeTeam: { shortCode: "IRE", name: "Ireland" },
+          awayTeam: { shortCode: "FRA", name: "France" },
+          kickoffTime: "2027-02-06T15:00:00Z",
+          completed: false,
+          round: 1,
+        }],
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => [] })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, saved: 1, tournamentPointsGuess: 42 }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => [] });
+
+    render(<PredictionsPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "Generate Quick Pick" }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/predictions/quick-pick",
+        { method: "POST" }
+      );
+    });
   });
 
   it('allows users to enter score predictions and save them', async () => {
