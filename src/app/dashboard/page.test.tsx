@@ -665,7 +665,7 @@ describe("DashboardPage", () => {
       })
     );
 
-    expect(window.location.href).toBe("/");
+    expect(window.location.href).toBe("/fixtures");
   });
 
   it("renders next match card with Irish formatted date and countdown", async () => {

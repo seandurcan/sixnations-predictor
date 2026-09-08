@@ -273,7 +273,7 @@ export default function DashboardPage() {
             variant="secondary"
             onClick={() => {
               window.location.href =
-                "/";
+                "/fixtures";
             }}
           >
             View Fixtures
