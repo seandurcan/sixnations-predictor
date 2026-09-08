@@ -31,10 +31,9 @@ describe("compareLeaderboardEntries", () => {
     exactScores: 1,
     correctMargins: 2,
     correctResults: 5,
-    tournamentPointsError: 4,
   };
 
-  it("uses aggregate score error before the remaining tie-breakers", () => {
+  it("uses aggregate score error before the remaining ranking measures", () => {
     const better = { ...base, id: 2, cumulativeError: 8 };
     expect([base, better].sort(compareLeaderboardEntries)[0].id).toBe(2);
   });
@@ -43,7 +42,6 @@ describe("compareLeaderboardEntries", () => {
     ["exact scores", { exactScores: 2 }],
     ["correct winning margins", { correctMargins: 3 }],
     ["correct results", { correctResults: 6 }],
-    ["closest tournament-points prediction", { tournamentPointsError: 3 }],
   ])("uses %s in the agreed order", (_label, improvement) => {
     const better = { ...base, id: 2, ...improvement };
     expect([base, better].sort(compareLeaderboardEntries)[0].id).toBe(2);

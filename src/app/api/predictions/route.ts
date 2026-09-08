@@ -88,8 +88,7 @@ export async function POST(
         },
       });
       const completedEntry =
-        predictionCount === tournament.matches.length &&
-        user.tournamentPointsGuess !== null;
+        predictionCount === tournament.matches.length;
 
       await prisma.user.update({
         where: { id: user.id },

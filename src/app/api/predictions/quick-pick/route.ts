@@ -42,11 +42,6 @@ export async function POST() {
       homeScore: randomScore(),
       awayScore: randomScore(),
     }));
-    const tournamentPointsGuess = picks.reduce(
-      (total, pick) => total + pick.homeScore + pick.awayScore,
-      0
-    );
-
     await prisma.$transaction([
       ...picks.map((pick) =>
         prisma.prediction.upsert({
@@ -66,7 +61,6 @@ export async function POST() {
       prisma.user.update({
         where: { id: user.id },
         data: {
-          tournamentPointsGuess,
           predictionsSubmitted: openMatches.length === tournament.matches.length,
           predictionSubmittedAt:
             openMatches.length === tournament.matches.length && !user.predictionSubmittedAt
@@ -79,7 +73,6 @@ export async function POST() {
     return NextResponse.json({
       success: true,
       saved: picks.length,
-      tournamentPointsGuess,
     });
   } catch (error) {
     console.error("Quick Pick failed:", error);

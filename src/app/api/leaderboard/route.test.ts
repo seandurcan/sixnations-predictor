@@ -33,7 +33,6 @@ const mockUsers = [
     totalPoints: 40,
     exactScores: 3,
     cumulativeError: 12,
-    tournamentPointsGuess: 600,
     registrationOrder: 1,
     predictions: [
       {
@@ -57,7 +56,6 @@ const mockUsers = [
     totalPoints: 40,
     exactScores: 2,
     cumulativeError: 10,
-    tournamentPointsGuess: 610,
     registrationOrder: 2,
     predictions: [
       {
@@ -81,7 +79,6 @@ const mockUsers = [
     totalPoints: 35,
     exactScores: 5,
     cumulativeError: 8,
-    tournamentPointsGuess: 620,
     registrationOrder: 3,
     predictions: [
       {
@@ -99,7 +96,6 @@ const mockUsers = [
     totalPoints: 20,
     exactScores: 1,
     cumulativeError: 30,
-    tournamentPointsGuess: null,
     registrationOrder: 4,
     predictions: [],
   },
@@ -320,7 +316,6 @@ describe("GET /api/leaderboard", () => {
         exactScores: 2,
         cumulativeError: 10,
         registrationOrder: 2,
-        tournamentPointsGuess: null,
         predictions: [],
       },
       {
@@ -329,7 +324,6 @@ describe("GET /api/leaderboard", () => {
         exactScores: 2,
         cumulativeError: 10,
         registrationOrder: 1,
-        tournamentPointsGuess: null,
         predictions: [],
       },
     ];

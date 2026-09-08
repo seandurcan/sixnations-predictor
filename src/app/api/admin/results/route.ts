@@ -166,17 +166,6 @@ export async function POST(
         },
       });
 
-    const tournamentMatches = await prisma.match.findMany({
-      where: { tournamentId: match.tournamentId },
-    });
-    const tournamentComplete = tournamentMatches.every((item) => item.completed);
-    const actualTournamentPoints = tournamentComplete
-      ? tournamentMatches.reduce(
-          (total, item) => total + (item.actualHomeScore ?? 0) + (item.actualAwayScore ?? 0),
-          0
-        )
-      : null;
-
     const rankings = assignCompetitionRanks(
       refreshedUsers.map((user) => {
           const differenceScore =
@@ -201,10 +190,6 @@ export async function POST(
             differenceScore,
             correctMargins: user.predictions.filter((prediction) => prediction.correctMargin).length,
             correctResults: user.predictions.filter((prediction) => prediction.correctResult).length,
-            tournamentPointsError:
-              actualTournamentPoints !== null && user.tournamentPointsGuess !== null
-                ? Math.abs(user.tournamentPointsGuess - actualTournamentPoints)
-                : null,
             predictionSubmittedAt: user.predictionSubmittedAt,
             registrationOrder:
               user.registrationOrder,

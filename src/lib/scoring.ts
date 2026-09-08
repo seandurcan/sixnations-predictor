@@ -49,12 +49,7 @@ export type RankingEntry = {
   exactScores: number;
   correctMargins: number;
   correctResults: number;
-  tournamentPointsError: number | null;
 };
-
-function nullableError(value: number | null) {
-  return value ?? Number.MAX_SAFE_INTEGER;
-}
 
 export function compareLeaderboardEntries(a: RankingEntry, b: RankingEntry) {
   return (
@@ -62,8 +57,7 @@ export function compareLeaderboardEntries(a: RankingEntry, b: RankingEntry) {
     a.cumulativeError - b.cumulativeError ||
     b.exactScores - a.exactScores ||
     b.correctMargins - a.correctMargins ||
-    b.correctResults - a.correctResults ||
-    nullableError(a.tournamentPointsError) - nullableError(b.tournamentPointsError)
+    b.correctResults - a.correctResults
   );
 }
 

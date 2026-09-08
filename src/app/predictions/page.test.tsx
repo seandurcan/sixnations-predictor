@@ -123,7 +123,7 @@ describe('PredictionsPage', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => [] })
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ success: true, saved: 1, tournamentPointsGuess: 42 }),
+        json: async () => ({ success: true, saved: 1 }),
       })
       .mockResolvedValueOnce({ ok: true, json: async () => [] });
 

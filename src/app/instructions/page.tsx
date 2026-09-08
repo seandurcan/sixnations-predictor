@@ -35,9 +35,6 @@ export default function InstructionsPage() {
                   <strong className="text-[var(--brand-navy)]">Save Changes:</strong> Submit or update your predictions anytime before the match officially kicks off.
                 </li>
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Enter the Tournament Tie-Break:</strong> Predict the total points scored across all 15 matches.
-                </li>
-                <li>
                   <strong className="text-[var(--brand-navy)]">Automatic Locking:</strong> Once kick-off is reached, fixtures lock automatically to ensure a fair competition for all players.
                 </li>
               </ol>
@@ -70,7 +67,7 @@ export default function InstructionsPage() {
 
               <ul className="list-disc space-y-2 pl-5 pt-2">
                 <li>Ties are separated by lowest aggregate score error, exact scores, correct margins and correct results.</li>
-                <li>Remaining ties use the closest tournament-points prediction. Entrants still level share the place.</li>
+                <li>Entrants still level after all ranking measures share the place.</li>
                 <li>Climb the live leaderboard automatically as match results are finalized and processed by admins.</li>
               </ul>
             </div>

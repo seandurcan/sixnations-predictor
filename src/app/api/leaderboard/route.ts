@@ -9,18 +9,6 @@ export async function GET(request: Request) {
   const users = await prisma.user.findMany({
     include: { predictions: true },
   });
-  const tournament = await prisma.tournament.findFirst({
-    orderBy: { firstKickoff: "asc" },
-    include: { matches: true },
-  });
-  const tournamentComplete =
-    Boolean(tournament?.matches.length) && tournament!.matches.every((match) => match.completed);
-  const actualPoints = tournamentComplete
-    ? tournament!.matches.reduce(
-        (total, match) => total + (match.actualHomeScore ?? 0) + (match.actualAwayScore ?? 0),
-        0
-      )
-    : null;
   const latestSnapshot = await prisma.leaderboardSnapshot.findFirst({
     orderBy: { snapshotNumber: "desc" },
   });
@@ -45,10 +33,6 @@ export async function GET(request: Request) {
         ),
         correctMargins: user.predictions.filter((prediction) => prediction.correctMargin).length,
         correctResults: user.predictions.filter((prediction) => prediction.correctResult).length,
-        tournamentPointsError:
-          actualPoints !== null && user.tournamentPointsGuess !== null
-            ? Math.abs(user.tournamentPointsGuess - actualPoints)
-            : null,
         predictionSubmittedAt: user.predictionSubmittedAt,
         registrationOrder: user.registrationOrder,
         previousRank: snapshot?.previousRank ?? null,

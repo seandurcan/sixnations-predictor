@@ -32,8 +32,6 @@ export default function PredictionsPage() {
   const [isLocked, setIsLocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [tournamentPointsGuess, setTournamentPointsGuess] = useState("");
-  const [savingTieBreakers, setSavingTieBreakers] = useState(false);
   const [quickPicking, setQuickPicking] = useState(false);
 
   const homeScoreInputRef = useRef<HTMLInputElement>(null);
@@ -61,7 +59,6 @@ export default function PredictionsPage() {
       }
 
       setUser(me.user);
-      setTournamentPointsGuess(me.user.tournamentPointsGuess?.toString() ?? "");
 
       const matchesResponse = await fetch("/api/matches");
       const matchesData = await matchesResponse.json();
@@ -103,33 +100,6 @@ export default function PredictionsPage() {
     }
   }
 
-  async function saveTieBreakers() {
-    if (tournamentPointsGuess === "") {
-      setLockMessage("Enter the tournament points tie-break prediction.");
-      return;
-    }
-
-    try {
-      setSavingTieBreakers(true);
-      setLockMessage("");
-      setSuccessMessage("");
-      const response = await fetch("/api/predictions/tiebreakers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tournamentPointsGuess }),
-      });
-      const result = await response.json();
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || "Unable to save tie-break predictions.");
-      }
-      setSuccessMessage("Tournament tie-break predictions saved successfully.");
-    } catch (error) {
-      setLockMessage(error instanceof Error ? error.message : "Unable to save tie-break predictions.");
-    } finally {
-      setSavingTieBreakers(false);
-    }
-  }
-
   async function refreshPredictions() {
     const response = await fetch("/api/predictions/list");
     const data = await response.json();
@@ -151,10 +121,9 @@ export default function PredictionsPage() {
         throw new Error(result.error || "Quick Pick failed.");
       }
 
-      setTournamentPointsGuess(String(result.tournamentPointsGuess));
       const refreshedPredictions = await refreshPredictions();
       setSuccessMessage(
-        `Quick Pick saved predictions for ${result.saved} fixtures and set the tournament tie-break.`
+        `Quick Pick saved predictions for ${result.saved} fixtures.`
       );
       goToFirstUnpredictedMatch(refreshedPredictions);
     } catch (error) {
@@ -428,26 +397,6 @@ export default function PredictionsPage() {
           >
             {quickPicking ? "Generating Quick Pick..." : "Generate Quick Pick"}
           </Button>
-        </Card>
-
-        <Card title="Tournament Tie-Break Predictions" className="mb-6">
-          <p className="mb-4 text-sm text-[var(--brand-muted)]">
-            These predictions separate entrants who finish level after match scoring.
-          </p>
-          <div className="max-w-md">
-            <Input
-              type="number"
-              min="0"
-              placeholder="Total tournament points"
-              value={tournamentPointsGuess}
-              onChange={(event) => setTournamentPointsGuess(event.target.value)}
-            />
-          </div>
-          <div className="mt-4">
-            <Button disabled={savingTieBreakers} onClick={saveTieBreakers}>
-              {savingTieBreakers ? "Saving..." : "Save Tie-Break Predictions"}
-            </Button>
-          </div>
         </Card>
 
         <div className="grid gap-6 lg:grid-cols-2 items-start">

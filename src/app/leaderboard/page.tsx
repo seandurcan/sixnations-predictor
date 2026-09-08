@@ -17,7 +17,6 @@ type SortOption =
   | "error"
   | "margins"
   | "results"
-  | "tiebreak"
   | "player";
 
 type LeaderboardEntry = {
@@ -31,7 +30,6 @@ type LeaderboardEntry = {
   cumulativeError: number;
   correctMargins?: number;
   correctResults?: number;
-  tournamentPointsError?: number | null;
   previousRank: number | null;
   rankMovement: number | null;
 };
@@ -99,7 +97,6 @@ function getSortIndicator(
   switch (column) {
     case "player":
     case "error":
-    case "tiebreak":
       return " ▲";
 
     case "points":
@@ -282,10 +279,6 @@ export default function LeaderboardPage() {
           case "results":
             return (b.correctResults ?? 0) - (a.correctResults ?? 0) || a.rank - b.rank;
 
-          case "tiebreak":
-            return (a.tournamentPointsError ?? Number.MAX_SAFE_INTEGER) -
-              (b.tournamentPointsError ?? Number.MAX_SAFE_INTEGER) || a.rank - b.rank;
-
           default:
             return a.rank - b.rank;
         }
@@ -408,10 +401,6 @@ export default function LeaderboardPage() {
 
                 <option value="results">
                   Correct Results
-                </option>
-
-                <option value="tiebreak">
-                  Tournament Tie-Break
                 </option>
 
                 <option value="player">
@@ -557,7 +546,6 @@ export default function LeaderboardPage() {
 
                       <th scope="col" className="border border-slate-200 p-3">Correct Margins</th>
                       <th scope="col" className="border border-slate-200 p-3">Correct Results</th>
-                      <th scope="col" className="border border-slate-200 p-3">Tournament Tie-Break</th>
                     </tr>
                   </thead>
 
@@ -615,11 +603,6 @@ export default function LeaderboardPage() {
                             {player.correctResults ?? 0}
                           </td>
 
-                          <td className="border border-slate-200 p-3">
-                            {player.tournamentPointsError == null
-                              ? "Pending"
-                              : `${player.tournamentPointsError} points`}
-                          </td>
                         </tr>
                       )
                     )}
