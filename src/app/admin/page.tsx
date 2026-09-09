@@ -294,6 +294,7 @@ export default function AdminPage() {
             matchId: nextMatch.id,
             homeScore: testHomeScore,
             awayScore: testAwayScore,
+            testMode: true,
           }),
         }
       );

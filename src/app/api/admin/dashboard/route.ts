@@ -53,33 +53,56 @@ export async function GET() {
 
     const predictionCount = playersWithPredictions.length;
 
+    const testScoringSetting =
+      await prisma.systemSetting.findUnique({
+        where: {
+          key: "ADMIN_TEST_SCORING_ACTIVE",
+        },
+      });
+
+    const tournamentHasStarted =
+      new Date() >= new Date(tournament.firstKickoff);
+
+    const testScoringActive =
+      testScoringSetting?.value === "true" &&
+      !tournamentHasStarted;
+
     const totalFixtures = await prisma.match.count({
       where: {
         tournamentId: TOURNAMENT_ID,
       },
     });
 
-    // A fixture is a completed match for dashboard purposes only when:
-    // 1. both final scores have been entered, and
-    // 2. at least 90 minutes have elapsed since kick-off.
+    // During pre-tournament test scoring, entered scores count immediately
+    // so the admin dashboard can be used to exercise all 15 fixtures.
+    //
+    // Once the real tournament reaches first kickoff, test mode is ignored
+    // and a completed dashboard match requires:
+    // 1. both final scores entered, and
+    // 2. at least 90 minutes elapsed since kickoff.
     const completionCutoff = new Date(
       Date.now() - MATCH_DURATION_MINUTES * 60 * 1000
     );
 
-    const completedFixtures = await prisma.match.count({
-      where: {
-        tournamentId: TOURNAMENT_ID,
-        kickoffTime: {
-          lte: completionCutoff,
+    const completedFixtures =
+      await prisma.match.count({
+        where: {
+          tournamentId: TOURNAMENT_ID,
+          ...(testScoringActive
+            ? {}
+            : {
+                kickoffTime: {
+                  lte: completionCutoff,
+                },
+              }),
+          actualHomeScore: {
+            not: null,
+          },
+          actualAwayScore: {
+            not: null,
+          },
         },
-        actualHomeScore: {
-          not: null,
-        },
-        actualAwayScore: {
-          not: null,
-        },
-      },
-    });
+      });
 
     const remainingFixtures = Math.max(
       0,
@@ -190,6 +213,7 @@ export async function GET() {
         completedFixtures,
         remainingFixtures,
         totalFixtures,
+        testScoringActive,
       },
 
       // Backward-compatible aliases prevent an older cached dashboard bundle

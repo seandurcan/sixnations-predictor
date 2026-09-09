@@ -17,6 +17,21 @@ export async function POST(
     const body =
       await request.json();
 
+    if (body.testMode === true) {
+      await prisma.systemSetting.upsert({
+        where: {
+          key: "ADMIN_TEST_SCORING_ACTIVE",
+        },
+        update: {
+          value: "true",
+        },
+        create: {
+          key: "ADMIN_TEST_SCORING_ACTIVE",
+          value: "true",
+        },
+      });
+    }
+
     const existingMatch =
       await prisma.match.findUnique({
         where: {

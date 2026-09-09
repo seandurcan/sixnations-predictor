@@ -106,6 +106,19 @@ export async function POST() {
           status: "OPEN",
         },
       }),
+
+      prisma.systemSetting.upsert({
+        where: {
+          key: "ADMIN_TEST_SCORING_ACTIVE",
+        },
+        update: {
+          value: "false",
+        },
+        create: {
+          key: "ADMIN_TEST_SCORING_ACTIVE",
+          value: "false",
+        },
+      }),
     ]);
 
     return NextResponse.json({
