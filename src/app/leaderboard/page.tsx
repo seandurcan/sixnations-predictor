@@ -17,7 +17,6 @@ type SortOption =
   | "error"
   | "margins"
   | "results"
-  | "tournament"
   | "player";
 
 type LeaderboardEntry = {
@@ -31,9 +30,6 @@ type LeaderboardEntry = {
   cumulativeError: number;
   correctMargins?: number;
   correctResults?: number;
-  tournamentPointsGuess?: number | null;
-  tournamentPointsError?: number;
-  tournamentComplete?: boolean;
   previousRank: number | null;
   rankMovement: number | null;
 };
@@ -101,192 +97,9 @@ function getSortIndicator(
   switch (column) {
     case "player":
     case "error":
-    case "tournament":
-      return " ▲";
-
-    case "points":
-    case "exact":
-    case "margins":
-    case "results":
-      return " ▼";
-
-    default:
-      return "";
-  }
-}
-
-export default function LeaderboardPage() {
-  const [leaderboard, setLeaderboard] =
-    useState<LeaderboardEntry[]>([]);
-
-  const [page, setPage] =
-    useState(1);
-
-  const [totalPages, setTotalPages] =
-    useState(1);
-
-  const [
-    totalRecords,
-    setTotalRecords,
-  ] = useState(0);
-
-  const [sortBy, setSortBy] =
-    useState<SortOption>("points");
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState<string | null>(null);
-
-  useEffect(() => {
-    const controller =
-      new AbortController();
-
-    async function loadLeaderboard() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(
-          `/api/leaderboard?page=${page}&pageSize=${PAGE_SIZE}`,
-          {
-            signal: controller.signal,
-            cache: "no-store",
-          }
-        );
-
-        const result =
-          (await response.json()) as
-            LeaderboardResponse;
-
-        if (!response.ok) {
-          throw new Error(
-            result.error ||
-              "Failed to load the leaderboard."
-          );
-        }
-
-        if (!Array.isArray(result.data)) {
-          throw new Error(
-            "The leaderboard returned invalid data."
-          );
-        }
-
-        const returnedTotalPages =
-          Math.max(
-            1,
-            Number(
-              result.totalPages ?? 1
-            )
-          );
-
-        setLeaderboard(result.data);
-
-        setTotalPages(
-          returnedTotalPages
-        );
-
-        setTotalRecords(
-          Number(
-            result.totalRecords ??
-              result.data.length
-          )
-        );
-
-        /*
-         * If records were removed while the user
-         * was viewing the final page, return them
-         * to the highest available page.
-         */
-        if (page > returnedTotalPages) {
-          setPage(returnedTotalPages);
-        }
-      } catch (loadError) {
-        if (
-          loadError instanceof DOMException &&
-          loadError.name === "AbortError"
-        ) {
-          return;
-        }
-
-        console.error(
-          "Unable to load leaderboard:",
-          loadError
-        );
-
-        setLeaderboard([]);
-
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Failed to load the leaderboard."
-        );
-      } finally {
-        if (
-          !controller.signal.aborted
-        ) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void loadLeaderboard();
-
-    return () => {
-      controller.abort();
-    };
-  }, [page]);
-
-  const sortedLeaderboard =
-    useMemo(() => {
-      const data = [
-        ...leaderboard,
-      ];
-
-      data.sort((a, b) => {
-        switch (sortBy) {
-          case "player":
-            return (
-              getPlayerName(a).localeCompare(
-                getPlayerName(b),
-                "en",
-                {
-                  sensitivity: "base",
-                }
-              ) || a.rank - b.rank
-            );
-
-          case "points":
-            return (
-              b.totalPoints -
-                a.totalPoints ||
-              a.rank - b.rank
-            );
-
-          case "exact":
-            return (
-              b.exactScores -
-                a.exactScores ||
-              a.rank - b.rank
-            );
-
-          case "error":
-            return (
-              a.cumulativeError -
-                b.cumulativeError ||
-              a.rank - b.rank
-            );
-
-          case "margins":
-            return (b.correctMargins ?? 0) - (a.correctMargins ?? 0) || a.rank - b.rank;
 
           case "results":
             return (b.correctResults ?? 0) - (a.correctResults ?? 0) || a.rank - b.rank;
-
-          case "tournament":
-            return (a.tournamentPointsError ?? Number.MAX_SAFE_INTEGER) -
-              (b.tournamentPointsError ?? Number.MAX_SAFE_INTEGER) || a.rank - b.rank;
 
           default:
             return a.rank - b.rank;
@@ -396,24 +209,20 @@ export default function LeaderboardPage() {
                   Total Points
                 </option>
 
+                <option value="results">
+                  Correct Results
+                </option>
+
                 <option value="exact">
                   Exact Scores
                 </option>
 
+                <option value="margins">
+                  Correct Winning Margins
+                </option>
+
                 <option value="error">
                   Aggregate Score Error
-                </option>
-
-                <option value="tournament">
-                  Tournament Total Difference
-                </option>
-
-                <option value="margins">
-                  Correct Margins
-                </option>
-
-                <option value="results">
-                  Correct Results
                 </option>
 
                 <option value="player">
@@ -468,13 +277,6 @@ export default function LeaderboardPage() {
 
                       <th
                         scope="col"
-                        className="border border-slate-200 p-3"
-                      >
-                        Last Change
-                      </th>
-
-                      <th
-                        scope="col"
                         className="border border-slate-200 p-0"
                       >
                         <button
@@ -507,10 +309,73 @@ export default function LeaderboardPage() {
                             )
                           }
                         >
-                          Points
+                          Total Points
                           {getSortIndicator(
                             sortBy,
                             "points"
+                          )}
+                        </button>
+                      </th>
+
+                      <th
+                        scope="col"
+                        className="border border-slate-200 p-0"
+                      >
+                        <button
+                          type="button"
+                          className="w-full p-3 transition-colors hover:bg-slate-50"
+                          onClick={() =>
+                            setSortBy(
+                              "results"
+                            )
+                          }
+                        >
+                          Correct Results
+                          {getSortIndicator(
+                            sortBy,
+                            "results"
+                          )}
+                        </button>
+                      </th>
+
+                      <th
+                        scope="col"
+                        className="border border-slate-200 p-0"
+                      >
+                        <button
+                          type="button"
+                          className="w-full p-3 transition-colors hover:bg-slate-50"
+                          onClick={() =>
+                            setSortBy(
+                              "exact"
+                            )
+                          }
+                        >
+                          Exact Scores
+                          {getSortIndicator(
+                            sortBy,
+                            "exact"
+                          )}
+                        </button>
+                      </th>
+
+                      <th
+                        scope="col"
+                        className="border border-slate-200 p-0"
+                      >
+                        <button
+                          type="button"
+                          className="w-full p-3 transition-colors hover:bg-slate-50"
+                          onClick={() =>
+                            setSortBy(
+                              "margins"
+                            )
+                          }
+                        >
+                          Correct Winning Margins
+                          {getSortIndicator(
+                            sortBy,
+                            "margins"
                           )}
                         </button>
                       </th>
@@ -538,29 +403,10 @@ export default function LeaderboardPage() {
 
                       <th
                         scope="col"
-                        className="border border-slate-200 p-0"
+                        className="border border-slate-200 p-3"
                       >
-                        <button
-                          type="button"
-                          className="w-full p-3 transition-colors hover:bg-slate-50"
-                          onClick={() =>
-                            setSortBy(
-                              "exact"
-                            )
-                          }
-                        >
-                          Exact Scores
-                          {getSortIndicator(
-                            sortBy,
-                            "exact"
-                          )}
-                        </button>
+                        Last Change
                       </th>
-
-                      <th scope="col" className="border border-slate-200 p-3">Correct Margins</th>
-                      <th scope="col" className="border border-slate-200 p-3">Correct Results</th>
-                      <th scope="col" className="border border-slate-200 p-3">Tournament Total Guess</th>
-                      <th scope="col" className="border border-slate-200 p-3">Tournament Total Difference</th>
                     </tr>
                   </thead>
 
@@ -581,12 +427,6 @@ export default function LeaderboardPage() {
                           </td>
 
                           <td className="border border-slate-200 p-3">
-                            {renderRankMovement(
-                              player
-                            )}
-                          </td>
-
-                          <td className="border border-slate-200 p-3">
                             {getPlayerName(
                               player
                             )}
@@ -599,9 +439,7 @@ export default function LeaderboardPage() {
                           </td>
 
                           <td className="border border-slate-200 p-3">
-                            {
-                              player.cumulativeError
-                            }
+                            {player.correctResults ?? 0}
                           </td>
 
                           <td className="border border-slate-200 p-3">
@@ -615,17 +453,15 @@ export default function LeaderboardPage() {
                           </td>
 
                           <td className="border border-slate-200 p-3">
-                            {player.correctResults ?? 0}
+                            {
+                              player.cumulativeError
+                            }
                           </td>
 
                           <td className="border border-slate-200 p-3">
-                            {player.tournamentPointsGuess ?? "—"}
-                          </td>
-
-                          <td className="border border-slate-200 p-3">
-                            {player.tournamentComplete
-                              ? (player.tournamentPointsError ?? "—")
-                              : "—"}
+                            {renderRankMovement(
+                              player
+                            )}
                           </td>
 
                         </tr>

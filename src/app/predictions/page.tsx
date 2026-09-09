@@ -33,9 +33,6 @@ export default function PredictionsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [quickPicking, setQuickPicking] = useState(false);
-  const [tournamentPointsGuess, setTournamentPointsGuess] = useState("");
-  const [tournamentGuessLocked, setTournamentGuessLocked] = useState(false);
-  const [savingTournamentGuess, setSavingTournamentGuess] = useState(false);
 
   const homeScoreInputRef = useRef<HTMLInputElement>(null);
   const awayScoreInputRef = useRef<HTMLInputElement>(null);
@@ -62,18 +59,6 @@ export default function PredictionsPage() {
       }
 
       setUser(me.user);
-
-      const tournamentGuessResponse = await fetch("/api/predictions/tournament-points");
-      if (tournamentGuessResponse.ok) {
-        const tournamentGuessData = await tournamentGuessResponse.json();
-        setTournamentPointsGuess(
-          tournamentGuessData.tournamentPointsGuess === null ||
-          tournamentGuessData.tournamentPointsGuess === undefined
-            ? ""
-            : String(tournamentGuessData.tournamentPointsGuess)
-        );
-        setTournamentGuessLocked(Boolean(tournamentGuessData.locked));
-      }
 
       const matchesResponse = await fetch("/api/matches");
       const matchesData = await matchesResponse.json();
@@ -145,42 +130,6 @@ export default function PredictionsPage() {
       setLockMessage(error instanceof Error ? error.message : "Quick Pick failed.");
     } finally {
       setQuickPicking(false);
-    }
-  }
-
-  async function saveTournamentPointsGuess() {
-    if (tournamentPointsGuess.trim() === "") {
-      setLockMessage("Enter your prediction for the total points scored across all 15 matches.");
-      return;
-    }
-
-    try {
-      setSavingTournamentGuess(true);
-      setLockMessage("");
-      setSuccessMessage("");
-
-      const response = await fetch("/api/predictions/tournament-points", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tournamentPointsGuess: Number(tournamentPointsGuess),
-        }),
-      });
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        if (response.status === 403) setTournamentGuessLocked(true);
-        throw new Error(result.error || "Unable to save tournament total prediction.");
-      }
-
-      setTournamentPointsGuess(String(result.tournamentPointsGuess));
-      setSuccessMessage("Tournament total points prediction saved.");
-    } catch (error) {
-      setLockMessage(
-        error instanceof Error ? error.message : "Unable to save tournament total prediction."
-      );
-    } finally {
-      setSavingTournamentGuess(false);
     }
   }
 
@@ -434,35 +383,6 @@ export default function PredictionsPage() {
             <span>
               {savedPredictions.length} / {matches.length}
             </span>
-          </div>
-        </Card>
-
-        <Card title="Tournament Total Points Prediction" className="mb-6">
-          <p className="mb-4 text-sm text-[var(--brand-muted)]">
-            Predict the combined points scored by all teams across all 15 matches.
-            This is used only as the sixth and final ranking tie-break after the tournament is complete.
-          </p>
-          <div className="space-y-3">
-            <Input
-              type="number"
-              min="0"
-              step="1"
-              value={tournamentPointsGuess}
-              disabled={tournamentGuessLocked || savingTournamentGuess}
-              onChange={(event) => setTournamentPointsGuess(event.target.value)}
-              placeholder="e.g. 650"
-            />
-            <Button
-              fullWidth
-              disabled={tournamentGuessLocked || savingTournamentGuess}
-              onClick={saveTournamentPointsGuess}
-            >
-              {tournamentGuessLocked
-                ? "Tournament Total Prediction Locked"
-                : savingTournamentGuess
-                  ? "Saving..."
-                  : "Save Tournament Total Prediction"}
-            </Button>
           </div>
         </Card>
 
