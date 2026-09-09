@@ -3,14 +3,34 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 
+function getAppUrl() {
+  const configuredUrl =
+    process.env.APP_URL?.trim() ||
+    "https://perfect-xv.org";
+
+  const absoluteUrl =
+    /^https?:\/\//i.test(configuredUrl)
+      ? configuredUrl
+      : `https://${configuredUrl}`;
+
+  try {
+    return new URL(absoluteUrl).origin;
+  } catch {
+    console.error(
+      "Invalid APP_URL. Falling back to production domain:",
+      configuredUrl
+    );
+
+    return "https://perfect-xv.org";
+  }
+}
+
 export async function POST() {
   try {
     const user =
       await requireUser();
 
-    const appUrl =
-      process.env.APP_URL ??
-      "http://localhost:3000";
+    const appUrl = getAppUrl();
 
     if (
       user.paymentStatus ===
@@ -39,12 +59,13 @@ export async function POST() {
             quantity: 1,
             price_data: {
               currency: "eur",
-             product_data: {
-  name: "Perfect XV Competition Entry",
-  description:
-    "Six Nations Predictor Entry Fee",
-  tax_code: "txcd_10000000",
-},
+              product_data: {
+                name: "Perfect XV Competition Entry",
+                description:
+                  "Six Nations Predictor Entry Fee",
+                tax_code:
+                  "txcd_10000000",
+              },
               unit_amount: 500,
             },
           },
