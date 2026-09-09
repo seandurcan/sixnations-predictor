@@ -9,6 +9,19 @@ function randomScore() {
 export async function POST() {
   try {
     const user = await requireUser();
+
+    if (user.paymentStatus !== "COMPLETED") {
+      return NextResponse.json(
+        {
+          success: false,
+          paymentRequired: true,
+          error:
+            "Competition entry payment is required before making predictions.",
+        },
+        { status: 402 }
+      );
+    }
+
     const now = new Date();
     const tournament = await prisma.tournament.findFirst({
       where: {

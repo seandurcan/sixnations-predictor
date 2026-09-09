@@ -58,6 +58,15 @@ export default function PredictionsPage() {
         return;
       }
 
+      if (
+        me.user?.paymentStatus !==
+        "COMPLETED"
+      ) {
+        window.location.href =
+          "/payment-required";
+        return;
+      }
+
       setUser(me.user);
 
       const matchesResponse = await fetch("/api/matches");

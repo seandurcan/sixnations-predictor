@@ -119,12 +119,16 @@ export async function POST(
       lastName: user.lastName,
       email: user.email,
       role: user.role,
+      paymentStatus:
+        user.paymentStatus,
       user: {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        paymentStatus:
+          user.paymentStatus,
       },
     });
 

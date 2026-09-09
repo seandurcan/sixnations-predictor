@@ -9,6 +9,23 @@ export async function POST(
     const user =
       await requireUser();
 
+    if (
+      user.paymentStatus !==
+      "COMPLETED"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          paymentRequired: true,
+          error:
+            "Competition entry payment is required before making predictions.",
+        },
+        {
+          status: 402,
+        }
+      );
+    }
+
     const body =
       await request.json();
 

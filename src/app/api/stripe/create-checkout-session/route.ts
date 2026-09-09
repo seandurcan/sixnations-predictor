@@ -12,9 +12,27 @@ export async function POST() {
       process.env.APP_URL ??
       "http://localhost:3000";
 
+    if (
+      user.paymentStatus ===
+      "COMPLETED"
+    ) {
+      return NextResponse.json({
+        success: true,
+        alreadyPaid: true,
+        checkoutUrl:
+          `${appUrl}/predictions`,
+      });
+    }
+
     const session =
       await stripe.checkout.sessions.create({
         mode: "payment",
+
+        customer_email:
+          user.email,
+
+        client_reference_id:
+          String(user.id),
 
         line_items: [
           {
@@ -38,7 +56,7 @@ export async function POST() {
         },
 
         success_url:
-          `${appUrl}/predictions`,
+          `${appUrl}/payment-success`,
 
         cancel_url:
           `${appUrl}/payment-required`,

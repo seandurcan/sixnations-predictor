@@ -74,12 +74,37 @@ export async function POST(
       }
     );
 
-    const email =
-      session.customer_details?.email;
+    const metadataUserId =
+      Number(
+        session.metadata?.userId
+      );
 
-    if (!email) {
+    if (
+      !Number.isInteger(
+        metadataUserId
+      ) ||
+      metadataUserId <= 0
+    ) {
       console.error(
-        "No email found in Stripe session."
+        "No valid userId found in Stripe session metadata."
+      );
+
+      return NextResponse.json({
+        received: true,
+      });
+    }
+
+    if (
+      session.payment_status !==
+      "paid"
+    ) {
+      console.error(
+        "Stripe checkout completed without paid payment status.",
+        {
+          sessionId: session.id,
+          paymentStatus:
+            session.payment_status,
+        }
       );
 
       return NextResponse.json({
@@ -90,13 +115,13 @@ export async function POST(
     const user =
       await prisma.user.findUnique({
         where: {
-          email,
+          id: metadataUserId,
         },
       });
 
     if (!user) {
       console.error(
-        `No user found for email ${email}`
+        `No user found for Stripe metadata userId ${metadataUserId}`
       );
 
       return NextResponse.json({

@@ -16,6 +16,8 @@ import PasswordInput from "@/components/ui/PasswordInput";
 type LoginResponse = {
   success?: boolean;
   error?: string;
+  role?: string;
+  paymentStatus?: string;
 };
 
 export default function LoginPage() {
@@ -106,6 +108,17 @@ export default function LoginPage() {
             "Login failed. Please try again."
         );
 
+        return;
+      }
+
+      if (
+        result?.role !== "ADMIN" &&
+        result?.paymentStatus !==
+          "COMPLETED"
+      ) {
+        router.replace(
+          "/payment-required"
+        );
         return;
       }
 
