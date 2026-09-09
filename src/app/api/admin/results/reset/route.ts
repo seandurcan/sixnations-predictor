@@ -48,6 +48,14 @@ export async function POST() {
       );
 
     await prisma.$transaction([
+      prisma.scoreAudit.deleteMany({
+        where: {
+          matchId: {
+            in: matchIds,
+          },
+        },
+      }),
+
       prisma.match.updateMany({
         where: {
           tournamentId:
@@ -128,6 +136,7 @@ export async function POST() {
       resetMatches:
         matchIds.length,
       testGamesScored: 0,
+      auditHistoryCleared: true,
     });
   } catch (error) {
     console.error(
