@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -15,9 +15,44 @@ export default function HomePage() {
   const [loadingNextMatch, setLoadingNextMatch] =
     useState(true);
 
+  const [isAuthenticated, setIsAuthenticated] =
+    useState<boolean | null>(null);
+
   useEffect(() => {
-    loadNextMatch();
+    void loadAuthStatus();
+    void loadNextMatch();
   }, []);
+
+  async function loadAuthStatus() {
+    try {
+      const response = await fetch("/api/auth/me", {
+        cache: "no-store",
+      });
+
+      if (response.status === 401) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      if (!response.ok) {
+        setIsAuthenticated(null);
+        return;
+      }
+
+      const data = await response.json();
+
+      setIsAuthenticated(
+        data.authenticated === true
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load authentication status",
+        error
+      );
+
+      setIsAuthenticated(null);
+    }
+  }
 
   async function loadNextMatch() {
     try {
@@ -96,26 +131,28 @@ export default function HomePage() {
                 leaderboard, and compete throughout the tournament.
               </p>
 
-              <div id="cta-button-row" className="mt-10 flex flex-col gap-4 sm:flex-row">
-                <Button
-                  onClick={() => {
-                    window.location.href =
-                      "/register";
-                  }}
-                >
-                  Create Account
-                </Button>
+              {isAuthenticated === false && (
+                <div id="cta-button-row" className="mt-10 flex flex-col gap-4 sm:flex-row">
+                  <Button
+                    onClick={() => {
+                      window.location.href =
+                        "/register";
+                    }}
+                  >
+                    Create Account
+                  </Button>
 
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    window.location.href =
-                      "/login";
-                  }}
-                >
-                  Login
-                </Button>
-              </div>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      window.location.href =
+                        "/login";
+                    }}
+                  >
+                    Login
+                  </Button>
+                </div>
+              )}
             </div>
 
             <Card id="tournament-predictor-card" className="border-[rgba(0,123,255,0.22)] bg-[rgba(0,123,255,0.04)]">
@@ -146,7 +183,7 @@ export default function HomePage() {
 
                   <div id="pill-climb" className="rounded-lg bg-[var(--brand-soft-lime)] p-4 text-center shadow-sm">
                     <p className="text-2xl font-black text-[var(--brand-navy)]">
-                      ↑
+                      â†‘
                     </p>
 
                     <p className="text-xs font-semibold uppercase text-[var(--brand-navy)]">
@@ -374,26 +411,28 @@ export default function HomePage() {
               against the competition.
             </p>
 
-            <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
-              <Button
-                onClick={() => {
-                  window.location.href =
-                    "/register";
-                }}
-              >
-                Register Now
-              </Button>
+            {isAuthenticated === false && (
+              <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+                <Button
+                  onClick={() => {
+                    window.location.href =
+                      "/register";
+                  }}
+                >
+                  Register Now
+                </Button>
 
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  window.location.href =
-                    "/login";
-                }}
-              >
-                Login
-              </Button>
-            </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    window.location.href =
+                      "/login";
+                  }}
+                >
+                  Login
+                </Button>
+              </div>
+            )}
           </div>
         </section>
 
