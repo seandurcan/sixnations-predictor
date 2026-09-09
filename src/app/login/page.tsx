@@ -111,17 +111,6 @@ export default function LoginPage() {
         return;
       }
 
-      if (
-        result?.role !== "ADMIN" &&
-        result?.paymentStatus !==
-          "COMPLETED"
-      ) {
-        router.replace(
-          "/payment-required"
-        );
-        return;
-      }
-
       router.replace("/dashboard");
     } catch (loginError) {
       console.error(

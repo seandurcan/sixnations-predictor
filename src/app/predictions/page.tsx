@@ -31,6 +31,7 @@ export default function PredictionsPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [isLocked, setIsLocked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [paymentRequired, setPaymentRequired] = useState(false);
   const [saving, setSaving] = useState(false);
   const [quickPicking, setQuickPicking] = useState(false);
 
@@ -58,16 +59,16 @@ export default function PredictionsPage() {
         return;
       }
 
+      setUser(me.user);
+
       if (
         me.user?.paymentStatus !==
         "COMPLETED"
       ) {
-        window.location.href =
-          "/payment-required";
+        setPaymentRequired(true);
+        setLoading(false);
         return;
       }
-
-      setUser(me.user);
 
       const matchesResponse = await fetch("/api/matches");
       const matchesData = await matchesResponse.json();
@@ -304,6 +305,56 @@ export default function PredictionsPage() {
 
         <PageContainer>
           <Card>Loading predictions...</Card>
+        </PageContainer>
+      </main>
+    );
+  }
+
+  if (paymentRequired) {
+    return (
+      <main className="bg-white p-8 text-[var(--brand-navy)]">
+        <PageContainer>
+          <div className="text-center">
+            <PageHeader
+              title="Predictions"
+              subtitle={`Welcome ${user?.firstName ?? "Player"}`}
+            />
+          </div>
+
+          <Card title="Competition Entry Required">
+            <div className="space-y-5">
+              <p className="text-lg text-[var(--brand-muted)]">
+                You are welcome to browse Perfect XV before entering the competition.
+              </p>
+
+              <p className="text-[var(--brand-muted)]">
+                A &euro;5 competition entry payment is required before you can enter or edit predictions.
+              </p>
+
+              <p className="font-semibold text-[var(--brand-navy)]">
+                When you are ready to enter, continue to the secure payment page. After payment is confirmed, Predictions will unlock automatically.
+              </p>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button
+                  onClick={() => {
+                    window.location.href = "/payment-required";
+                  }}
+                >
+                  Continue to Payment
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    window.location.href = "/dashboard";
+                  }}
+                >
+                  Return to Dashboard
+                </Button>
+              </div>
+            </div>
+          </Card>
         </PageContainer>
       </main>
     );
