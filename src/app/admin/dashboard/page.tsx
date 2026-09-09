@@ -8,35 +8,72 @@ import StatCard from "@/components/ui/StatCard";
 import { formatIsoDate } from "@/lib/formatIrishDate";
 import { useEffect, useState } from "react";
 
+type DashboardMetrics = {
+  userCount: number;
+  verifiedUserCount: number;
+  predictionCount: number;
+  playersWithPredictions?: number;
+  completedFixtures: number;
+  remainingFixtures: number;
+  totalFixtures: number;
+};
+
+type DashboardData = {
+  success: boolean;
+  error?: string;
+  metrics: DashboardMetrics;
+};
+
 export default function AdminDashboardPage() {
-  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardData, setDashboardData] =
+    useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadDashboard();
+    void loadDashboard();
   }, []);
 
   async function loadDashboard() {
     try {
-      const response = await fetch("/api/admin/dashboard");
-      
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch("/api/admin/dashboard", {
+        cache: "no-store",
+      });
+
+      const data = (await response.json()) as DashboardData;
+
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           window.location.href = "/login";
           return;
         }
-        throw new Error("Failed to load admin dashboard");
+
+        throw new Error(
+          data.error || "Failed to load admin dashboard"
+        );
       }
 
-      const data = await response.json();
+      if (!data.success || !data.metrics) {
+        throw new Error("Dashboard API returned invalid data");
+      }
+
       setDashboardData(data);
-      setLoading(false);
-    } catch (error) {
+    } catch (loadError) {
       console.error("Admin dashboard load failed:", {
         timestamp: formatIsoDate(new Date()),
-        error,
+        error: loadError,
       });
-      window.location.href = "/login";
+
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Failed to load admin dashboard"
+      );
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -54,6 +91,31 @@ export default function AdminDashboardPage() {
     );
   }
 
+  if (error || !dashboardData) {
+    return (
+      <main className="bg-white p-8 text-[var(--brand-navy)]">
+        <PageContainer>
+          <PageHeader
+            title="Admin Dashboard"
+            subtitle="System overview and tournament telemetry"
+          />
+          <Card>
+            <p className="font-semibold text-red-700">
+              {error || "Dashboard data is unavailable."}
+            </p>
+            <div className="mt-4">
+              <Button onClick={() => void loadDashboard()}>
+                Retry
+              </Button>
+            </div>
+          </Card>
+        </PageContainer>
+      </main>
+    );
+  }
+
+  const metrics = dashboardData.metrics;
+
   return (
     <main className="bg-white p-8 text-[var(--brand-navy)]">
       <PageContainer>
@@ -63,13 +125,30 @@ export default function AdminDashboardPage() {
         />
 
         <div className="mb-8 grid gap-3 sm:grid-cols-3">
-          <Button fullWidth onClick={() => { window.location.href = "/admin"; }}>
+          <Button
+            fullWidth
+            onClick={() => {
+              window.location.href = "/admin";
+            }}
+          >
             Manage Results
           </Button>
-          <Button fullWidth variant="secondary" onClick={() => { window.location.href = "/admin/audit"; }}>
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() => {
+              window.location.href = "/admin/audit";
+            }}
+          >
             View Audit Log
           </Button>
-          <Button fullWidth variant="secondary" onClick={() => { window.location.href = "/dashboard"; }}>
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() => {
+              window.location.href = "/dashboard";
+            }}
+          >
             User Dashboard
           </Button>
         </div>
@@ -77,22 +156,25 @@ export default function AdminDashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Users"
-            value={dashboardData?.totalUsers ?? 0}
+            value={metrics.userCount}
             tone="navy"
           />
           <StatCard
-            title="Total Matches"
-            value={dashboardData?.totalMatches ?? 0}
+            title="Matches Remaining"
+            value={metrics.remainingFixtures}
             tone="blue"
           />
           <StatCard
             title="Completed Matches"
-            value={dashboardData?.completedMatches ?? 0}
+            value={metrics.completedFixtures}
             tone="lime"
           />
           <StatCard
-            title="Total Predictions"
-            value={dashboardData?.totalPredictions ?? 0}
+            title="Players with Predictions"
+            value={
+              metrics.playersWithPredictions ??
+              metrics.predictionCount
+            }
             tone="orange"
           />
         </div>

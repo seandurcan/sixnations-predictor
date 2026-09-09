@@ -1,96 +1,102 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, waitFor } from "@testing-library/react";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import {
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import AdminDashboardPage from "./page";
-
-// Mock next/navigation router
-const mockPush = vi.fn();
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: mockPush,
-  }),
-}));
 
 const mockDashboardData = {
   success: true,
   metrics: {
-    totalUsers: 25,
-    totalPredictions: 120,
-    activeTournaments: 1,
+    userCount: 35,
+    verifiedUserCount: 35,
+    predictionCount: 30,
+    playersWithPredictions: 30,
+    completedFixtures: 0,
+    remainingFixtures: 15,
+    totalFixtures: 15,
   },
-  tournamentStatus: {
-    currentRound: 3,
-    status: "active",
-  },
-  leaderboard: [
-    { rank: 1, user: { name: "Test User" }, points: 45 }
-  ],
-  recentAudit: [],
-  winner: null,
 };
 
 describe("AdminDashboardPage", () => {
-  let originalLocation: Location;
+  const originalLocation = window.location;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    originalLocation = window.location;
 
-    global.fetch = vi.fn().mockImplementation((url) => {
-      if (typeof url === "string" && url.includes("/api/admin/dashboard")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockDashboardData),
-        } as Response);
-      }
-      return Promise.reject(new Error(`Unhandled fetch URL: ${url}`));
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => mockDashboardData,
+    } as Response);
+
+    Object.defineProperty(window, "location", {
+      value: {
+        ...originalLocation,
+        href: "",
+      },
+      writable: true,
     });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    try {
-      window.location = originalLocation;
-    } catch {
-      // Ignore if window.location cannot be reassigned back directly
-    }
+    Object.defineProperty(window, "location", {
+      value: originalLocation,
+      writable: true,
+    });
   });
 
-  it("fetches admin dashboard data on render", async () => {
+  it("loads dashboard data without caching stale zeroes", async () => {
     render(<AdminDashboardPage />);
-    
+
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/admin/dashboard")
+        "/api/admin/dashboard",
+        { cache: "no-store" }
       );
     });
   });
 
-  it("redirects to login when dashboard API returns 401", async () => {
-    // Safely mock window.location to prevent "Not implemented: navigation to another Document"
-    try {
-      // @ts-ignore
-      delete window.location;
-      window.location = { ...originalLocation, href: "", assign: vi.fn(), replace: vi.fn() };
-    } catch {
-      // Fallback if window properties are non-configurable
-    }
+  it("renders the nested API metrics instead of nonexistent top-level fields", async () => {
+    render(<AdminDashboardPage />);
 
-    vi.mocked(global.fetch).mockImplementationOnce(() =>
-      Promise.resolve({
-        ok: false,
-        status: 401,
-        json: () => Promise.resolve({ error: "Unauthorized" }),
-      } as Response)
-    );
+    expect(
+      await screen.findByText("Total Users")
+    ).toBeInTheDocument();
+
+    expect(screen.getByText("35")).toBeInTheDocument();
+    expect(screen.getByText("Matches Remaining")).toBeInTheDocument();
+    expect(screen.getByText("15")).toBeInTheDocument();
+    expect(screen.getByText("Completed Matches")).toBeInTheDocument();
+    expect(screen.getByText("Players with Predictions")).toBeInTheDocument();
+    expect(screen.getByText("30")).toBeInTheDocument();
+  });
+
+  it("does not silently replace a server error with zero-valued cards", async () => {
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({
+        success: false,
+        error: "Database unavailable",
+      }),
+    } as Response);
 
     render(<AdminDashboardPage />);
-    
-    await waitFor(() => {
-      const redirectedToLogin = 
-        mockPush.mock.calls.some(call => call[0]?.includes("/login")) ||
-        (window.location && window.location.href && window.location.href.includes("/login"));
-      
-      expect(redirectedToLogin).toBe(true);
-    });
+
+    expect(
+      await screen.findByText("Database unavailable")
+    ).toBeInTheDocument();
+
+    expect(screen.queryByText("Total Users")).not.toBeInTheDocument();
   });
 });
