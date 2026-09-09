@@ -13,10 +13,10 @@ import {
 
 type SortOption =
   | "points"
-  | "exact"
-  | "error"
-  | "margins"
   | "results"
+  | "exact"
+  | "margins"
+  | "error"
   | "player";
 
 type LeaderboardEntry = {
@@ -25,7 +25,6 @@ type LeaderboardEntry = {
   firstName: string | null;
   lastName: string | null;
   totalPoints: number;
-  differenceScore: number;
   exactScores: number;
   cumulativeError: number;
   correctMargins?: number;
@@ -94,15 +93,192 @@ function getSortIndicator(
     return "";
   }
 
-  switch (column) {
-    case "player":
-    case "error":
+  if (
+    column === "player" ||
+    column === "error"
+  ) {
+    return " ▲";
+  }
+
+  return " ▼";
+}
+
+export default function LeaderboardPage() {
+  const [leaderboard, setLeaderboard] =
+    useState<LeaderboardEntry[]>([]);
+
+  const [page, setPage] =
+    useState(1);
+
+  const [totalPages, setTotalPages] =
+    useState(1);
+
+  const [totalRecords, setTotalRecords] =
+    useState(0);
+
+  const [sortBy, setSortBy] =
+    useState<SortOption>("points");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    const controller =
+      new AbortController();
+
+    async function loadLeaderboard() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(
+          `/api/leaderboard?page=${page}&pageSize=${PAGE_SIZE}`,
+          {
+            signal: controller.signal,
+            cache: "no-store",
+          }
+        );
+
+        const result =
+          (await response.json()) as
+            LeaderboardResponse;
+
+        if (!response.ok) {
+          throw new Error(
+            result.error ||
+              "Failed to load the leaderboard."
+          );
+        }
+
+        if (!Array.isArray(result.data)) {
+          throw new Error(
+            "The leaderboard returned invalid data."
+          );
+        }
+
+        const returnedTotalPages =
+          Math.max(
+            1,
+            Number(
+              result.totalPages ?? 1
+            )
+          );
+
+        setLeaderboard(result.data);
+        setTotalPages(
+          returnedTotalPages
+        );
+        setTotalRecords(
+          Number(
+            result.totalRecords ??
+              result.data.length
+          )
+        );
+
+        if (page > returnedTotalPages) {
+          setPage(
+            returnedTotalPages
+          );
+        }
+      } catch (loadError) {
+        if (
+          loadError instanceof DOMException &&
+          loadError.name === "AbortError"
+        ) {
+          return;
+        }
+
+        console.error(
+          "Unable to load leaderboard:",
+          loadError
+        );
+
+        setLeaderboard([]);
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Failed to load the leaderboard."
+        );
+      } finally {
+        if (
+          !controller.signal.aborted
+        ) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadLeaderboard();
+
+    return () => {
+      controller.abort();
+    };
+  }, [page]);
+
+  const sortedLeaderboard =
+    useMemo(() => {
+      const data = [
+        ...leaderboard,
+      ];
+
+      data.sort((a, b) => {
+        switch (sortBy) {
+          case "player":
+            return (
+              getPlayerName(a).localeCompare(
+                getPlayerName(b),
+                "en",
+                {
+                  sensitivity:
+                    "base",
+                }
+              ) ||
+              a.rank - b.rank
+            );
+
+          case "points":
+            return (
+              b.totalPoints -
+                a.totalPoints ||
+              a.rank - b.rank
+            );
 
           case "results":
-            return (b.correctResults ?? 0) - (a.correctResults ?? 0) || a.rank - b.rank;
+            return (
+              (b.correctResults ?? 0) -
+                (a.correctResults ?? 0) ||
+              a.rank - b.rank
+            );
+
+          case "exact":
+            return (
+              b.exactScores -
+                a.exactScores ||
+              a.rank - b.rank
+            );
+
+          case "margins":
+            return (
+              (b.correctMargins ?? 0) -
+                (a.correctMargins ?? 0) ||
+              a.rank - b.rank
+            );
+
+          case "error":
+            return (
+              a.cumulativeError -
+                b.cumulativeError ||
+              a.rank - b.rank
+            );
 
           default:
-            return a.rank - b.rank;
+            return (
+              a.rank - b.rank
+            );
         }
       });
 
@@ -168,12 +344,6 @@ function getSortIndicator(
     );
   }
 
-  function handleSortChange(
-    value: string
-  ) {
-    setSortBy(value as SortOption);
-  }
-
   return (
     <main className="p-8">
       <PageContainer>
@@ -200,8 +370,9 @@ function getSortIndicator(
                 id="leaderboard-sort"
                 value={sortBy}
                 onChange={(event) =>
-                  handleSortChange(
-                    event.target.value
+                  setSortBy(
+                    event.target
+                      .value as SortOption
                   )
                 }
               >
@@ -255,8 +426,8 @@ function getSortIndicator(
             sortedLeaderboard.length ===
               0 && (
               <div className="py-12 text-center text-slate-500">
-                No leaderboard entries are
-                available.
+                No leaderboard entries
+                are available.
               </div>
             )}
 
@@ -439,7 +610,8 @@ function getSortIndicator(
                           </td>
 
                           <td className="border border-slate-200 p-3">
-                            {player.correctResults ?? 0}
+                            {player.correctResults ??
+                              0}
                           </td>
 
                           <td className="border border-slate-200 p-3">
@@ -449,7 +621,8 @@ function getSortIndicator(
                           </td>
 
                           <td className="border border-slate-200 p-3">
-                            {player.correctMargins ?? 0}
+                            {player.correctMargins ??
+                              0}
                           </td>
 
                           <td className="border border-slate-200 p-3">
@@ -463,7 +636,6 @@ function getSortIndicator(
                               player
                             )}
                           </td>
-
                         </tr>
                       )
                     )}
@@ -477,24 +649,29 @@ function getSortIndicator(
           <>
             <div className="mt-6 text-center text-sm text-slate-500">
               Showing{" "}
-              {sortedLeaderboard.length} of{" "}
-              {totalRecords} players
+              {
+                sortedLeaderboard.length
+              }{" "}
+              of {totalRecords} players
               {" • "}
-              Page {page} of {totalPages}
+              Page {page} of{" "}
+              {totalPages}
             </div>
 
             <div className="mt-6 flex items-center justify-center gap-4">
               <Button
                 variant="secondary"
                 disabled={
-                  page <= 1 || loading
+                  page <= 1 ||
+                  loading
                 }
                 onClick={() =>
-                  setPage((current) =>
-                    Math.max(
-                      1,
-                      current - 1
-                    )
+                  setPage(
+                    (current) =>
+                      Math.max(
+                        1,
+                        current - 1
+                      )
                   )
                 }
               >
@@ -502,7 +679,8 @@ function getSortIndicator(
               </Button>
 
               <span className="text-sm font-medium text-slate-700">
-                Page {page} of {totalPages}
+                Page {page} of{" "}
+                {totalPages}
               </span>
 
               <Button
@@ -512,11 +690,12 @@ function getSortIndicator(
                   loading
                 }
                 onClick={() =>
-                  setPage((current) =>
-                    Math.min(
-                      totalPages,
-                      current + 1
-                    )
+                  setPage(
+                    (current) =>
+                      Math.min(
+                        totalPages,
+                        current + 1
+                      )
                   )
                 }
               >
