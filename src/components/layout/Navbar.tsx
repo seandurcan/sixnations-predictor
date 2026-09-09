@@ -752,6 +752,21 @@ export default function NavBar() {
                       <span>Leaderboard</span>
                     </Link>
 
+                    <Link
+                      href="/user-manual"
+                      role="menuitem"
+                      className={dropdownLinkClasses(
+                        "/user-manual"
+                      )}
+                      onClick={() =>
+                        setProfileOpen(false)
+                      }
+                    >
+                      <span aria-hidden="true">
+                        ðŸ“–
+                      </span>
+                      <span>User Manual</span>
+                    </Link>
                     {/* Relocated Connect utility inside profile dropdown */}
                     <div className="my-2 border-t border-slate-100" />
                     <button
@@ -989,6 +1004,19 @@ export default function NavBar() {
                       <span>Leaderboard</span>
                     </Link>
 
+                    <Link
+                      href="/user-manual"
+                      role="menuitem"
+                      className={mobileLinkClasses(
+                        "/user-manual"
+                      )}
+                      onClick={closeMenus}
+                    >
+                      <span aria-hidden="true">
+                        ðŸ“–
+                      </span>
+                      <span>User Manual</span>
+                    </Link>
                     <div className="my-2 border-t border-slate-100" />
 
                     <button
