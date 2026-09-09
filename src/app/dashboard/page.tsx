@@ -41,13 +41,15 @@ export default function DashboardPage() {
     useState(true);
 
   useEffect(() => {
-    initialise();
+    void initialise();
   }, []);
 
   async function initialise() {
     try {
       const meResponse =
-        await fetch("/api/auth/me");
+        await fetch("/api/auth/me", {
+          cache: "no-store",
+        });
 
       if (!meResponse.ok) {
         window.location.href =
@@ -68,8 +70,17 @@ export default function DashboardPage() {
 
       const leaderboardResponse =
         await fetch(
-          "/api/leaderboard?page=1&pageSize=500"
+          "/api/leaderboard?page=1&pageSize=500",
+          {
+            cache: "no-store",
+          }
         );
+
+      if (!leaderboardResponse.ok) {
+        throw new Error(
+          "Unable to load leaderboard data."
+        );
+      }
 
       const leaderboardData =
         await leaderboardResponse.json();
@@ -83,63 +94,97 @@ export default function DashboardPage() {
 
       const currentUser =
         leaderboardRows.find(
-          (u: any) =>
-            u.id === me.user.id
+          (entrant: any) =>
+            entrant.id === me.user.id
         );
 
-      setUserRow(currentUser);
+      setUserRow(
+        currentUser ?? null
+      );
 
       const matchesResponse =
-        await fetch("/api/matches");
+        await fetch("/api/matches", {
+          cache: "no-store",
+        });
+
+      if (!matchesResponse.ok) {
+        throw new Error(
+          "Unable to load fixtures."
+        );
+      }
 
       const matches =
         await matchesResponse.json();
 
-      setMatchCount(matches.length);
+      setMatchCount(
+        matches.length
+      );
 
       const upcomingMatches =
-        matches.filter(
-          (m: any) => !m.completed
-        );
+        matches
+          .filter(
+            (match: any) =>
+              !match.completed
+          )
+          .sort(
+            (a: any, b: any) =>
+              new Date(
+                a.kickoffTime
+              ).getTime() -
+              new Date(
+                b.kickoffTime
+              ).getTime()
+          );
 
-      const sortedUpcomingMatches =
-        [...upcomingMatches].sort(
-          (a: any, b: any) =>
-            new Date(
-              a.kickoffTime
-            ).getTime() -
-            new Date(
-              b.kickoffTime
-            ).getTime()
-        );
-
-      if (
-        sortedUpcomingMatches.length > 0
-      ) {
-        setNextMatch(
-          sortedUpcomingMatches[0]
-        );
-      }
+      setNextMatch(
+        upcomingMatches[0] ??
+          null
+      );
 
       const completedMatches =
-        matches.filter(
-          (m: any) => m.completed
-        );
+        matches
+          .filter(
+            (match: any) =>
+              match.completed &&
+              match.actualHomeScore !== null &&
+              match.actualHomeScore !== undefined &&
+              match.actualAwayScore !== null &&
+              match.actualAwayScore !== undefined
+          )
+          .sort(
+            (a: any, b: any) =>
+              new Date(
+                a.kickoffTime
+              ).getTime() -
+              new Date(
+                b.kickoffTime
+              ).getTime()
+          );
 
-      if (
+      const latestCompletedMatch =
         completedMatches.length > 0
-      ) {
-        setLastMatch(
-          completedMatches[
-            completedMatches.length - 1
-          ]
-        );
-      }
+          ? completedMatches[
+              completedMatches.length - 1
+            ]
+          : null;
+
+      setLastMatch(
+        latestCompletedMatch
+      );
 
       const predictionsResponse =
         await fetch(
-          "/api/predictions/list"
+          "/api/predictions/list",
+          {
+            cache: "no-store",
+          }
         );
+
+      if (!predictionsResponse.ok) {
+        throw new Error(
+          "Unable to load predictions."
+        );
+      }
 
       const predictions =
         await predictionsResponse.json();
@@ -148,22 +193,19 @@ export default function DashboardPage() {
         predictions.length
       );
 
-      if (predictions.length > 0) {
-        const sortedPredictions =
-          [...predictions].sort(
-            (a, b) =>
-              new Date(
-                b.updatedAt
-              ).getTime() -
-              new Date(
-                a.updatedAt
-              ).getTime()
-          );
+      const latestMatchPrediction =
+        latestCompletedMatch
+          ? predictions.find(
+              (prediction: any) =>
+                prediction.matchId ===
+                latestCompletedMatch.id
+            )
+          : null;
 
-        setLastPrediction(
-          sortedPredictions[0]
-        );
-      }
+      setLastPrediction(
+        latestMatchPrediction ??
+          null
+      );
 
       setLoading(false);
     } catch (error) {
@@ -184,21 +226,28 @@ export default function DashboardPage() {
   }
 
   function renderMovement() {
-    if (!userRow) return "-";
+    if (!userRow) {
+      return "-";
+    }
 
     if (
       userRow.rankMovement ===
         undefined ||
-      userRow.rankMovement === null
+      userRow.rankMovement ===
+        null
     ) {
       return "-";
     }
 
-    if (userRow.rankMovement > 0) {
+    if (
+      userRow.rankMovement > 0
+    ) {
       return `↑ ${userRow.rankMovement}`;
     }
 
-    if (userRow.rankMovement < 0) {
+    if (
+      userRow.rankMovement < 0
+    ) {
       return `↓ ${Math.abs(
         userRow.rankMovement
       )}`;
@@ -216,7 +265,9 @@ export default function DashboardPage() {
 
     return `Welcome ${
       user?.firstName ?? "Player"
-    } · Ranked #${userRow.rank ?? "-"} of ${
+    } · Ranked #${
+      userRow.rank ?? "-"
+    } of ${
       leaderboard.length
     } players`;
   }
@@ -285,7 +336,10 @@ export default function DashboardPage() {
             title="Current Rank"
             value={
               lastMatch
-                ? `#${userRow?.rank ?? "-"}`
+                ? `#${
+                    userRow?.rank ??
+                    "-"
+                  }`
                 : "-"
             }
             tone="navy"
@@ -304,32 +358,6 @@ export default function DashboardPage() {
           />
 
           <StatCard
-            title="Total Points"
-            value={
-              userRow?.totalPoints ?? 0
-            }
-            tone="blue"
-          />
-
-          <StatCard
-            title="Difference Score"
-            value={
-              userRow?.differenceScore ?? 0
-            }
-            tone="navy"
-          />
-        </div>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <StatCard
-            title="Exact Scores"
-            value={
-              userRow?.exactScores ?? 0
-            }
-            tone="lime"
-          />
-
-          <StatCard
             title="Prediction Progress"
             value={`${predictionCount} / ${matchCount}`}
             tone="orange"
@@ -337,9 +365,72 @@ export default function DashboardPage() {
 
           <StatCard
             title="Players"
-            value={leaderboard.length}
+            value={
+              leaderboard.length
+            }
             tone="blue"
           />
+        </div>
+
+        <div className="mt-8">
+          <h2 className="text-xl font-bold text-[var(--brand-navy)]">
+            Your Scoring Position
+          </h2>
+
+          <p className="mt-1 text-sm text-[var(--brand-muted)]">
+            Leaderboard ranking is applied from left to right.
+          </p>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <StatCard
+              title="Total Points"
+              value={
+                userRow?.totalPoints ??
+                0
+              }
+              tone="blue"
+            />
+
+            <StatCard
+              title="Correct Results"
+              value={
+                userRow?.correctResults ??
+                0
+              }
+              tone="navy"
+            />
+
+            <StatCard
+              title="Exact Scores"
+              value={
+                userRow?.exactScores ??
+                0
+              }
+              tone="lime"
+            />
+
+            <StatCard
+              title="Correct Winning Margins"
+              value={
+                userRow?.correctMargins ??
+                0
+              }
+              tone="orange"
+            />
+
+            <StatCard
+              title="Aggregate Score Error"
+              value={
+                userRow?.cumulativeError ??
+                0
+              }
+              tone="navy"
+            />
+          </div>
+
+          <p className="mt-3 text-sm text-[var(--brand-muted)]">
+            Total Points → Correct Results → Exact Scores → Correct Winning Margins → Lowest Aggregate Score Error
+          </p>
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
@@ -349,13 +440,13 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-xl font-semibold text-[var(--brand-navy)]">
                     {
-                      nextMatch.homeTeam
-                        .name
+                      nextMatch
+                        .homeTeam.name
                     }
                     {" vs "}
                     {
-                      nextMatch.awayTeam
-                        .name
+                      nextMatch
+                        .awayTeam.name
                     }
                   </p>
 
@@ -400,42 +491,65 @@ export default function DashboardPage() {
               <>
                 <p className="text-xl font-semibold text-[var(--brand-navy)]">
                   {
-                    lastMatch.homeTeam
-                      .name
+                    lastMatch
+                      .homeTeam.name
                   }{" "}
                   {
-                    lastMatch.actualHomeScore
+                    lastMatch
+                      .actualHomeScore
                   }
                   {" - "}
                   {
-                    lastMatch.actualAwayScore
+                    lastMatch
+                      .actualAwayScore
                   }{" "}
                   {
-                    lastMatch.awayTeam
-                      .name
+                    lastMatch
+                      .awayTeam.name
                   }
                 </p>
 
-                {lastPrediction && (
+                {lastPrediction ? (
                   <div className="mt-4 space-y-2 text-[var(--brand-muted)]">
+                    <p>
+                      Your Prediction:{" "}
+                      <span className="font-semibold text-[var(--brand-navy)]">
+                        {
+                          lastPrediction
+                            .predictedHomeScore
+                        }
+                        {" - "}
+                        {
+                          lastPrediction
+                            .predictedAwayScore
+                        }
+                      </span>
+                    </p>
+
                     <p>
                       Points Earned:{" "}
                       <span className="font-semibold text-[var(--brand-blue)]">
                         {
-                          lastPrediction.pointsAwarded
+                          lastPrediction
+                            .pointsAwarded
                         }
                       </span>
                     </p>
 
                     <p>
-                      Difference Score:{" "}
+                      Score Error:{" "}
                       <span className="font-semibold text-[var(--brand-orange)]">
                         {
-                          lastPrediction.differenceScore
+                          lastPrediction
+                            .errorValue
                         }
                       </span>
                     </p>
                   </div>
+                ) : (
+                  <p className="mt-4 text-[var(--brand-muted)]">
+                    No prediction was recorded for this match.
+                  </p>
                 )}
               </>
             ) : (
