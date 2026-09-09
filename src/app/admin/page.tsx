@@ -42,6 +42,9 @@ export default function AdminPage() {
   const [saving, setSaving] =
     useState(false);
 
+  const [testActionRunning, setTestActionRunning] =
+    useState(false);
+
   useEffect(() => {
     initialise();
   }, []);
@@ -213,6 +216,154 @@ export default function AdminPage() {
     }
   }
 
+  function getTournamentOneMatches() {
+    return [...matches]
+      .filter(
+        (match: any) =>
+          match.tournamentId === 1
+      )
+      .sort(
+        (a: any, b: any) =>
+          (a.matchNumber ?? 0) -
+          (b.matchNumber ?? 0)
+      );
+  }
+
+  async function completeNextTestGame() {
+    setSuccessMessage("");
+    setErrorMessage("");
+    setTestActionRunning(true);
+
+    try {
+      const tournamentMatches =
+        getTournamentOneMatches();
+
+      const nextMatch =
+        tournamentMatches.find(
+          (match: any) =>
+            !match.completed ||
+            match.actualHomeScore === null ||
+            match.actualAwayScore === null
+        );
+
+      if (!nextMatch) {
+        setSuccessMessage(
+          "All 15 test games already have scores."
+        );
+        return;
+      }
+
+      const testScores = [
+        [27, 20],
+        [18, 24],
+        [31, 17],
+        [22, 19],
+        [14, 28],
+        [26, 23],
+        [17, 20],
+        [35, 12],
+        [21, 16],
+        [24, 27],
+        [30, 18],
+        [19, 15],
+        [16, 29],
+        [23, 20],
+        [28, 22],
+      ];
+
+      const scoreIndex = Math.max(
+        0,
+        Math.min(
+          testScores.length - 1,
+          (nextMatch.matchNumber ?? 1) - 1
+        )
+      );
+
+      const [testHomeScore, testAwayScore] =
+        testScores[scoreIndex];
+
+      const response = await fetch(
+        "/api/admin/results",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            matchId: nextMatch.id,
+            homeScore: testHomeScore,
+            awayScore: testAwayScore,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ??
+            "Failed to complete next test game."
+        );
+      }
+
+      await loadMatches();
+
+      setSuccessMessage(
+        `Test game ${nextMatch.matchNumber} completed: ${nextMatch.homeTeam.shortCode} ${testHomeScore} - ${testAwayScore} ${nextMatch.awayTeam.shortCode}.`
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to complete next test game."
+      );
+    } finally {
+      setTestActionRunning(false);
+    }
+  }
+
+  async function resetAllTestScores() {
+    setSuccessMessage("");
+    setErrorMessage("");
+    setTestActionRunning(true);
+
+    try {
+      const response = await fetch(
+        "/api/admin/results/reset",
+        {
+          method: "POST",
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ??
+            "Failed to reset test scores."
+        );
+      }
+
+      setHomeScore("");
+      setAwayScore("");
+
+      await loadMatches();
+
+      setSuccessMessage(
+        "All Tournament 1 scores and calculated scoring have been reset. Test games scored: 0 / 15."
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to reset test scores."
+      );
+    } finally {
+      setTestActionRunning(false);
+    }
+  }
+
   function getMatchStatus(
     match: any
   ) {
@@ -250,6 +401,17 @@ export default function AdminPage() {
         selectedMatchId
     );
 
+  const tournamentOneMatches =
+    getTournamentOneMatches();
+
+  const testGamesScored =
+    tournamentOneMatches.filter(
+      (match: any) =>
+        match.completed &&
+        match.actualHomeScore !== null &&
+        match.actualAwayScore !== null
+    ).length;
+
   return (
     <main className="bg-white text-[var(--brand-navy)]">
       <PageContainer>
@@ -276,6 +438,48 @@ export default function AdminPage() {
                     Open Communications
                   </Button>
                 </Link>
+            </div>
+          </Card>
+        </div>
+
+        <div className="mb-6">
+          <Card title="Tournament Testing Controls">
+            <div className="space-y-4">
+              <div>
+                <p className="font-semibold text-[var(--brand-navy)]">
+                  Test Games Scored: {testGamesScored} / 15
+                </p>
+                <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                  Complete one Tournament 1 fixture per click. Press the first button 15 times to score all 15 games. Reset removes the entered results and all calculated scoring while keeping entrants and their predictions.
+                </p>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <Button
+                  fullWidth
+                  disabled={
+                    testActionRunning ||
+                    testGamesScored >= 15
+                  }
+                  onClick={completeNextTestGame}
+                >
+                  {testActionRunning
+                    ? "Working..."
+                    : `Complete Next Test Game (${testGamesScored}/15)`}
+                </Button>
+
+                <Button
+                  fullWidth
+                  variant="secondary"
+                  disabled={
+                    testActionRunning ||
+                    testGamesScored === 0
+                  }
+                  onClick={resetAllTestScores}
+                >
+                  Reset All Game Scores
+                </Button>
+              </div>
             </div>
           </Card>
         </div>
