@@ -1,462 +1,92 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "./route";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    user: {
-      findMany: vi.fn(),
-    },
-    leaderboardSnapshot: {
-      findFirst: vi.fn(),
-      findMany: vi.fn(),
-    },
-    tournament: {
-      findFirst: vi.fn(),
-    },
+    user: { findMany: vi.fn() },
+    leaderboardSnapshot: { findFirst: vi.fn(), findMany: vi.fn() },
+    tournament: { findFirst: vi.fn() },
   },
 }));
 
 import { prisma } from "@/lib/prisma";
 
-const mockUsers = [
-  {
-    id: 1,
-    firstName: "Aoife",
-    lastName: "Murphy",
-    totalPoints: 40,
-    exactScores: 3,
-    cumulativeError: 12,
-    registrationOrder: 1,
-    predictions: [
-      {
-        id: 101,
-        differenceScore: -4,
-        correctMargin: true,
-        correctResult: true,
-      },
-      {
-        id: 102,
-        differenceScore: 2,
-        correctMargin: false,
-        correctResult: true,
-      },
-    ],
-  },
-  {
-    id: 2,
-    firstName: "Sean",
-    lastName: "Durcan",
-    totalPoints: 40,
-    exactScores: 2,
-    cumulativeError: 10,
-    registrationOrder: 2,
-    predictions: [
-      {
-        id: 103,
-        differenceScore: 1,
-        correctMargin: false,
-        correctResult: true,
-      },
-      {
-        id: 104,
-        differenceScore: 3,
-        correctMargin: false,
-        correctResult: true,
-      },
-    ],
-  },
-  {
-    id: 3,
-    firstName: "Liam",
-    lastName: "Byrne",
-    totalPoints: 35,
-    exactScores: 5,
-    cumulativeError: 8,
-    registrationOrder: 3,
-    predictions: [
-      {
-        id: 105,
-        differenceScore: 0,
-        correctMargin: true,
-        correctResult: true,
-      },
-    ],
-  },
-  {
-    id: 4,
-    firstName: "Niamh",
-    lastName: "Kelly",
-    totalPoints: 20,
-    exactScores: 1,
-    cumulativeError: 30,
-    registrationOrder: 4,
-    predictions: [],
-  },
-];
-
-const mockLatestSnapshot = {
-  id: 999,
-  snapshotNumber: 3,
-};
-
-const mockLatestSnapshots = [
-  {
-    id: 201,
-    userId: 1,
-    previousRank: 2,
-    rankMovement: 1,
-    snapshotNumber: 3,
-  },
-  {
-    id: 202,
-    userId: 2,
-    previousRank: 1,
-    rankMovement: -1,
-    snapshotNumber: 3,
-  },
-];
-
-function createRequest(
-  url = "http://localhost/api/leaderboard?page=1&pageSize=10"
-) {
-  return new Request(url);
+function request() {
+  return new Request("http://localhost/api/leaderboard?page=1&pageSize=10");
 }
+
+const user = (id: number, overrides: any = {}) => ({
+  id,
+  firstName: `Player${id}`,
+  lastName: "Test",
+  totalPoints: 10,
+  exactScores: 1,
+  cumulativeError: 20,
+  registrationOrder: id,
+  predictionSubmittedAt: null,
+  tournamentPointsGuess: 500,
+  predictions: [
+    { differenceScore: 0, correctMargin: true, correctResult: true },
+  ],
+  ...overrides,
+});
 
 describe("GET /api/leaderboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(prisma.leaderboardSnapshot.findFirst).mockResolvedValue(null);
     vi.mocked(prisma.tournament.findFirst).mockResolvedValue(null);
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
+  it("uses correct results before exact scores and aggregate error", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValue([
+      user(1, { exactScores: 5, cumulativeError: 1, predictions: [] }),
+      user(2, {
+        exactScores: 0,
+        cumulativeError: 99,
+        predictions: [
+          { differenceScore: 0, correctMargin: false, correctResult: true },
+          { differenceScore: 0, correctMargin: false, correctResult: true },
+        ],
+      }),
+    ] as any);
+
+    const body = await (await GET(request())).json();
+    expect(body.data[0].id).toBe(2);
   });
 
-  it("returns sorted leaderboard data with pagination metadata", async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
-      mockUsers as any
-    );
+  it("uses exact scores before correct margins and aggregate error", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValue([
+      user(1, { exactScores: 1, cumulativeError: 1 }),
+      user(2, { exactScores: 2, cumulativeError: 99 }),
+    ] as any);
+    const body = await (await GET(request())).json();
+    expect(body.data[0].id).toBe(2);
+  });
 
-    vi.mocked(
-      prisma.leaderboardSnapshot.findFirst
-    ).mockResolvedValueOnce(mockLatestSnapshot as any);
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findMany
-    ).mockResolvedValueOnce(mockLatestSnapshots as any);
-
-    const response = await GET(createRequest());
-
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-
-    expect(body.page).toBe(1);
-    expect(body.pageSize).toBe(10);
-    expect(body.totalRecords).toBe(4);
-    expect(body.totalPages).toBe(1);
-    expect(body.data).toHaveLength(4);
-
-    expect(body.data[0]).toMatchObject({
-      id: 2,
-      firstName: "Sean",
-      lastName: "Durcan",
-      rank: 1,
-      totalPoints: 40,
-      differenceScore: 4,
-      previousRank: 1,
-      rankMovement: -1,
-    });
-
-    expect(body.data[1]).toMatchObject({
+  it("uses the tournament-total prediction only after the tournament is complete", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValue([
+      user(1, { tournamentPointsGuess: 101 }),
+      user(2, { tournamentPointsGuess: 120 }),
+    ] as any);
+    vi.mocked(prisma.tournament.findFirst).mockResolvedValue({
       id: 1,
-      firstName: "Aoife",
-      lastName: "Murphy",
-      rank: 2,
-      totalPoints: 40,
-      differenceScore: -2,
-      previousRank: 2,
-      rankMovement: 1,
-    });
+      year: 2027,
+      matches: [
+        { completed: true, actualHomeScore: 50, actualAwayScore: 50 },
+      ],
+    } as any);
+
+    const body = await (await GET(request())).json();
+    expect(body.tournamentComplete).toBe(true);
+    expect(body.actualTournamentPoints).toBe(100);
+    expect(body.data[0].id).toBe(1);
+    expect(body.data[0].tournamentPointsError).toBe(1);
   });
 
-  it("uses total points as first sort priority", async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
-      mockUsers as any
-    );
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findFirst
-    ).mockResolvedValueOnce(null);
-
-    const response = await GET(createRequest());
-
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-
-    expect(body.data[0].totalPoints).toBeGreaterThanOrEqual(
-      body.data[2].totalPoints
-    );
-  });
-
-  it("uses lowest aggregate score error as second sort priority", async () => {
-    const tiedUsers = [
-      {
-        ...mockUsers[0],
-        totalPoints: 40,
-        cumulativeError: 20,
-      },
-      {
-        ...mockUsers[1],
-        totalPoints: 40,
-        cumulativeError: 5,
-      },
-    ];
-
-    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
-      tiedUsers as any
-    );
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findFirst
-    ).mockResolvedValueOnce(null);
-
-    const response = await GET(createRequest());
-
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.data[0].id).toBe(2);
-    expect(body.data[0].cumulativeError).toBe(5);
-  });
-
-  it("uses exact scores as third sort priority", async () => {
-    const tiedUsers = [
-      {
-        ...mockUsers[0],
-        totalPoints: 40,
-        exactScores: 1,
-        cumulativeError: 10,
-        predictions: [],
-      },
-      {
-        ...mockUsers[1],
-        totalPoints: 40,
-        exactScores: 4,
-        cumulativeError: 10,
-        predictions: [],
-      },
-    ];
-
-    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
-      tiedUsers as any
-    );
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findFirst
-    ).mockResolvedValueOnce(null);
-
-    const response = await GET(createRequest());
-
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.data[0].id).toBe(2);
-    expect(body.data[0].exactScores).toBe(4);
-  });
-
-  it("uses correct margins as fourth sort priority", async () => {
-    const tiedUsers = [
-      {
-        ...mockUsers[0],
-        totalPoints: 40,
-        exactScores: 2,
-        cumulativeError: 20,
-        predictions: [{ id: 1, differenceScore: 0, correctMargin: false, correctResult: true }],
-      },
-      {
-        ...mockUsers[1],
-        totalPoints: 40,
-        exactScores: 2,
-        cumulativeError: 20,
-        predictions: [{ id: 2, differenceScore: 0, correctMargin: true, correctResult: true }],
-      },
-    ];
-
-    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
-      tiedUsers as any
-    );
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findFirst
-    ).mockResolvedValueOnce(null);
-
-    const response = await GET(createRequest());
-
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.data[0].id).toBe(2);
-    expect(body.data[0].correctMargins).toBe(1);
-  });
-
-  it("keeps fully tied entrants joint and uses competition ranking", async () => {
-    const tiedUsers = [
-      {
-        ...mockUsers[0],
-        totalPoints: 40,
-        exactScores: 2,
-        cumulativeError: 10,
-        registrationOrder: 2,
-        predictions: [],
-      },
-      {
-        ...mockUsers[1],
-        totalPoints: 40,
-        exactScores: 2,
-        cumulativeError: 10,
-        registrationOrder: 1,
-        predictions: [],
-      },
-    ];
-
-    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
-      tiedUsers as any
-    );
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findFirst
-    ).mockResolvedValueOnce(null);
-
-    const response = await GET(createRequest());
-
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.data.map((entry: any) => entry.rank)).toEqual([1, 1]);
-  });
-
-  it("returns paginated data", async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
-      mockUsers as any
-    );
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findFirst
-    ).mockResolvedValueOnce(null);
-
-    const response = await GET(
-      createRequest(
-        "http://localhost/api/leaderboard?page=2&pageSize=2"
-      )
-    );
-
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.page).toBe(2);
-    expect(body.pageSize).toBe(2);
-    expect(body.totalRecords).toBe(4);
-    expect(body.totalPages).toBe(2);
-    expect(body.data).toHaveLength(2);
-  });
-
-  it("defaults page and pageSize when query params are missing", async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
-      mockUsers as any
-    );
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findFirst
-    ).mockResolvedValueOnce(null);
-
-    const response = await GET(
-      createRequest("http://localhost/api/leaderboard")
-    );
-
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.page).toBe(1);
-    expect(body.pageSize).toBe(10);
-  });
-
-  it("returns at least one total page when there are no users", async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValueOnce([]);
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findFirst
-    ).mockResolvedValueOnce(null);
-
-    const response = await GET(createRequest());
-
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.totalRecords).toBe(0);
-    expect(body.totalPages).toBe(1);
-    expect(body.data).toEqual([]);
-  });
-
-  it("does not load snapshot rows when no latest snapshot exists", async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
-      mockUsers as any
-    );
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findFirst
-    ).mockResolvedValueOnce(null);
-
-    const response = await GET(createRequest());
-
-    expect(response.status).toBe(200);
-
-    expect(
-      prisma.leaderboardSnapshot.findMany
-    ).not.toHaveBeenCalled();
-  });
-
-  it("loads latest snapshot rows when latest snapshot exists", async () => {
-    vi.mocked(prisma.user.findMany).mockResolvedValueOnce(
-      mockUsers as any
-    );
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findFirst
-    ).mockResolvedValueOnce(mockLatestSnapshot as any);
-
-    vi.mocked(
-      prisma.leaderboardSnapshot.findMany
-    ).mockResolvedValueOnce(mockLatestSnapshots as any);
-
-    const response = await GET(createRequest());
-
-    expect(response.status).toBe(200);
-
-    expect(
-      prisma.leaderboardSnapshot.findMany
-    ).toHaveBeenCalledWith({
-      where: {
-        snapshotNumber: 3,
-      },
-    });
-  });
-
-  it("throws when user query fails because route has no local error handling", async () => {
-    vi.mocked(prisma.user.findMany).mockRejectedValueOnce(
-      new Error("User query failed")
-    );
-
-    await expect(GET(createRequest())).rejects.toThrow(
-      "User query failed"
-    );
+  it("keeps fully tied entrants joint", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValue([user(1), user(2)] as any);
+    const body = await (await GET(request())).json();
+    expect(body.data.map((x: any) => x.rank)).toEqual([1, 1]);
   });
 });

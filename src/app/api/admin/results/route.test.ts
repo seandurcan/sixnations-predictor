@@ -101,7 +101,7 @@ const mockUsersAfterPredictionUpdate = [
     registrationOrder: 1,
     predictions: [
       {
-        pointsAwarded: 8,
+        pointsAwarded: 4,
         errorValue: 0,
         exactScore: true,
         differenceScore: 0,
@@ -113,7 +113,7 @@ const mockUsersAfterPredictionUpdate = [
     registrationOrder: 2,
     predictions: [
       {
-        pointsAwarded: 3,
+        pointsAwarded: 1,
         errorValue: 9,
         exactScore: false,
         differenceScore: -9,
@@ -125,7 +125,7 @@ const mockUsersAfterPredictionUpdate = [
 const mockRefreshedUsers = [
   {
     id: 10,
-    totalPoints: 8,
+    totalPoints: 4,
     exactScores: 1,
     cumulativeError: 0,
     registrationOrder: 1,
@@ -137,7 +137,7 @@ const mockRefreshedUsers = [
   },
   {
     id: 11,
-    totalPoints: 3,
+    totalPoints: 1,
     exactScores: 0,
     cumulativeError: 9,
     registrationOrder: 2,
@@ -300,7 +300,7 @@ describe("POST /api/admin/results", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
-  it("awards exact score prediction with 8 points", async () => {
+  it("awards exact score prediction with 4 points", async () => {
     mockSuccessfulResultSave();
 
     await POST(
@@ -316,7 +316,7 @@ describe("POST /api/admin/results", () => {
         id: 301,
       },
       data: {
-        pointsAwarded: 8,
+        pointsAwarded: 4,
         errorValue: 0,
         exactScore: true,
         correctMargin: true,
@@ -326,7 +326,7 @@ describe("POST /api/admin/results", () => {
     });
   });
 
-  it("awards correct outcome but not exact score with 3 points", async () => {
+  it("awards correct outcome but not exact score with 1 point", async () => {
     mockSuccessfulResultSave();
 
     await POST(
@@ -342,7 +342,7 @@ describe("POST /api/admin/results", () => {
         id: 302,
       },
       data: {
-        pointsAwarded: 3,
+        pointsAwarded: 1,
         errorValue: 9,
         exactScore: false,
         correctMargin: false,
@@ -530,7 +530,7 @@ describe("POST /api/admin/results", () => {
       where: { tournamentId: 1 },
     });
     expect(prisma.tournamentWinner.createMany).toHaveBeenCalledWith({
-      data: [{ tournamentId: 1, userId: 10, finalPoints: 8, rank: 1 }],
+      data: [{ tournamentId: 1, userId: 10, finalPoints: 4, rank: 1 }],
     });
   });
 
@@ -592,7 +592,7 @@ describe("POST /api/admin/results", () => {
           registrationOrder: 1,
           predictions: [
             {
-              pointsAwarded: 8,
+              pointsAwarded: 4,
               errorValue: 0,
               exactScore: true,
               differenceScore: 0,
@@ -603,7 +603,7 @@ describe("POST /api/admin/results", () => {
       .mockResolvedValueOnce([
         {
           id: 10,
-          totalPoints: 8,
+          totalPoints: 4,
           exactScores: 1,
           cumulativeError: 0,
           registrationOrder: 1,
@@ -648,7 +648,7 @@ describe("POST /api/admin/results", () => {
         id: 401,
       },
       data: {
-        pointsAwarded: 8,
+        pointsAwarded: 4,
         errorValue: 0,
         exactScore: true,
         correctMargin: true,

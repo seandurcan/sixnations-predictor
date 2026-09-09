@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { assignCompetitionRanks, calculateMatchScore } from "@/lib/scoring";
+import {
+  assignCompetitionRanks,
+  calculateMatchScore,
+  calculateTournamentPointsError,
+} from "@/lib/scoring";
 
 export async function POST(
   request: Request
@@ -155,6 +159,39 @@ export async function POST(
         },
       });
 
+    const completedMatches =
+      await prisma.match.count({
+        where: {
+          completed: true,
+          tournamentId: match.tournamentId,
+        },
+      });
+
+    const totalMatches =
+      await prisma.match.count({ where: { tournamentId: match.tournamentId } });
+
+    const tournamentComplete = totalMatches > 0 && completedMatches === totalMatches;
+
+    let actualTournamentPoints: number | null = null;
+
+    if (tournamentComplete) {
+      const tournamentMatches = await prisma.match.findMany({
+        where: { tournamentId: match.tournamentId },
+        select: {
+          actualHomeScore: true,
+          actualAwayScore: true,
+        },
+      });
+
+      actualTournamentPoints = tournamentMatches.reduce(
+        (total, tournamentMatch) =>
+          total +
+          (tournamentMatch.actualHomeScore ?? 0) +
+          (tournamentMatch.actualAwayScore ?? 0),
+        0
+      );
+    }
+
     const rankings = assignCompetitionRanks(
       refreshedUsers.map((user) => {
           const differenceScore =
@@ -179,6 +216,11 @@ export async function POST(
             differenceScore,
             correctMargins: user.predictions.filter((prediction) => prediction.correctMargin).length,
             correctResults: user.predictions.filter((prediction) => prediction.correctResult).length,
+            tournamentPointsError: calculateTournamentPointsError(
+              user.tournamentPointsGuess,
+              actualTournamentPoints,
+              tournamentComplete
+            ),
             predictionSubmittedAt: user.predictionSubmittedAt,
             registrationOrder:
               user.registrationOrder,
@@ -255,21 +297,7 @@ export async function POST(
       );
     }
 
-    const completedMatches =
-      await prisma.match.count({
-        where: {
-          completed: true,
-          tournamentId: match.tournamentId,
-        },
-      });
-
-    const totalMatches =
-      await prisma.match.count({ where: { tournamentId: match.tournamentId } });
-
-    if (
-      completedMatches ===
-      totalMatches
-    ) {
+    if (tournamentComplete) {
       await prisma.tournament.update({
         where: {
           id: match.tournamentId,
