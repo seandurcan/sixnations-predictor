@@ -79,6 +79,11 @@ const adminLinks: NavItem[] = [
     href: "/admin/docs",
     icon: "📖",
   },
+  {
+    label: "Administration Manual",
+    href: "/admin/manual",
+    icon: "\u{1F4D8}",
+  },
 ];
 
 const guestLinks: NavItem[] = [
