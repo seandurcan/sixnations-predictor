@@ -12,14 +12,15 @@ const sections = [
   ["password", "5. Reset your password"],
   ["dashboard", "6. Your Dashboard"],
   ["fixtures", "7. Fixtures"],
-  ["predict", "8. Make predictions"],
-  ["edit", "9. Edit predictions"],
-  ["locking", "10. Prediction status and locking"],
-  ["scoring", "11. How scoring works"],
-  ["ranking", "12. Leaderboard hierarchy"],
-  ["leaderboard", "13. Reading the leaderboard"],
-  ["ties", "14. Joint positions and prizes"],
-  ["logout", "15. Logout and return later"],
+  ["payment", "8. Competition entry payment"],
+  ["predict", "9. Make predictions"],
+  ["edit", "10. Edit predictions"],
+  ["locking", "11. Prediction status and locking"],
+  ["scoring", "12. How scoring works"],
+  ["ranking", "13. Leaderboard hierarchy"],
+  ["leaderboard", "14. Reading the leaderboard"],
+  ["ties", "15. Joint positions and prizes"],
+  ["logout", "16. Logout and return later"],
 ] as const;
 
 function StepNumber({
@@ -79,7 +80,9 @@ export default function UserManualPage() {
           <div className="mt-5 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-soft-blue)] p-4">
             <p className="font-bold">The short version</p>
             <p className="mt-1 text-[var(--brand-muted)]">
-              Register → verify your email → log in → predict
+              Register → verify your email → log in → browse
+              Perfect XV → pay the &euro;20 competition entry fee
+              when you are ready to make predictions → predict
               all 15 matches → check or edit your predictions
               while they are open → follow your score and rank
               as results are entered.
@@ -336,8 +339,59 @@ export default function UserManualPage() {
             </Card>
           </section>
 
+          <section id="payment" className="scroll-mt-28">
+            <Card title="8. Competition Entry Payment">
+              <p className="mb-4 text-[var(--brand-muted)]">
+                You can register, verify your account, log in and
+                browse Perfect XV before paying. Payment is only
+                required when you are ready to enter the competition
+                by making predictions.
+              </p>
+
+              <div className="space-y-4">
+                <Instruction number={1} title="Open Predictions">
+                  Select <strong>Predictions</strong> from the
+                  navigation or <strong>Make Predictions</strong>
+                  from your Dashboard.
+                </Instruction>
+
+                <Instruction number={2} title="Competition Entry Required">
+                  If your competition entry has not yet been paid,
+                  Perfect XV displays a payment notice instead of
+                  the prediction-entry form.
+                </Instruction>
+
+                <Instruction number={3} title="Pay the competition entry fee">
+                  The full competition entry fee is
+                  <strong> &euro;20</strong>. You must complete this
+                  payment before you can enter or edit predictions.
+                </Instruction>
+
+                <Instruction number={4} title="Continue to Payment">
+                  When you are ready, select
+                  <strong> Continue to Payment</strong>. You will be
+                  taken to the secure payment process.
+                </Instruction>
+
+                <Instruction number={5} title="Wait for payment confirmation">
+                  After a successful payment has been confirmed,
+                  your Perfect XV competition entry is activated and
+                  the Predictions page becomes available for entering
+                  and editing scores.
+                </Instruction>
+              </div>
+
+              <div className="mt-5 rounded-lg bg-[var(--brand-soft-lime)] p-4">
+                <strong>Important:</strong> Browsing the site does not
+                require payment, but a confirmed <strong>&euro;20</strong>
+                competition entry payment is required before any
+                predictions can be entered or changed.
+              </div>
+            </Card>
+          </section>
+
           <section id="predict" className="scroll-mt-28">
-            <Card title="8. Make Predictions">
+            <Card title="9. Make Predictions">
               <div className="space-y-4">
                 <Instruction number={1} title="Open Predictions">
                   Select <strong>Predictions</strong> from the
@@ -378,7 +432,7 @@ export default function UserManualPage() {
           </section>
 
           <section id="edit" className="scroll-mt-28">
-            <Card title="9. Edit a Prediction">
+            <Card title="10. Edit a Prediction">
               <div className="space-y-4">
                 <Instruction number={1} title="Open Your Predictions">
                   On the Predictions page, the
@@ -407,7 +461,7 @@ export default function UserManualPage() {
           </section>
 
           <section id="locking" className="scroll-mt-28">
-            <Card title="10. Prediction Status and Locking">
+            <Card title="11. Prediction Status and Locking">
               <p className="text-[var(--brand-muted)]">
                 The Predictions page shows the current status of
                 each fixture and displays a countdown while a
@@ -444,7 +498,7 @@ export default function UserManualPage() {
           </section>
 
           <section id="scoring" className="scroll-mt-28">
-            <Card title="11. How Scoring Is Calculated">
+            <Card title="12. How Scoring Is Calculated">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left">
                   <thead>
@@ -512,7 +566,7 @@ export default function UserManualPage() {
           </section>
 
           <section id="ranking" className="scroll-mt-28">
-            <Card title="12. Leaderboard Ranking Hierarchy">
+            <Card title="13. Leaderboard Ranking Hierarchy">
               <p className="mb-4 text-[var(--brand-muted)]">
                 Perfect XV ranks entrants using the following
                 criteria in this exact order:
@@ -551,7 +605,7 @@ export default function UserManualPage() {
           </section>
 
           <section id="leaderboard" className="scroll-mt-28">
-            <Card title="13. Reading the Leaderboard">
+            <Card title="14. Reading the Leaderboard">
               <p className="mb-4 text-[var(--brand-muted)]">
                 The leaderboard columns follow the competition
                 hierarchy:
@@ -598,7 +652,7 @@ export default function UserManualPage() {
           </section>
 
           <section id="ties" className="scroll-mt-28">
-            <Card title="14. Joint Positions and Prizes">
+            <Card title="15. Joint Positions and Prizes">
               <p className="text-[var(--brand-muted)]">
                 The prize positions use a 3:2:1 ratio. If two
                 entrants are joint winners after all five ranking
@@ -612,7 +666,7 @@ export default function UserManualPage() {
           </section>
 
           <section id="logout" className="scroll-mt-28">
-            <Card title="15. Logout and Return Later">
+            <Card title="16. Logout and Return Later">
               <p className="text-[var(--brand-muted)]">
                 Select your name at the top of the site to open
                 your account menu. Choose <strong>Logout</strong>
