@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   type FormEvent,
   useState,
@@ -21,8 +20,6 @@ type LoginResponse = {
 };
 
 export default function LoginPage() {
-  const router = useRouter();
-
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -111,7 +108,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace("/dashboard");
+      window.location.assign("/dashboard");
     } catch (loginError) {
       console.error(
         "Login request failed:",
@@ -133,22 +130,44 @@ export default function LoginPage() {
     setVerificationMessage("");
 
     if (!email) {
-      setError("Enter your email address before requesting a verification email.");
+      setError(
+        "Enter your email address before requesting a verification email."
+      );
       return;
     }
 
     setResending(true);
 
     try {
-      const response = await fetch("/api/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const result = (await response.json().catch(() => null)) as LoginResponse | null;
+      const response = await fetch(
+        "/api/resend-verification",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            email,
+          }),
+        }
+      );
 
-      if (!response.ok || result?.success !== true) {
-        throw new Error(result?.error || "Unable to resend the verification email.");
+      const result =
+        (await response
+          .json()
+          .catch(() => null)) as
+          | LoginResponse
+          | null;
+
+      if (
+        !response.ok ||
+        result?.success !== true
+      ) {
+        throw new Error(
+          result?.error ||
+            "Unable to resend the verification email."
+        );
       }
 
       setVerificationMessage(
@@ -187,7 +206,10 @@ export default function LoginPage() {
           )}
 
           {verificationMessage && (
-            <Alert variant="success" title="Verification Email">
+            <Alert
+              variant="success"
+              title="Verification Email"
+            >
               {verificationMessage}
             </Alert>
           )}
@@ -266,7 +288,9 @@ export default function LoginPage() {
             disabled={loading || resending}
             onClick={handleResendVerification}
           >
-            {resending ? "Sending..." : "Resend Verification Email"}
+            {resending
+              ? "Sending..."
+              : "Resend Verification Email"}
           </Button>
 
           <div className="grid gap-3 sm:grid-cols-2">
