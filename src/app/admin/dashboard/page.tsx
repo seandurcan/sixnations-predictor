@@ -124,7 +124,7 @@ export default function AdminDashboardPage() {
           subtitle="System overview and tournament telemetry"
         />
 
-        <div className="mb-8 grid gap-3 sm:grid-cols-3">
+        <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Button
             fullWidth
             onClick={() => {
@@ -141,6 +141,15 @@ export default function AdminDashboardPage() {
             }}
           >
             View Audit Log
+          </Button>
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() => {
+              window.location.href = "/admin/unverified-users";
+            }}
+          >
+            Unverified Users
           </Button>
           <Button
             fullWidth
