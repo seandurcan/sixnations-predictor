@@ -1,380 +1,87 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
-import {
-  assignCompetitionRanks,
-  calculateMatchScore,
-} from "@/lib/scoring";
+import { applyMatchScore, setManualOverride } from "@/lib/liveScoring";
+import { prisma } from "@/lib/prisma";
 
-export async function POST(
-  request: Request
-) {
+export async function POST(request: Request) {
   try {
-    const adminUser =
-      await requireAdmin();
-
-    const body =
-      await request.json();
+    const adminUser = await requireAdmin();
+    const body = await request.json();
 
     if (body.testMode === true) {
       await prisma.systemSetting.upsert({
-        where: {
-          key: "ADMIN_TEST_SCORING_ACTIVE",
-        },
-        update: {
-          value: "true",
-        },
-        create: {
-          key: "ADMIN_TEST_SCORING_ACTIVE",
-          value: "true",
-        },
+        where: { key: "ADMIN_TEST_SCORING_ACTIVE" },
+        update: { value: "true" },
+        create: { key: "ADMIN_TEST_SCORING_ACTIVE", value: "true" },
       });
     }
 
-    const existingMatch =
-      await prisma.match.findUnique({
-        where: {
-          id: body.matchId,
-        },
-      });
+    const matchId = Number(body.matchId);
+    const homeScore = Number(body.homeScore);
+    const awayScore = Number(body.awayScore);
 
-    if (!existingMatch) {
+    if (
+      !Number.isInteger(matchId) ||
+      !Number.isFinite(homeScore) ||
+      !Number.isFinite(awayScore) ||
+      homeScore < 0 ||
+      awayScore < 0
+    ) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Match not found",
-        },
-        {
-          status: 404,
-        }
+        { success: false, error: "Invalid result" },
+        { status: 400 }
       );
     }
 
-    await prisma.scoreAudit.create({
-      data: {
-        matchId: body.matchId,
+    const completed = body.completed === false ? false : true;
 
-        previousHome:
-          existingMatch.actualHomeScore,
-
-        previousAway:
-          existingMatch.actualAwayScore,
-
-        newHome:
-          body.homeScore,
-
-        newAway:
-          body.awayScore,
-
-        adminUserId:
-          adminUser.id,
-      },
+    const result = await applyMatchScore({
+      matchId,
+      homeScore,
+      awayScore,
+      completed,
+      source: "ADMIN",
+      adminUserId: adminUser.id,
+      manualOverride: body.testMode !== true,
+      providerStatus: completed ? "Manual Full Time" : "Manual Live Score",
     });
 
-    const match =
-      await prisma.match.update({
-        where: {
-          id: body.matchId,
-        },
-        data: {
-          actualHomeScore:
-            body.homeScore,
-          actualAwayScore:
-            body.awayScore,
-          completed: true,
-        },
-      });
-
-    const predictions =
-      await prisma.prediction.findMany({
-        where: {
-          matchId: body.matchId,
-        },
-      });
-
-    for (const prediction of predictions) {
-      const score = calculateMatchScore(
-        prediction.predictedHomeScore,
-        prediction.predictedAwayScore,
-        body.homeScore,
-        body.awayScore
-      );
-
-      await prisma.prediction.update({
-        where: {
-          id: prediction.id,
-        },
-        data: {
-          pointsAwarded: score.pointsAwarded,
-          errorValue: score.errorValue,
-          exactScore: score.exactScore,
-          correctMargin: score.correctMargin,
-          correctResult: score.correctResult,
-          differenceScore: score.differenceScore,
-        },
-      });
-    }
-
-    const users =
-      await prisma.user.findMany({
-        include: {
-          predictions: true,
-        },
-      });
-
-    for (const user of users) {
-      const totalPoints =
-        user.predictions.reduce(
-          (
-            total,
-            prediction
-          ) =>
-            total +
-            prediction.pointsAwarded,
-          0
-        );
-
-      const cumulativeError =
-        user.predictions.reduce(
-          (
-            total,
-            prediction
-          ) =>
-            total +
-            prediction.errorValue,
-          0
-        );
-
-      const exactScores =
-        user.predictions.filter(
-          (prediction) =>
-            prediction.exactScore
-        ).length;
-
-      await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          totalPoints,
-          cumulativeError,
-          exactScores,
-        },
-      });
-    }
-
-    const latestSnapshot =
-      await prisma.leaderboardSnapshot.findFirst(
-        {
-          orderBy: {
-            snapshotNumber:
-              "desc",
-          },
-        }
-      );
-
-    const snapshotNumber =
-      (latestSnapshot?.snapshotNumber ??
-        0) + 1;
-
-    const refreshedUsers =
-      await prisma.user.findMany({
-        include: {
-          predictions: true,
-        },
-      });
-
-    const completedMatches =
-      await prisma.match.count({
-        where: {
-          completed: true,
-          tournamentId: match.tournamentId,
-        },
-      });
-
-    const totalMatches =
-      await prisma.match.count({ where: { tournamentId: match.tournamentId } });
-
-    const tournamentComplete = totalMatches > 0 && completedMatches === totalMatches;
-
-    const rankings = assignCompetitionRanks(
-      refreshedUsers.map((user) => {
-          const differenceScore =
-            user.predictions.reduce(
-              (
-                total,
-                prediction
-              ) =>
-                total +
-                prediction.differenceScore,
-              0
-            );
-
-          return {
-            id: user.id,
-            totalPoints:
-              user.totalPoints,
-            exactScores:
-              user.exactScores,
-            cumulativeError:
-              user.cumulativeError,
-            differenceScore,
-            correctMargins: user.predictions.filter((prediction) => prediction.correctMargin).length,
-            correctResults: user.predictions.filter((prediction) => prediction.correctResult).length,
-            predictionSubmittedAt: user.predictionSubmittedAt,
-            registrationOrder:
-              user.registrationOrder,
-          };
-        })
-    );
-
-    const previousSnapshots =
-      latestSnapshot
-        ? await prisma.leaderboardSnapshot.findMany(
-            {
-              where: {
-                snapshotNumber:
-                  latestSnapshot.snapshotNumber,
-              },
-            }
-          )
-        : [];
-
-    for (
-      let index = 0;
-      index < rankings.length;
-      index++
-    ) {
-      const user =
-        rankings[index];
-
-      const rank = user.rank;
-
-      const previousSnapshot =
-        previousSnapshots.find(
-          (snapshot) =>
-            snapshot.userId ===
-            user.id
-        );
-
-      const previousRank =
-        previousSnapshot?.rank ??
-        null;
-
-      let rankMovement =
-        null;
-
-      if (
-        previousRank !== null
-      ) {
-        rankMovement =
-          previousRank - rank;
-      }
-
-      await prisma.leaderboardSnapshot.create(
-        {
-          data: {
-            tournamentId: match.tournamentId,
-            userId: user.id,
-            snapshotNumber,
-            rank,
-            previousRank,
-            rankMovement,
-            totalPoints:
-              user.totalPoints,
-            cumulativeError:
-              user.cumulativeError,
-            exactScores:
-              user.exactScores,
-            correctMargins: user.correctMargins,
-            correctResults: user.correctResults,
-          },
-        }
-      );
-    }
-
-    if (tournamentComplete) {
-      await prisma.tournament.update({
-        where: {
-          id: match.tournamentId,
-        },
-        data: {
-          status:
-            "COMPLETED",
-        },
-      });
-
-      const jointWinners = rankings.filter((entrant) => entrant.rank === 1);
-
-      if (jointWinners.length > 0) {
-        await prisma.tournamentWinner.deleteMany({
-          where: { tournamentId: match.tournamentId },
-        });
-        await prisma.tournamentWinner.createMany({
-          data: jointWinners.map((winner) => ({
-            tournamentId: match.tournamentId,
-            userId: winner.id,
-            finalPoints: winner.totalPoints,
-            rank: 1,
-          })),
-        });
-      }
+    if (body.testMode !== true) {
+      await setManualOverride(matchId, true);
     }
 
     return NextResponse.json({
       success: true,
-      snapshotNumber,
-      match,
+      snapshotNumber: result.snapshotNumber,
+      match: result.match,
+      manualOverride: body.testMode !== true,
     });
   } catch (error) {
     console.error(error);
+    const message = error instanceof Error ? error.message : "Failed to save result";
 
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to save result";
-
-    if (
-      message ===
-      "Authentication required"
-    ) {
+    if (message === "Authentication required") {
       return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Authentication required",
-        },
-        {
-          status: 401,
-        }
+        { success: false, error: "Authentication required" },
+        { status: 401 }
       );
     }
-
-    if (
-      message ===
-      "Admin access required"
-    ) {
+    if (message === "Admin access required") {
       return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Admin access required",
-        },
-        {
-          status: 403,
-        }
+        { success: false, error: "Admin access required" },
+        { status: 403 }
+      );
+    }
+    if (message === "Match not found") {
+      return NextResponse.json(
+        { success: false, error: "Match not found" },
+        { status: 404 }
       );
     }
 
     return NextResponse.json(
-      {
-        success: false,
-        error:
-          "Failed to save result",
-      },
-      {
-        status: 500,
-      }
+      { success: false, error: "Failed to save result" },
+      { status: 500 }
     );
   }
 }

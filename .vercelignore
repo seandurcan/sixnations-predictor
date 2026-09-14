@@ -1,0 +1,7 @@
+.npm-cache
+tmp
+production-patch.js
+.env*
+**/node_modules
+*.zip
+ai-export

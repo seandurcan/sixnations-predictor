@@ -214,7 +214,13 @@ export default function LeaderboardPage() {
 
     void loadLeaderboard();
 
+    const interval = window.setInterval(
+      () => void loadLeaderboard(),
+      30_000
+    );
+
     return () => {
+      window.clearInterval(interval);
       controller.abort();
     };
   }, [page]);

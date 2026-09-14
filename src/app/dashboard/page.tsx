@@ -11,6 +11,7 @@ import {
   formatIsoDate,
 } from "@/lib/formatIrishDate";
 import { useEffect, useState } from "react";
+import PredictionsDownload from "@/components/PredictionsDownload";
 
 export default function DashboardPage() {
   const [user, setUser] =
@@ -330,6 +331,8 @@ export default function DashboardPage() {
             View Fixtures
           </Button>
         </div>
+
+        <PredictionsDownload />
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard

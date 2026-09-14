@@ -21,7 +21,7 @@ describe('PredictionsPage', () => {
   });
 
   it('renders loading state initially', () => {
-    global.fetch = vi.fn(() => new Promise(() => {}));
+    global.fetch = vi.fn(() => new Promise<Response>(() => {}));
 
     render(<PredictionsPage />);
     

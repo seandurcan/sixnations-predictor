@@ -115,6 +115,17 @@ export async function POST() {
         },
       }),
 
+      prisma.systemSetting.deleteMany({
+        where: {
+          OR: [
+            { key: { startsWith: "LIVE_SCORE_OVERRIDE_" } },
+            { key: { startsWith: "LIVE_SCORE_META_" } },
+            { key: { startsWith: "LIVE_SCORE_SLOT_" } },
+            { key: { startsWith: "LIVE_SCORE_AUDIT_" } },
+          ],
+        },
+      }),
+
       prisma.systemSetting.upsert({
         where: {
           key: "ADMIN_TEST_SCORING_ACTIVE",

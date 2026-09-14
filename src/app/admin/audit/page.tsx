@@ -169,7 +169,28 @@ export default function AuditPage() {
                           </td>
 
                           <td className="border border-[var(--brand-border)] p-3">
-                            {audit.adminUser
+                            {audit.liveMeta?.source === "API-Sports" ? (
+                              <div>
+                                <div className="font-semibold text-[var(--brand-blue)]">
+                                  API-Sports
+                                </div>
+                                {audit.liveMeta.providerGameId && (
+                                  <div className="text-xs text-[var(--brand-muted)]">
+                                    Game {audit.liveMeta.providerGameId}
+                                  </div>
+                                )}
+                                {audit.liveMeta.newStatus && (
+                                  <div className="text-xs text-[var(--brand-muted)]">
+                                    {audit.liveMeta.newStatus}
+                                  </div>
+                                )}
+                                {audit.liveMeta.leaderboardRecalculated && (
+                                  <div className="text-xs text-[var(--brand-muted)]">
+                                    Leaderboard recalculated
+                                  </div>
+                                )}
+                              </div>
+                            ) : audit.adminUser
                               ? `${audit.adminUser.firstName} ${audit.adminUser.lastName}`
                               : audit.adminUserId}
                           </td>

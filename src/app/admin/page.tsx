@@ -47,6 +47,14 @@ export default function AdminPage() {
 
   useEffect(() => {
     initialise();
+
+    const interval = window.setInterval(
+      () => void loadMatches(),
+      30_000
+    );
+
+    return () =>
+      window.clearInterval(interval);
   }, []);
 
   async function initialise() {
@@ -567,18 +575,18 @@ export default function AdminPage() {
                           </div>
                         )}
 
-                        {match.completed && (
-                          <div className="mt-2 text-sm font-semibold text-[var(--brand-blue)]">
-                            Result:{" "}
-                            {
-                              match.actualHomeScore
-                            }
-                            {" - "}
-                            {
-                              match.actualAwayScore
-                            }
-                          </div>
-                        )}
+                        {match.actualHomeScore != null &&
+                          match.actualAwayScore != null && (
+                            <div className="mt-2 text-sm font-semibold text-[var(--brand-blue)]">
+                              {match.completed ? "Result" : "Live score"}:{" "}
+                              {match.actualHomeScore}
+                              {" - "}
+                              {match.actualAwayScore}
+                              {!match.completed && match.liveStatus
+                                ? " · " + match.liveStatus
+                                : ""}
+                            </div>
+                          )}
                       </div>
 
                       <StatusBadge
@@ -625,12 +633,45 @@ export default function AdminPage() {
                     </p>
                   )}
 
-                  <div className="mt-3">
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
                     <StatusBadge
                       status={getMatchStatus(
                         selectedMatch
                       )}
                     />
+
+                    {selectedMatch.liveStatus && (
+                      <span className="text-sm font-semibold text-[var(--brand-blue)]">
+                        {selectedMatch.liveSource ?? "Live"}:{" "}
+                        {selectedMatch.liveStatus}
+                      </span>
+                    )}
+
+                    {selectedMatch.manualOverride && (
+                      <Button
+                        variant="secondary"
+                        onClick={async () => {
+                          await fetch(
+                            "/api/admin/live-score-override",
+                            {
+                              method: "POST",
+                              headers: {
+                                "Content-Type":
+                                  "application/json",
+                              },
+                              body: JSON.stringify({
+                                matchId:
+                                  selectedMatch.id,
+                              }),
+                            }
+                          );
+
+                          await loadMatches();
+                        }}
+                      >
+                        Resume API Updates
+                      </Button>
+                    )}
                   </div>
                 </div>
 

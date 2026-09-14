@@ -115,7 +115,7 @@ const mockMatchesWithoutKickoff = [
 ];
 
 function mockSuccessfulMatchesLoad(
-  matches = mockMatches
+  matches: unknown = mockMatches
 ) {
   vi.mocked(global.fetch).mockResolvedValueOnce({
     ok: true,
