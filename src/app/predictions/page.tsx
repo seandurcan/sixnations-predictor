@@ -177,12 +177,16 @@ export default function PredictionsPage() {
       return true;
     }
 
-    if (!match.kickoffTime) {
+    const tournamentKickoff =
+      match.tournament?.firstKickoff;
+
+    if (!tournamentKickoff) {
       return false;
     }
 
     return (
-      new Date(match.kickoffTime).getTime() <= new Date().getTime()
+      new Date(tournamentKickoff).getTime() <=
+      new Date().getTime()
     );
   }
 
@@ -257,7 +261,7 @@ export default function PredictionsPage() {
         if (response.status === 403) {
           setIsLocked(true);
           setLockMessage(
-            "This fixture has already kicked off. Predictions can no longer be edited."
+            "The tournament has kicked off. All predictions are now locked and can no longer be edited."
           );
         } else {
           setLockMessage(
@@ -328,7 +332,7 @@ export default function PredictionsPage() {
               </p>
 
               <p className="text-[var(--brand-muted)]">
-                A &euro;5 competition entry payment is required before you can enter or edit predictions.
+                A &euro;20 competition entry payment is required before you can enter or edit predictions.
               </p>
 
               <p className="font-semibold text-[var(--brand-navy)]">
@@ -448,7 +452,7 @@ export default function PredictionsPage() {
 
         <Card title="Quick Pick (Testing)" className="mb-6">
           <p className="mb-4 text-sm text-[var(--brand-muted)]">
-            Generate and save random scores for every unlocked fixture. Existing unlocked predictions will be replaced.
+            Generate and save random scores for all tournament fixtures before the first match kicks off. Existing predictions will be replaced.
           </p>
           <Button
             fullWidth
@@ -554,7 +558,7 @@ export default function PredictionsPage() {
                     )?.kickoffTime ??
                     matches[0]?.kickoffTime
                   }
-                  label="Time until predictions lock"
+                  label="Time until all predictions lock"
                 />
               </Card>
             )}
