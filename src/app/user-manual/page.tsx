@@ -580,7 +580,7 @@ export default function UserManualPage() {
                   ["2", "Correct Wins", "Most correctly predicted match outcomes."],
                   ["3", "Perfect Scores", "Most exact score predictions."],
                   ["4", "Correct Margins", "Most exactly predicted winning margins. A correctly predicted draw has a margin of zero."],
-                  ["5", "Lowest Aggregate Score Error", "If entrants are still tied, the lowest cumulative absolute score error across completed matches ranks first."],
+                  ["5", "Prediction Delta", "If entrants are still tied, the lowest Prediction Delta ranks first."],
                 ].map(([number, title, text]) => (
                   <div
                     key={number}
@@ -597,19 +597,10 @@ export default function UserManualPage() {
                 ))}
               </div>
 
-              <div className="mt-5 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-soft-blue)] p-4">
-                <p className="font-bold">Where Prediction Delta fits</p>
-                <p className="mt-1 text-[var(--brand-muted)]">
-                  <strong>Prediction Delta</strong> is displayed on the
-                  Leaderboard as an additional measure of prediction
-                  accuracy. It is <strong>not</strong> currently used to
-                  determine official Rank.
-                </p>
-              </div>
-
               <div className="mt-5 rounded-lg bg-[var(--brand-soft-lime)] p-4">
-                If entrants remain identical after all five official
-                ranking criteria, they remain
+                Prediction Delta is the fifth and final official
+                ranking criterion. If entrants remain identical after
+                all five criteria, they remain
                 <strong> jointly ranked</strong>.
               </div>
             </Card>
@@ -618,9 +609,9 @@ export default function UserManualPage() {
           <section id="leaderboard" className="scroll-mt-28">
             <Card title="14. Reading the Leaderboard">
               <p className="mb-4 text-[var(--brand-muted)]">
-                The leaderboard columns match the Leaderboard PDF.
-                The ranking-related columns appear first, followed by
-                Prediction Delta and Movement:
+                The leaderboard columns match the Leaderboard PDF
+                exactly. The official ranking criteria appear in
+                hierarchy order, followed by Movement:
               </p>
 
               <p className="font-semibold">
@@ -685,7 +676,8 @@ export default function UserManualPage() {
                 <div className="rounded-lg border border-[var(--brand-border)] bg-[var(--brand-soft-blue)] p-4">
                   <h3 className="text-lg font-bold">Prediction Delta</h3>
                   <p className="mt-2 text-[var(--brand-muted)]">
-                    <strong>Prediction Delta</strong> measures how close your
+                    <strong>Prediction Delta</strong> is the fifth official
+                    ranking criterion. It measures how close your
                     predicted winning margin was to the real winning margin.
                     It does not depend on the exact scores; it compares the
                     difference between the teams. A lower value is better.
