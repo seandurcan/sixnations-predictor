@@ -607,128 +607,164 @@ export default function UserManualPage() {
           <section id="leaderboard" className="scroll-mt-28">
             <Card title="14. Reading the Leaderboard">
               <p className="mb-4 text-[var(--brand-muted)]">
-                The leaderboard columns follow the competition
-                hierarchy:
+                The leaderboard columns match the Leaderboard PDF
+                and follow the competition hierarchy:
               </p>
 
               <p className="font-semibold">
-                Rank → Player → Total Points → Correct Results →
-                Exact Scores → Correct Winning Margins → Aggregate
-                Score Error → Last Change
+                Rank → Player → Points Total → Correct Wins →
+                Perfect Scores → Correct Margins → Prediction Delta →
+                Movement
               </p>
 
-              <div className="mt-5 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-soft-blue)] p-4">
-                <h3 className="text-lg font-bold">Prediction Delta</h3>
-                <p className="mt-2 text-[var(--brand-muted)]">
-                  <strong>Prediction Delta</strong> measures how close your
-                  predicted winning margin was to the real winning margin.
-                  It does not depend on the exact scores; it compares the
-                  difference between the teams.
-                </p>
-
-                <div className="mt-4 space-y-2 text-[var(--brand-muted)]">
-                  <p>
-                    <strong>1.</strong> Actual margin = Actual Home Score −
-                    Actual Away Score.
-                  </p>
-                  <p>
-                    <strong>2.</strong> Predicted margin = Predicted Home Score
-                    − Predicted Away Score.
-                  </p>
-                  <p>
-                    <strong>3.</strong> Margin difference = |Actual Margin −
-                    Predicted Margin|.
-                  </p>
-                  <p>
-                    <strong>4.</strong> If you predicted the correct winner,
-                    that difference is subtracted from your Prediction Delta.
-                    If you predicted the wrong winner, it is added.
-                  </p>
-                </div>
-
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <div className="rounded-lg border border-[var(--brand-border)] bg-white p-3">
-                    <p className="font-bold">Example — Correct Winner</p>
-                    <p className="mt-1 text-sm text-[var(--brand-muted)]">
-                      Actual: Ireland 56–12 England. Actual margin = 44.
-                      Prediction: Ireland 60–20 England. Predicted margin = 40.
-                      Difference = 4. Ireland was correctly predicted to win,
-                      so <strong>Prediction Delta changes by −4</strong>.
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg border border-[var(--brand-border)] bg-white p-3">
-                    <p className="font-bold">Example — Wrong Winner</p>
-                    <p className="mt-1 text-sm text-[var(--brand-muted)]">
-                      Actual: Ireland 56–12 England. Actual margin = +44.
-                      Prediction: Ireland 20–30 England. Predicted margin = −10.
-                      Difference = |44 − (−10)| = 54. England was incorrectly
-                      predicted to win, so <strong>Prediction Delta changes by +54</strong>.
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg border border-[var(--brand-border)] bg-white p-3">
-                    <p className="font-bold">Example — Perfect Margin</p>
-                    <p className="mt-1 text-sm text-[var(--brand-muted)]">
-                      Actual: France 20–18 Wales. Prediction: France 19–17
-                      Wales. Both margins are 2, so the difference is 0 and
-                      <strong> Prediction Delta changes by 0</strong>.
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg border border-[var(--brand-border)] bg-white p-3">
-                    <p className="font-bold">Example — Correct Winner, Different Margin</p>
-                    <p className="mt-1 text-sm text-[var(--brand-muted)]">
-                      Actual: Scotland 30–10 Italy. Actual margin = 20.
-                      Prediction: Scotland 25–20 Italy. Predicted margin = 5.
-                      Difference = 15. Scotland was correctly predicted to win,
-                      so <strong>Prediction Delta changes by −15</strong>.
-                    </p>
-                  </div>
-                </div>
-
-                <p className="mt-4 font-semibold">
-                  In one line: Prediction Delta is the difference between the
-                  actual margin and predicted margin, subtracted for a correct
-                  result and added for an incorrect result. A lower value
-                  represents a better margin prediction record.
-                </p>
-
-                <p className="mt-2 text-sm text-[var(--brand-muted)]">
-                  Prediction Delta is shown as an accuracy statistic. Your
-                  official competition rank continues to follow the Leaderboard
-                  Ranking Hierarchy described in Section 13.
-                </p>
-              </div>
-
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <div className="mt-5 space-y-4">
                 <div className="rounded-lg border border-[var(--brand-border)] p-4">
                   <h3 className="font-bold">Rank</h3>
                   <p className="mt-1 text-[var(--brand-muted)]">
-                    Your official competition position. The top
-                    three positions are highlighted with medal
-                    symbols.
+                    Your official competition position after all
+                    ranking criteria have been applied. The top three
+                    positions are highlighted with medal symbols.
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-[var(--brand-border)] p-4">
-                  <h3 className="font-bold">Last Change</h3>
+                  <h3 className="font-bold">Player</h3>
                   <p className="mt-1 text-[var(--brand-muted)]">
-                    ↑ means the entrant moved up, ↓ means the
-                    entrant moved down, → means the rank stayed
-                    unchanged and — means there is no previous
-                    ranking to compare.
+                    The entrant&apos;s name.
                   </p>
                 </div>
 
-                <div className="rounded-lg border border-[var(--brand-border)] p-4 md:col-span-2">
+                <div className="rounded-lg border border-[var(--brand-border)] p-4">
+                  <h3 className="font-bold">Points Total</h3>
+                  <p className="mt-1 text-[var(--brand-muted)]">
+                    The first ranking criterion. Entrants with the
+                    highest points total rank ahead.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-[var(--brand-border)] p-4">
+                  <h3 className="font-bold">Correct Wins</h3>
+                  <p className="mt-1 text-[var(--brand-muted)]">
+                    The second ranking criterion when Points Total is
+                    tied. It counts correctly predicted match outcomes.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-[var(--brand-border)] p-4">
+                  <h3 className="font-bold">Perfect Scores</h3>
+                  <p className="mt-1 text-[var(--brand-muted)]">
+                    The third ranking criterion. It counts predictions
+                    where both teams&apos; scores were predicted exactly.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-[var(--brand-border)] p-4">
+                  <h3 className="font-bold">Correct Margins</h3>
+                  <p className="mt-1 text-[var(--brand-muted)]">
+                    The fourth ranking criterion. It counts matches
+                    where the winning margin was predicted exactly.
+                    A correctly predicted draw has a margin of zero.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-[var(--brand-border)] bg-[var(--brand-soft-blue)] p-4">
+                  <h3 className="text-lg font-bold">Prediction Delta</h3>
+                  <p className="mt-2 text-[var(--brand-muted)]">
+                    <strong>Prediction Delta</strong> measures how close your
+                    predicted winning margin was to the real winning margin.
+                    It does not depend on the exact scores; it compares the
+                    difference between the teams. A lower value is better.
+                  </p>
+
+                  <div className="mt-4 space-y-2 text-[var(--brand-muted)]">
+                    <p>
+                      <strong>1.</strong> Actual margin = Actual Home Score −
+                      Actual Away Score.
+                    </p>
+                    <p>
+                      <strong>2.</strong> Predicted margin = Predicted Home
+                      Score − Predicted Away Score.
+                    </p>
+                    <p>
+                      <strong>3.</strong> Margin difference = |Actual Margin −
+                      Predicted Margin|.
+                    </p>
+                    <p>
+                      <strong>4.</strong> If you predicted the correct winner,
+                      that difference is subtracted from your Prediction Delta.
+                      If you predicted the wrong winner, it is added.
+                    </p>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-lg border border-[var(--brand-border)] bg-white p-3">
+                      <p className="font-bold">Example — Correct Winner</p>
+                      <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                        Actual: Ireland 56–12 England. Actual margin = 44.
+                        Prediction: Ireland 60–20 England. Predicted margin =
+                        40. Difference = 4. Ireland was correctly predicted to
+                        win, so <strong>Prediction Delta changes by −4</strong>.
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg border border-[var(--brand-border)] bg-white p-3">
+                      <p className="font-bold">Example — Wrong Winner</p>
+                      <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                        Actual: Ireland 56–12 England. Actual margin = +44.
+                        Prediction: Ireland 20–30 England. Predicted margin =
+                        −10. Difference = |44 − (−10)| = 54. England was
+                        incorrectly predicted to win, so
+                        <strong> Prediction Delta changes by +54</strong>.
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg border border-[var(--brand-border)] bg-white p-3">
+                      <p className="font-bold">Example — Perfect Margin</p>
+                      <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                        Actual: France 20–18 Wales. Prediction: France 19–17
+                        Wales. Both margins are 2, so the difference is 0 and
+                        <strong> Prediction Delta changes by 0</strong>.
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg border border-[var(--brand-border)] bg-white p-3">
+                      <p className="font-bold">
+                        Example — Correct Winner, Different Margin
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                        Actual: Scotland 30–10 Italy. Actual margin = 20.
+                        Prediction: Scotland 25–20 Italy. Predicted margin = 5.
+                        Difference = 15. Scotland was correctly predicted to
+                        win, so <strong>Prediction Delta changes by −15</strong>.
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="mt-4 font-semibold">
+                    In one line: Prediction Delta is the difference between
+                    the actual margin and predicted margin, subtracted for a
+                    correct result and added for an incorrect result. Lower is
+                    better.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-[var(--brand-border)] p-4">
+                  <h3 className="font-bold">Movement</h3>
+                  <p className="mt-1 text-[var(--brand-muted)]">
+                    Shows how the entrant&apos;s official rank changed after
+                    the latest leaderboard recalculation. ↑ means moved up,
+                    ↓ means moved down, → means unchanged and — means there is
+                    no previous ranking to compare.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-[var(--brand-border)] p-4">
                   <h3 className="font-bold">Sort By</h3>
                   <p className="mt-1 text-[var(--brand-muted)]">
-                    You can temporarily sort the table by a
-                    displayed statistic or by Player Name. This
-                    changes how you view the table; the official
-                    Rank is still calculated using the five-level
-                    hierarchy above.
+                    You can temporarily sort the table by a displayed
+                    statistic or by Player. This changes how you view the
+                    table; the official Rank remains calculated using the
+                    competition hierarchy.
                   </p>
                 </div>
               </div>
