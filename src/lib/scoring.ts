@@ -34,10 +34,12 @@ export function calculateMatchScore(
     Math.abs(predictedMargin - actualMargin);
 
   return {
-    // Locked rule: 1 point for a correct result
-    // plus 3 bonus points for an exact score.
+    // Scoring: 1 point for the correct outcome,
+    // 2 bonus points for the correct margin,
+    // and 3 bonus points for an exact score.
     pointsAwarded:
       (correctResult ? 1 : 0) +
+      (correctMargin ? 2 : 0) +
       (exactScore ? 3 : 0),
     exactScore,
     correctMargin,
