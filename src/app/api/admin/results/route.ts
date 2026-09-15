@@ -35,6 +35,39 @@ export async function POST(request: Request) {
 
     const completed = body.completed === false ? false : true;
 
+    const targetMatch = await prisma.match.findUnique({
+      where: { id: matchId },
+      select: {
+        tournament: {
+          select: {
+            firstKickoff: true,
+          },
+        },
+      },
+    });
+
+    if (!targetMatch) {
+      return NextResponse.json(
+        { success: false, error: "Match not found" },
+        { status: 404 }
+      );
+    }
+
+    if (
+      body.testMode !== true &&
+      Date.now() <
+        targetMatch.tournament.firstKickoff.getTime()
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Manual score entry is locked until tournament kickoff.",
+        },
+        { status: 423 }
+      );
+    }
+
     const result = await applyMatchScore({
       matchId,
       homeScore,
