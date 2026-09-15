@@ -26,7 +26,7 @@ export async function POST() {
                 description:
                   "Six Nations Predictor Entry Fee",
               },
-              unit_amount: 500,
+              unit_amount: 2000,
             },
           },
         ],
