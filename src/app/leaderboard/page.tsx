@@ -358,9 +358,21 @@ export default function LeaderboardPage() {
           subtitle="Current tournament standings"
         />
 
-        <p className="mb-6 text-slate-500">
-          Total Players: {totalRecords}
-        </p>
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-slate-500">
+            Total Players: {totalRecords}
+          </p>
+
+          <Button
+            variant="secondary"
+            onClick={() => {
+              window.location.href =
+                "/api/leaderboard/pdf";
+            }}
+          >
+            Download Leaderboard PDF
+          </Button>
+        </div>
 
         <Card title="Leaderboard">
           <div className="mb-4 flex justify-end">
