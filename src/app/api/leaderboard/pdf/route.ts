@@ -82,7 +82,7 @@ export async function GET() {
       correctWins: entrant.correctResults,
       perfectScores: entrant.exactScores,
       correctMargins: entrant.correctMargins,
-      predictionDelta: entrant.cumulativeError,
+      predictionDelta: entrant.differenceScore,
       movement: entrant.movement,
     }));
 
