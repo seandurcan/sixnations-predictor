@@ -514,7 +514,7 @@ export default function UserManualPage() {
                   <tbody>
                     <tr>
                       <td className="border border-slate-200 p-3">
-                        Correct result/winner, but not exact score
+                        Correct result/winner
                       </td>
                       <td className="border border-slate-200 p-3 font-bold">
                         1
@@ -522,18 +522,18 @@ export default function UserManualPage() {
                     </tr>
                     <tr>
                       <td className="border border-slate-200 p-3">
-                        Exact score
+                        Correct winning margin
                       </td>
                       <td className="border border-slate-200 p-3 font-bold">
-                        4 total
+                        +2 bonus
                       </td>
                     </tr>
                     <tr>
                       <td className="border border-slate-200 p-3">
-                        Incorrect result
+                        Exact score
                       </td>
                       <td className="border border-slate-200 p-3 font-bold">
-                        0
+                        +3 bonus
                       </td>
                     </tr>
                   </tbody>
@@ -541,11 +541,12 @@ export default function UserManualPage() {
               </div>
 
               <p className="mt-4 text-[var(--brand-muted)]">
-                An exact score receives the 1 point for the correct
-                result plus a 3-point exact-score bonus, giving
-                <strong> 4 points total</strong>. A correct winning
-                margin is recorded as a ranking statistic but does
-                not add a separate points bonus.
+                Points accumulate from three separate awards:
+                <strong> 1 point</strong> for the correct result,
+                <strong> 2 bonus points</strong> for the correct winning
+                margin, and <strong> 3 bonus points</strong> for an exact
+                score. An exact score earns all three awards for
+                <strong> 6 points total</strong>.
               </p>
 
               <div className="mt-5 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-soft-blue)] p-4">
@@ -666,16 +667,19 @@ export default function UserManualPage() {
                       <p className="font-bold">Perfect score</p>
                       <p className="mt-1 text-sm">
                         Predict both teams&apos; exact final scores:
-                        <strong> 4 points total</strong> — the 1 point for
-                        the correct result plus a 3-point exact-score bonus.
+                        <strong> 3 bonus points</strong>. The correct result
+                        point and correct-margin bonus are counted separately,
+                        so an exact score earns <strong>6 points in total</strong>.
                       </p>
                     </div>
                   </div>
 
                   <p className="mt-3 text-sm text-[var(--brand-muted)]">
                     An incorrect result scores <strong>0 points</strong>.
-                    There is no separate points bonus for predicting the
-                    correct winning margin unless the score itself is exact.
+                    A correct winning margin earns <strong>2 bonus points</strong>.
+                    The maximum for one match is therefore 6 points:
+                    1 for the correct result, 2 for the correct margin and
+                    3 for the exact score.
                   </p>
                 </div>
 
@@ -718,10 +722,12 @@ export default function UserManualPage() {
 
                   <p className="mt-3 text-sm text-[var(--brand-muted)]">
                     Example: you predict Ireland 24–18 England and Ireland
-                    actually win 30–20. The scores are different, but you
-                    correctly predicted an Ireland win, so you receive
-                    <strong> 1 point</strong> and one
-                    <strong> Correct Win</strong>.
+                    actually win 30–20. The scores are different and the
+                    margin is different, but you correctly predicted an
+                    Ireland win, so you receive <strong>1 point</strong> and
+                    one <strong>Correct Win</strong>. If the winning margin
+                    had also been correct, you would receive the additional
+                    <strong>2-point Correct Margin bonus</strong>.
                   </p>
                 </div>
 
