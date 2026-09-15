@@ -421,6 +421,14 @@ export default function AdminPage() {
         match.actualAwayScore !== null
     ).length;
 
+  const manualScoreLocked = selectedMatch
+    ? Date.now() <
+      new Date(
+        selectedMatch.tournament?.firstKickoff ??
+          selectedMatch.kickoffTime
+      ).getTime()
+    : true;
+
   return (
     <main className="bg-white text-[var(--brand-navy)]">
       <PageContainer>
@@ -676,10 +684,19 @@ export default function AdminPage() {
                 </div>
 
                 <div className="space-y-4">
+                  {manualScoreLocked && (
+                    <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm font-semibold text-amber-900">
+                      Manual score entry is locked until tournament kickoff.
+                      Tournament testing controls remain available only through
+                      the explicit test buttons above.
+                    </div>
+                  )}
+
                   <Input
                     type="number"
                     placeholder={`${selectedMatch.homeTeam.name} Score`}
                     value={homeScore}
+                    disabled={manualScoreLocked}
                     onChange={(event) =>
                       setHomeScore(
                         event.target.value
@@ -691,6 +708,7 @@ export default function AdminPage() {
                     type="number"
                     placeholder={`${selectedMatch.awayTeam.name} Score`}
                     value={awayScore}
+                    disabled={manualScoreLocked}
                     onChange={(event) =>
                       setAwayScore(
                         event.target.value
@@ -702,7 +720,10 @@ export default function AdminPage() {
                     onClick={
                       saveResult
                     }
-                    disabled={saving}
+                    disabled={
+                      saving ||
+                      manualScoreLocked
+                    }
                   >
                     {saving
                       ? "Saving Result..."
