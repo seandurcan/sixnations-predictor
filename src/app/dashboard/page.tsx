@@ -422,9 +422,9 @@ export default function DashboardPage() {
             />
 
             <StatCard
-              title="Aggregate Score Error"
+              title="Prediction Delta"
               value={
-                userRow?.cumulativeError ??
+                userRow?.differenceScore ??
                 0
               }
               tone="navy"
@@ -432,7 +432,7 @@ export default function DashboardPage() {
           </div>
 
           <p className="mt-3 text-sm text-[var(--brand-muted)]">
-            Total Points → Correct Results → Exact Scores → Correct Winning Margins → Lowest Aggregate Score Error
+            Points Total → Correct Wins → Perfect Scores → Correct Margins → Prediction Delta
           </p>
         </div>
 
