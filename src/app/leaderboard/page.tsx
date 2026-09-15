@@ -395,27 +395,27 @@ export default function LeaderboardPage() {
                 }
               >
                 <option value="points">
-                  Total Points
+                  Points Total
                 </option>
 
                 <option value="results">
-                  Correct Results
+                  Correct Wins
                 </option>
 
                 <option value="exact">
-                  Exact Scores
+                  Perfect Scores
                 </option>
 
                 <option value="margins">
-                  Correct Winning Margins
+                  Correct Margins
                 </option>
 
                 <option value="error">
-                  Aggregate Score Error
+                  Prediction Delta
                 </option>
 
                 <option value="player">
-                  Player Name
+                  Player
                 </option>
               </Select>
             </div>
@@ -498,7 +498,7 @@ export default function LeaderboardPage() {
                             )
                           }
                         >
-                          Total Points
+                          Points Total
                           {getSortIndicator(
                             sortBy,
                             "points"
@@ -519,7 +519,7 @@ export default function LeaderboardPage() {
                             )
                           }
                         >
-                          Correct Results
+                          Correct Wins
                           {getSortIndicator(
                             sortBy,
                             "results"
@@ -540,7 +540,7 @@ export default function LeaderboardPage() {
                             )
                           }
                         >
-                          Exact Scores
+                          Perfect Scores
                           {getSortIndicator(
                             sortBy,
                             "exact"
@@ -561,7 +561,7 @@ export default function LeaderboardPage() {
                             )
                           }
                         >
-                          Correct Winning Margins
+                          Correct Margins
                           {getSortIndicator(
                             sortBy,
                             "margins"
@@ -582,7 +582,7 @@ export default function LeaderboardPage() {
                             )
                           }
                         >
-                          Aggregate Score Error
+                          Prediction Delta
                           {getSortIndicator(
                             sortBy,
                             "error"
@@ -594,7 +594,7 @@ export default function LeaderboardPage() {
                         scope="col"
                         className="border border-slate-200 p-3"
                       >
-                        Last Change
+                        Movement
                       </th>
                     </tr>
                   </thead>
