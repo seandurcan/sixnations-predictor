@@ -6,6 +6,21 @@ export const metadata: Metadata = {
   title: "Six Nations Predictor",
   description:
     "Predict Six Nations scores, track your ranking, and compete on the leaderboard.",
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+    noimageindex: true,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noarchive: true,
+      nosnippet: true,
+      noimageindex: true,
+    },
+  },
 };
 
 export default function RootLayout({
