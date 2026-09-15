@@ -50,7 +50,7 @@ export default function InstructionsPage() {
 
               <div className="grid gap-4 sm:grid-cols-2 mt-4">
                 <div className="rounded-lg bg-[rgba(0,123,255,0.04)] p-4 border border-[rgba(0,123,255,0.15)]">
-                  <h4 className="font-bold text-[var(--brand-navy)] mb-1">Correct Outcome — 3 points</h4>
+                  <h4 className="font-bold text-[var(--brand-navy)] mb-1">Correct Outcome — 1 point</h4>
                   <p className="text-sm">Correctly predict the winning team or a draw.</p>
                 </div>
 
@@ -61,12 +61,12 @@ export default function InstructionsPage() {
 
                 <div className="rounded-lg bg-amber-50 p-4 border border-amber-200">
                   <h4 className="font-bold text-[var(--brand-navy)] mb-1">Exact Score — 3 bonus points</h4>
-                  <p className="text-sm">An exact score earns all three awards for a maximum of 8 points.</p>
+                  <p className="text-sm">An exact score earns all three awards: 1 point for the correct outcome, 2 bonus points for the correct margin and 3 bonus points for the exact score, for a maximum of 6 points.</p>
                 </div>
               </div>
 
               <ul className="list-disc space-y-2 pl-5 pt-2">
-                <li>Ties are separated by lowest aggregate score error, exact scores, correct margins and correct results.</li>
+                <li>Ties are separated by Correct Wins, Perfect Scores, Correct Margins and then the lowest Prediction Delta.</li>
                 <li>Entrants still level after all ranking measures share the place.</li>
                 <li>Climb the live leaderboard automatically as match results are finalized and processed by admins.</li>
               </ul>
