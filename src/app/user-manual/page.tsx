@@ -568,17 +568,19 @@ export default function UserManualPage() {
           <section id="ranking" className="scroll-mt-28">
             <Card title="13. Leaderboard Ranking Hierarchy">
               <p className="mb-4 text-[var(--brand-muted)]">
-                Perfect XV ranks entrants using the following
-                criteria in this exact order:
+                Official Rank is calculated using the following
+                criteria in this exact order. A later criterion is
+                considered only when entrants are tied on every
+                criterion before it.
               </p>
 
               <div className="space-y-3">
                 {[
-                  ["1", "Total Points", "Highest total wins."],
-                  ["2", "Correct Results", "Most correct match outcomes."],
-                  ["3", "Exact Scores", "Most exact score predictions."],
-                  ["4", "Correct Winning Margins", "Most exactly predicted winning margins. A correctly predicted draw has a margin of zero."],
-                  ["5", "Aggregate Score Error", "Lowest cumulative score error wins this comparison."],
+                  ["1", "Points Total", "Highest points total ranks first."],
+                  ["2", "Correct Wins", "Most correctly predicted match outcomes."],
+                  ["3", "Perfect Scores", "Most exact score predictions."],
+                  ["4", "Correct Margins", "Most exactly predicted winning margins. A correctly predicted draw has a margin of zero."],
+                  ["5", "Lowest Aggregate Score Error", "If entrants are still tied, the lowest cumulative absolute score error across completed matches ranks first."],
                 ].map(([number, title, text]) => (
                   <div
                     key={number}
@@ -595,10 +597,19 @@ export default function UserManualPage() {
                 ))}
               </div>
 
+              <div className="mt-5 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-soft-blue)] p-4">
+                <p className="font-bold">Where Prediction Delta fits</p>
+                <p className="mt-1 text-[var(--brand-muted)]">
+                  <strong>Prediction Delta</strong> is displayed on the
+                  Leaderboard as an additional measure of prediction
+                  accuracy. It is <strong>not</strong> currently used to
+                  determine official Rank.
+                </p>
+              </div>
+
               <div className="mt-5 rounded-lg bg-[var(--brand-soft-lime)] p-4">
-                The next criterion is used only when entrants are
-                tied on every criterion before it. If entrants are
-                still identical after all five, they remain
+                If entrants remain identical after all five official
+                ranking criteria, they remain
                 <strong> jointly ranked</strong>.
               </div>
             </Card>
@@ -607,8 +618,9 @@ export default function UserManualPage() {
           <section id="leaderboard" className="scroll-mt-28">
             <Card title="14. Reading the Leaderboard">
               <p className="mb-4 text-[var(--brand-muted)]">
-                The leaderboard columns match the Leaderboard PDF
-                and follow the competition hierarchy:
+                The leaderboard columns match the Leaderboard PDF.
+                The ranking-related columns appear first, followed by
+                Prediction Delta and Movement:
               </p>
 
               <p className="font-semibold">
@@ -637,33 +649,36 @@ export default function UserManualPage() {
                 <div className="rounded-lg border border-[var(--brand-border)] p-4">
                   <h3 className="font-bold">Points Total</h3>
                   <p className="mt-1 text-[var(--brand-muted)]">
-                    The first ranking criterion. Entrants with the
-                    highest points total rank ahead.
+                    The first official ranking criterion. Entrants
+                    with the highest points total rank ahead.
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-[var(--brand-border)] p-4">
                   <h3 className="font-bold">Correct Wins</h3>
                   <p className="mt-1 text-[var(--brand-muted)]">
-                    The second ranking criterion when Points Total is
-                    tied. It counts correctly predicted match outcomes.
+                    The second official ranking criterion when Points
+                    Total is tied. It counts correctly predicted match
+                    outcomes.
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-[var(--brand-border)] p-4">
                   <h3 className="font-bold">Perfect Scores</h3>
                   <p className="mt-1 text-[var(--brand-muted)]">
-                    The third ranking criterion. It counts predictions
-                    where both teams&apos; scores were predicted exactly.
+                    The third official ranking criterion. It counts
+                    predictions where both teams&apos; scores were
+                    predicted exactly.
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-[var(--brand-border)] p-4">
                   <h3 className="font-bold">Correct Margins</h3>
                   <p className="mt-1 text-[var(--brand-muted)]">
-                    The fourth ranking criterion. It counts matches
-                    where the winning margin was predicted exactly.
-                    A correctly predicted draw has a margin of zero.
+                    The fourth official ranking criterion. It counts
+                    matches where the winning margin was predicted
+                    exactly. A correctly predicted draw has a margin
+                    of zero.
                   </p>
                 </div>
 
