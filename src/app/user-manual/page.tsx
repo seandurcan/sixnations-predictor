@@ -550,17 +550,13 @@ export default function UserManualPage() {
               </p>
 
               <div className="mt-5 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-soft-blue)] p-4">
-                <h3 className="font-bold">Aggregate Score Error</h3>
+                <h3 className="font-bold">Maximum points from one match</h3>
                 <p className="mt-1 text-[var(--brand-muted)]">
-                  This measures how far your predicted scores were
-                  from the actual scores for both teams.
-                </p>
-                <p className="mt-2 font-semibold">
-                  Example: predicted 24–18, actual 27–16.
-                </p>
-                <p className="mt-1">
-                  Home error = 3, away error = 2, so match score
-                  error = <strong>5</strong>.
+                  A perfect score automatically includes the correct
+                  result and the correct margin, so it earns
+                  <strong> 1 + 2 + 3 = 6 points</strong>. The separate
+                  Correct Wins, Correct Margins and Perfect Scores columns
+                  still count one occurrence each for ranking purposes.
                 </p>
               </div>
             </Card>
