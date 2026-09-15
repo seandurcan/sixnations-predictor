@@ -66,7 +66,7 @@ export async function POST() {
                 tax_code:
                   "txcd_10000000",
               },
-              unit_amount: 500,
+              unit_amount: 2000,
             },
           },
         ],
