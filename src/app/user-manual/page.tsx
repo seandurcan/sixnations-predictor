@@ -3,6 +3,7 @@ import Link from "next/link";
 import PageContainer from "@/components/layout/PageContainer";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
+import UserManualPrintButton from "@/components/UserManualPrintButton";
 
 const sections = [
   ["register", "1. Register"],
@@ -63,10 +64,40 @@ export default function UserManualPage() {
   return (
     <main className="bg-white py-8 text-[var(--brand-navy)]">
       <PageContainer>
+        <style>{`
+          @media print {
+            header, nav, footer { display: none !important; }
+            body { background: white !important; }
+            main { padding: 0 !important; }
+            .manual-brand { display: flex !important; }
+            .manual-print-controls { display: none !important; }
+            a { color: inherit !important; text-decoration: none !important; }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
+        `}</style>
+
+        <div className="manual-brand mb-6 flex items-center gap-4 border-b border-[var(--brand-border)] pb-4">
+          <img
+            src="/images/logo.jpeg"
+            alt="Perfect XV"
+            className="h-16 w-16 rounded-lg object-contain"
+          />
+          <div>
+            <p className="text-sm font-bold uppercase tracking-widest text-[var(--brand-blue)]">
+              Perfect XV
+            </p>
+            <h1 className="text-3xl font-black text-[var(--brand-navy)]">
+              User Manual
+            </h1>
+          </div>
+        </div>
+
+        <UserManualPrintButton />
+
         <PageHeader
           title="Perfect XV User Manual"
           subtitle="A step-by-step guide for entrants"
-          className="mb-6"
+          className="mb-6 print:hidden"
         />
 
         <Card className="mb-6">
@@ -83,9 +114,9 @@ export default function UserManualPage() {
               Register → verify your email → log in → browse
               Perfect XV → pay the &euro;20 competition entry fee
               when you are ready to make predictions → predict
-              all 15 matches → check or edit your predictions
-              while they are open → follow your score and rank
-              as results are entered.
+              all 15 matches → check or edit any prediction before
+              the first match of the tournament kicks off → follow
+              live scores, your points and your rank as results arrive.
             </p>
           </div>
         </Card>
@@ -302,7 +333,7 @@ export default function UserManualPage() {
                   <p className="mt-2 text-[var(--brand-muted)]">
                     The scoring statistics are displayed in the
                     same order used to rank entrants:
-                    <strong> Total Points → Correct Results → Exact Scores → Correct Winning Margins → Aggregate Score Error</strong>.
+                    <strong> Points Total → Correct Wins → Perfect Scores → Correct Margins → Prediction Delta</strong>.
                   </p>
                 </div>
 
@@ -322,6 +353,18 @@ export default function UserManualPage() {
                     prediction performed for that match.
                   </p>
                 </div>
+
+                <div className="rounded-lg border border-[var(--brand-border)] p-4 md:col-span-2">
+                  <h3 className="font-bold">Your Predictions PDF</h3>
+                  <p className="mt-2 text-[var(--brand-muted)]">
+                    Use <strong>Download my predictions (PDF)</strong> on
+                    your Dashboard to save or print your own prediction
+                    record. It includes your fixtures, predicted scores and
+                    submission information. After a fixture is finished, its
+                    kickoff entry is shown as <strong>Concluded</strong>.
+                    The PDF is private to the logged-in entrant.
+                  </p>
+                </div>
               </div>
             </Card>
           </section>
@@ -329,13 +372,30 @@ export default function UserManualPage() {
           <section id="fixtures" className="scroll-mt-28">
             <Card title="7. Fixtures">
               <p className="text-[var(--brand-muted)]">
-                The Fixtures page lists the 15 Six Nations
-                Championship matches in match-number order. Each
-                fixture shows the round, teams, date and kick-off
-                time, venue and location. When a result has been
-                entered, the fixture changes from Scheduled to
-                Full time and displays the final score.
+                The Fixtures page lists the 15 Six Nations Championship
+                matches in match-number order. Each fixture shows the round,
+                teams, date and kick-off time, venue and location.
               </p>
+
+              <div className="mt-4 space-y-3 text-[var(--brand-muted)]">
+                <p>
+                  During a live match, Perfect XV can update the score
+                  automatically from the live-score provider. The Fixtures
+                  page refreshes regularly so the current score and match
+                  status can be displayed without reloading the page.
+                </p>
+                <p>
+                  When the provider reports that the match has finished, the
+                  fixture is shown as <strong>Full time</strong> with the
+                  final score. The leaderboard is recalculated as score
+                  changes are processed.
+                </p>
+                <p>
+                  If a live score needs correction, an administrator can
+                  enter the correct score manually. The corrected result then
+                  becomes the score used by Perfect XV.
+                </p>
+              </div>
             </Card>
           </section>
 
@@ -427,6 +487,14 @@ export default function UserManualPage() {
                   Continue until Prediction Progress shows
                   <strong> 15 / 15</strong>.
                 </Instruction>
+
+                <Instruction number={7} title="Quick Pick (Testing)">
+                  While testing is enabled, <strong>Quick Pick</strong>
+                  generates random scores for all tournament fixtures and
+                  saves them to your account. Existing predictions are
+                  replaced. You can then edit any of those scores before the
+                  tournament-wide prediction lock.
+                </Instruction>
               </div>
             </Card>
           </section>
@@ -447,8 +515,9 @@ export default function UserManualPage() {
                 </Instruction>
 
                 <Instruction number={3} title="Change the scores">
-                  Enter the revised prediction while the fixture is
-                  still open.
+                  Enter the revised prediction while predictions are still
+                  open. All 15 predictions remain editable until the first
+                  match of the tournament kicks off.
                 </Instruction>
 
                 <Instruction number={4} title="Update Prediction">
@@ -463,26 +532,26 @@ export default function UserManualPage() {
           <section id="locking" className="scroll-mt-28">
             <Card title="11. Prediction Status and Locking">
               <p className="text-[var(--brand-muted)]">
-                The Predictions page shows the current status of
-                each fixture and displays a countdown while a
-                prediction is still open. Once a fixture is shown
-                as <strong>LOCKED</strong> or
-                <strong> COMPLETE</strong>, that prediction can no
-                longer be edited. Save changes well before the
-                displayed deadline.
+                Perfect XV uses one tournament-wide prediction deadline.
+                <strong> All 15 predictions lock at the scheduled kick-off
+                time of the first match of the tournament.</strong> After
+                that moment, no prediction can be added or changed, including
+                predictions for matches being played days or weeks later.
               </p>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                   <strong>OPEN</strong>
                   <p className="mt-1 text-sm">
-                    Prediction can be entered or edited.
+                    Before the first tournament match kicks off, any of your
+                    15 predictions can be entered or edited.
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
                   <strong>LOCKED</strong>
                   <p className="mt-1 text-sm">
+                    At first-match kickoff, all 15 predictions lock together.
                     No further changes are accepted.
                   </p>
                 </div>
@@ -490,9 +559,16 @@ export default function UserManualPage() {
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <strong>COMPLETE</strong>
                   <p className="mt-1 text-sm">
-                    The match has been completed.
+                    The individual match has finished. Its result can now
+                    contribute to scoring and leaderboard ranking.
                   </p>
                 </div>
+              </div>
+
+              <div className="mt-4 rounded-lg bg-[var(--brand-soft-lime)] p-4">
+                <strong>Important:</strong> do not wait for the kickoff of
+                each individual fixture. The first match of the tournament is
+                the deadline for every prediction.
               </div>
             </Card>
           </section>
@@ -839,6 +915,16 @@ export default function UserManualPage() {
                 </div>
 
                 <div className="rounded-lg border border-[var(--brand-border)] p-4">
+                  <h3 className="font-bold">Leaderboard PDF</h3>
+                  <p className="mt-1 text-[var(--brand-muted)]">
+                    Select <strong>Download Leaderboard PDF</strong> on the
+                    Leaderboard page to save or print the full official
+                    standings. The PDF uses the same headings and ranking
+                    order as the on-screen leaderboard.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-[var(--brand-border)] p-4">
                   <h3 className="font-bold">Sort By</h3>
                   <p className="mt-1 text-[var(--brand-muted)]">
                     You can temporarily sort the table by a displayed
@@ -854,9 +940,10 @@ export default function UserManualPage() {
           <section id="ties" className="scroll-mt-28">
             <Card title="15. Joint Positions and Prizes">
               <p className="text-[var(--brand-muted)]">
-                The prize positions use a 3:2:1 ratio. If two
-                entrants are joint winners after all five ranking
-                criteria, the first- and second-place prizes are
+                The prize positions use a 3:2:1 ratio. Official ranking is
+                determined by Points Total, Correct Wins, Perfect Scores,
+                Correct Margins and Prediction Delta, in that order. If two
+                entrants are joint winners after all five ranking criteria, the first- and second-place prizes are
                 pooled and divided equally. If three or more
                 entrants are joint winners, the first-, second- and
                 third-place prizes are pooled and divided equally
