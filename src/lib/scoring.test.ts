@@ -10,7 +10,7 @@ import {
 } from "./scoring";
 
 describe("calculateMatchScore", () => {
-  it("awards 4 points for an exact score", () => {
+  it("awards 6 points for an exact score", () => {
     const score =
       calculateMatchScore(
         24,
@@ -19,13 +19,13 @@ describe("calculateMatchScore", () => {
         17
       );
 
-    expect(score.pointsAwarded).toBe(4);
+    expect(score.pointsAwarded).toBe(6);
     expect(score.correctResult).toBe(true);
     expect(score.correctMargin).toBe(true);
     expect(score.exactScore).toBe(true);
   });
 
-  it("awards 1 point for a correct result without an exact score", () => {
+  it("awards 3 points for a correct result with the exact winning margin", () => {
     expect(
       calculateMatchScore(
         20,
@@ -33,10 +33,10 @@ describe("calculateMatchScore", () => {
         24,
         17
       ).pointsAwarded
-    ).toBe(1);
+    ).toBe(3);
   });
 
-  it("does not award bonus points for an exact winning margin", () => {
+  it("awards 2 bonus points for an exact winning margin", () => {
     const score =
       calculateMatchScore(
         20,
@@ -46,7 +46,7 @@ describe("calculateMatchScore", () => {
       );
 
     expect(score.correctMargin).toBe(true);
-    expect(score.pointsAwarded).toBe(1);
+    expect(score.pointsAwarded).toBe(3);
   });
 
   it("awards 0 for an incorrect result", () => {
@@ -72,7 +72,7 @@ describe("calculateMatchScore", () => {
     expect(score.correctResult).toBe(true);
     expect(score.correctMargin).toBe(true);
     expect(score.exactScore).toBe(false);
-    expect(score.pointsAwarded).toBe(1);
+    expect(score.pointsAwarded).toBe(3);
   });
 
   it("calculates aggregate score error from both teams", () => {
