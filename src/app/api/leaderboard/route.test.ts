@@ -60,7 +60,7 @@ describe(
       ).mockResolvedValue(null);
     });
 
-    it("uses correct results before exact scores and aggregate error", async () => {
+    it("uses correct wins before perfect scores and prediction delta", async () => {
       vi.mocked(
         prisma.user.findMany
       ).mockResolvedValue([
@@ -97,7 +97,7 @@ describe(
       ).toBe(2);
     });
 
-    it("uses exact scores before correct margins and aggregate error", async () => {
+    it("uses perfect scores before correct margins and prediction delta", async () => {
       vi.mocked(
         prisma.user.findMany
       ).mockResolvedValue([
@@ -121,7 +121,7 @@ describe(
       ).toBe(2);
     });
 
-    it("uses correct margins before aggregate error", async () => {
+    it("uses correct margins before prediction delta", async () => {
       vi.mocked(
         prisma.user.findMany
       ).mockResolvedValue([
