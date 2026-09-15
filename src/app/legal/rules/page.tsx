@@ -20,7 +20,7 @@ export default function RulesPage() {
 
           <Card title="Points System">
             <p>
-              Points are awarded for correctly guessing match winners/draws and bonus points for exact scoreline matches. Check the instructions page for a complete breakdown.
+              Points are awarded as follows: 1 point for the correct match outcome, 2 bonus points for the correct winning margin, and 3 bonus points for the exact score. An exact score therefore earns 6 points in total. Check the instructions page for the complete breakdown.
             </p>
           </Card>
         </div>
