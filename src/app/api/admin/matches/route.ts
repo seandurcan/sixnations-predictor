@@ -12,7 +12,15 @@ export async function GET() {
 
     const matches = await prisma.match.findMany({
       orderBy: { matchNumber: "asc" },
-      include: { homeTeam: true, awayTeam: true },
+      include: {
+        homeTeam: true,
+        awayTeam: true,
+        tournament: {
+          select: {
+            firstKickoff: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json(
