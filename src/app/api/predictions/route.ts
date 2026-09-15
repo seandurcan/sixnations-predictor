@@ -34,6 +34,13 @@ export async function POST(
         where: {
           id: body.matchId,
         },
+        include: {
+          tournament: {
+            select: {
+              firstKickoff: true,
+            },
+          },
+        },
       });
 
     if (!match) {
@@ -52,14 +59,14 @@ export async function POST(
 
     if (
       new Date(
-        match.kickoffTime
+        match.tournament.firstKickoff
       ) <= now
     ) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "Predictions are locked because the match has already kicked off",
+            "All predictions are locked because the tournament has already kicked off",
         },
         {
           status: 403,
