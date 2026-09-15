@@ -1,4 +1,6 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { PDFDocument, StandardFonts, rgb, type PDFImage, type PDFFont, type PDFPage } from "pdf-lib";
 
 export type PredictionPdfRow = {
   id: number;
@@ -8,16 +10,86 @@ export type PredictionPdfRow = {
   match: {
     matchNumber: number;
     kickoffTime: Date;
+    completed: boolean;
     homeTeam: { name: string };
     awayTeam: { name: string };
-    tournament: { id: number; name: string; year: number };
+    tournament: {
+      id: number;
+      name: string;
+      year: number;
+      firstKickoff: Date;
+    };
   };
 };
+
 export type PredictionPdfReceipt = {
   tournamentId: number;
   receiptReference: string;
   submittedAt: Date;
 };
+
+const PAGE_WIDTH = 842;
+const PAGE_HEIGHT = 595;
+const LEFT = 36;
+const RIGHT = 806;
+const NAVY = rgb(0.06, 0.14, 0.24);
+const MUTED = rgb(0.34, 0.39, 0.45);
+const HEADER_FILL = rgb(0.91, 0.95, 0.97);
+const LINE = rgb(0.8, 0.84, 0.87);
+
+async function embedLogo(pdf: PDFDocument): Promise<PDFImage | null> {
+  try {
+    const bytes = await readFile(path.join(process.cwd(), "public", "images", "logo.jpeg"));
+    return await pdf.embedJpg(bytes);
+  } catch {
+    return null;
+  }
+}
+
+function formatKickoff(value: Date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Dublin",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZoneName: "short",
+  }).format(value);
+}
+
+function formatSubmission(value: Date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Dublin",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(value);
+}
+
+function remainingText(firstKickoff: Date, generatedAt: Date) {
+  const remaining = firstKickoff.getTime() - generatedAt.getTime();
+  if (remaining <= 0) {
+    return "Predictions are locked. Predictions cannot be changed after tournament kickoff.";
+  }
+
+  const totalMinutes = Math.floor(remaining / 60000);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+  const parts: string[] = [];
+
+  if (days) parts.push(days + " day" + (days === 1 ? "" : "s"));
+  if (hours || days) parts.push(hours + " hour" + (hours === 1 ? "" : "s"));
+  parts.push(minutes + " minute" + (minutes === 1 ? "" : "s"));
+
+  return "Time remaining to modify predictions: " + parts.join(" ") +
+    ". Predictions cannot be changed after tournament kickoff.";
+}
 
 export async function createPredictionsPdf(
   user: { firstName: string; lastName: string },
@@ -26,89 +98,207 @@ export async function createPredictionsPdf(
   generatedAt = new Date(),
 ) {
   const pdf = await PDFDocument.create();
-  pdf.setTitle("Perfect XV — My submitted predictions");
+  pdf.setTitle("Perfect XV - My Predictions");
   pdf.setAuthor("Perfect XV");
   pdf.setCreationDate(generatedAt);
+
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const navy = rgb(0.06, 0.14, 0.24);
-  const muted = rgb(0.34, 0.39, 0.45);
-  const date = (value: Date) => new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Europe/Dublin", day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
-    timeZoneName: "short",
-  }).format(value);
-  // Built-in PDF fonts cover western European text, including Irish accents.
-  const safe = (value: string) => Array.from(value.normalize("NFC")).map((char) => {
-    try { font.encodeText(char); return char; } catch { return "?"; }
-  }).join("");
-  const wrap = (value: string, width: number, size = 9) => {
+  const logo = await embedLogo(pdf);
+
+  const safe = (value: string) =>
+    Array.from(value.normalize("NFC"))
+      .map((char) => {
+        try {
+          font.encodeText(char);
+          return char;
+        } catch {
+          return "?";
+        }
+      })
+      .join("");
+
+  const width = (value: string, size: number, strong = false) =>
+    (strong ? bold : font).widthOfTextAtSize(safe(value), size);
+
+  const wrap = (
+    value: string,
+    maxWidth: number,
+    size = 9,
+    useFont: PDFFont = font,
+  ) => {
+    const words = safe(value).split(/\s+/);
     const lines: string[] = [];
     let line = "";
-    for (const word of safe(value).split(/\s+/)) {
-      if (line && font.widthOfTextAtSize(line + " " + word, size) > width) {
-        lines.push(line); line = "";
-      }
-      for (const char of (line ? " " : "") + word) {
-        if (font.widthOfTextAtSize(line + char, size) > width) {
-          lines.push(line); line = "";
-        }
-        line += char;
+
+    for (const word of words) {
+      const candidate = line ? line + " " + word : word;
+      if (line && useFont.widthOfTextAtSize(candidate, size) > maxWidth) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = candidate;
       }
     }
+
     if (line) lines.push(line);
     return lines.length ? lines : [""];
   };
+
+  const drawText = (
+    page: PDFPage,
+    value: string,
+    x: number,
+    y: number,
+    size = 9,
+    strong = false,
+    colour = NAVY,
+  ) => {
+    page.drawText(safe(value), {
+      x,
+      y,
+      size,
+      font: strong ? bold : font,
+      color: colour,
+    });
+  };
+
+  const drawCentered = (
+    page: PDFPage,
+    value: string,
+    x: number,
+    cellWidth: number,
+    y: number,
+    size = 9,
+    strong = false,
+  ) => {
+    const textWidth = width(value, size, strong);
+    drawText(page, value, x + Math.max(0, (cellWidth - textWidth) / 2), y, size, strong);
+  };
+
   const groups = new Map<number, PredictionPdfRow[]>();
   for (const prediction of predictions) {
     const id = prediction.match.tournament.id;
     groups.set(id, [...(groups.get(id) ?? []), prediction]);
   }
-  const columns = [36, 78, 315, 480, 540, 600];
-  const widths = [36, 231, 159, 54, 54, 200];
+
+  const pageFooters = new Map<PDFPage, string>();
+  const columns = [36, 91, 391, 466, 541];
+  const widths = [55, 300, 75, 75, 265];
+
   for (const [id, rows] of groups) {
     const tournament = rows[0].match.tournament;
     const receipt = receipts.find((item) => item.tournamentId === id);
-    let page = pdf.addPage([842, 595]);
+    let page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     let y = 0;
-    const text = (value: string, x: number, top: number, size = 9, strong = false) => {
-      page.drawText(safe(value), { x, y: top, size, font: strong ? bold : font, color: navy });
-    };
+
     const header = () => {
-      text("PERFECT XV", 36, 555, 22, true);
-      text("My submitted predictions", 36, 532, 13);
-      const nameLines = wrap(`${user.firstName} ${user.lastName}`, 765, 10);
-      let top = 510;
-      for (const line of nameLines) { text(line, 36, top, 10); top -= 13; }
-      for (const line of wrap(`${tournament.name} · ${tournament.year}`, 765, 12)) {
-        text(line, 36, top - 7, 12, true); top -= 15;
+      if (logo) {
+        const scale = Math.min(56 / logo.width, 56 / logo.height);
+        const logoWidth = logo.width * scale;
+        const logoHeight = logo.height * scale;
+        page.drawImage(logo, {
+          x: LEFT,
+          y: 520,
+          width: logoWidth,
+          height: logoHeight,
+        });
       }
-      top -= 15;
-      const details = receipt
-        ? `Submitted: ${date(receipt.submittedAt)} · Receipt: ${receipt.receiptReference}`
-        : "Saved individual predictions · No tournament submission receipt recorded";
-      for (const line of wrap(details, 765)) { text(line, 36, top); top -= 12; }
-      text(`Generated: ${date(generatedAt)} · All times Europe/Dublin`, 36, top - 4, 9);
-      y = top - 40;
-      page.drawRectangle({ x: 36, y: y - 7, width: 770, height: 25, color: rgb(0.91, 0.95, 0.97) });
-      ["Match", "Home / Away teams", "Kickoff", "Home", "Away", "First saved / Prediction ID"].forEach((label, i) => text(label, columns[i] + 4, y + 2, 9, true));
-      y -= 26;
+
+      drawText(page, "MY PERFECT XV PREDICTIONS", LEFT, 495, 19, true);
+      drawText(page, safe(user.firstName + " " + user.lastName), LEFT, 472, 14, true);
+      drawText(page, safe(tournament.name + " - " + tournament.year), LEFT, 451, 12, true);
+
+      let top = 432;
+      if (receipt) {
+        const receiptText =
+          "Submitted: " + formatSubmission(receipt.submittedAt) +
+          " - Receipt: " + receipt.receiptReference;
+        for (const line of wrap(receiptText, 760, 9)) {
+          drawText(page, line, LEFT, top, 9);
+          top -= 12;
+        }
+      }
+
+      y = top - 24;
+      page.drawRectangle({
+        x: LEFT,
+        y: y - 7,
+        width: RIGHT - LEFT,
+        height: 25,
+        color: HEADER_FILL,
+      });
+
+      const labels = ["Match", "Game", "Home", "Away", "Kickoff"];
+      labels.forEach((label, index) => {
+        if (index === 1) {
+          drawText(page, label, columns[index] + 5, y + 2, 9, true);
+        } else {
+          drawCentered(page, label, columns[index], widths[index], y + 2, 9, true);
+        }
+      });
+
+      y -= 28;
+      pageFooters.set(page, remainingText(tournament.firstKickoff, generatedAt));
     };
+
     header();
+
     for (const row of rows) {
-      const cells = [String(row.match.matchNumber), `${row.match.homeTeam.name} / ${row.match.awayTeam.name}`,
-        date(row.match.kickoffTime), String(row.predictedHomeScore), String(row.predictedAwayScore),
-        `${date(row.createdAt)} · #${row.id}`].map((value, i) => wrap(value, widths[i] - 8));
-      const height = Math.max(34, Math.max(...cells.map((lines) => lines.length)) * 12 + 14);
-      if (y - height < 58) { page = pdf.addPage([842, 595]); header(); }
-      cells.forEach((lines, col) => lines.forEach((line, index) => text(line, columns[col] + 4, y - index * 12, 9, col === 3 || col === 4)));
-      y -= height;
-      page.drawLine({ start: { x: 36, y: y + 12 }, end: { x: 806, y: y + 12 }, thickness: 0.4, color: rgb(0.8, 0.84, 0.87) });
+      const gameLines = [
+        safe(row.match.homeTeam.name),
+        safe(row.match.awayTeam.name),
+      ];
+
+      const kickoff =
+        generatedAt >= row.match.tournament.firstKickoff && row.match.completed
+          ? "Concluded"
+          : formatKickoff(row.match.kickoffTime);
+
+      const kickoffLines = wrap(kickoff, widths[4] - 10, 9);
+      const rowHeight = Math.max(
+        40,
+        Math.max(gameLines.length, kickoffLines.length) * 13 + 14,
+      );
+
+      if (y - rowHeight < 64) {
+        page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+        header();
+      }
+
+      drawCentered(page, String(row.match.matchNumber), columns[0], widths[0], y - 2, 9, true);
+
+      gameLines.forEach((line, index) => {
+        drawText(page, line, columns[1] + 5, y - index * 13, 9, index === 0);
+      });
+
+      drawCentered(page, String(row.predictedHomeScore), columns[2], widths[2], y - 2, 10, true);
+      drawCentered(page, String(row.predictedAwayScore), columns[3], widths[3], y - 2, 10, true);
+
+      kickoffLines.forEach((line, index) => {
+        drawCentered(page, line, columns[4], widths[4], y - index * 12, 9, kickoff === "Concluded");
+      });
+
+      y -= rowHeight;
+      page.drawLine({
+        start: { x: LEFT, y: y + 12 },
+        end: { x: RIGHT, y: y + 12 },
+        thickness: 0.4,
+        color: LINE,
+      });
     }
   }
-  pdf.getPages().forEach((page, index, pages) => {
-    page.drawText("Current saved scores at export time. First saved is the original record date, not the last edit.", { x: 36, y: 30, size: 8, font, color: muted });
-    page.drawText(`${index + 1} / ${pages.length}`, { x: 768, y: 30, size: 8, font, color: muted });
+
+  const pages = pdf.getPages();
+  pages.forEach((page, index) => {
+    const footer = pageFooters.get(page) ??
+      "Predictions cannot be changed after tournament kickoff.";
+    const footerLines = wrap(footer, 690, 8);
+    footerLines.slice(0, 2).forEach((line, lineIndex) => {
+      drawText(page, line, LEFT, 30 - lineIndex * 10, 8, false, MUTED);
+    });
+    drawText(page, String(index + 1) + " / " + String(pages.length), 768, 30, 8, false, MUTED);
   });
+
   return pdf.save();
 }
