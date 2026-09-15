@@ -53,7 +53,7 @@ export function calculateMatchScore(
 export type RankingEntry = {
   id: number;
   totalPoints: number;
-  cumulativeError: number;
+  differenceScore: number;
   exactScores: number;
   correctMargins: number;
   correctResults: number;
@@ -65,16 +65,16 @@ export function compareLeaderboardEntries(
 ) {
   return (
     // Locked Perfect XV ranking order:
-    // 1 Total Points
-    // 2 Correct Results
-    // 3 Exact Scores
-    // 4 Correct Winning Margins
-    // 5 Lowest Aggregate Score Error
+    // 1 Points Total
+    // 2 Correct Wins
+    // 3 Perfect Scores
+    // 4 Correct Margins
+    // 5 Lowest Prediction Delta
     b.totalPoints - a.totalPoints ||
     b.correctResults - a.correctResults ||
     b.exactScores - a.exactScores ||
     b.correctMargins - a.correctMargins ||
-    a.cumulativeError - b.cumulativeError
+    a.differenceScore - b.differenceScore
   );
 }
 
