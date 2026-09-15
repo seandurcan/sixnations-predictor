@@ -39,8 +39,15 @@ export async function POST() {
       );
     }
 
+    if (tournament.firstKickoff <= now) {
+      return NextResponse.json(
+        { success: false, error: "All tournament predictions are locked." },
+        { status: 403 }
+      );
+    }
+
     const openMatches = tournament.matches.filter(
-      (match) => !match.completed && match.kickoffTime > now
+      (match) => !match.completed
     );
 
     if (openMatches.length === 0) {
