@@ -94,7 +94,7 @@ describe("leaderboard ranking", () => {
     correctResults: 5,
     exactScores: 2,
     correctMargins: 3,
-    cumulativeError: 12,
+    differenceScore: 12,
   };
 
   it.each([
@@ -115,8 +115,8 @@ describe("leaderboard ranking", () => {
       { correctMargins: 4 },
     ],
     [
-      "aggregate score error",
-      { cumulativeError: 11 },
+      "prediction delta",
+      { differenceScore: 11 },
     ],
   ])(
     "uses %s in the locked order",
