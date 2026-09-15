@@ -12,7 +12,13 @@ export async function GET() {
     include: {
       homeTeam: true,
       awayTeam: true,
-      tournament: { select: { id: true, predictionLockAt: true } },
+      tournament: {
+        select: {
+          id: true,
+          firstKickoff: true,
+          predictionLockAt: true,
+        },
+      },
     },
   });
 
