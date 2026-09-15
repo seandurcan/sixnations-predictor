@@ -386,7 +386,7 @@ export default function DashboardPage() {
 
           <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <StatCard
-              title="Total Points"
+              title="Points Total"
               value={
                 userRow?.totalPoints ??
                 0
@@ -395,7 +395,7 @@ export default function DashboardPage() {
             />
 
             <StatCard
-              title="Correct Results"
+              title="Correct Wins"
               value={
                 userRow?.correctResults ??
                 0
@@ -404,7 +404,7 @@ export default function DashboardPage() {
             />
 
             <StatCard
-              title="Exact Scores"
+              title="Perfect Scores"
               value={
                 userRow?.exactScores ??
                 0
@@ -413,7 +413,7 @@ export default function DashboardPage() {
             />
 
             <StatCard
-              title="Correct Winning Margins"
+              title="Correct Margins"
               value={
                 userRow?.correctMargins ??
                 0
