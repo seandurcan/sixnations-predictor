@@ -27,6 +27,7 @@ type LeaderboardEntry = {
   totalPoints: number;
   exactScores: number;
   cumulativeError: number;
+  differenceScore: number;
   correctMargins?: number;
   correctResults?: number;
   previousRank: number | null;
@@ -276,8 +277,8 @@ export default function LeaderboardPage() {
 
           case "error":
             return (
-              a.cumulativeError -
-                b.cumulativeError ||
+              a.differenceScore -
+                b.differenceScore ||
               a.rank - b.rank
             );
 
@@ -645,7 +646,7 @@ export default function LeaderboardPage() {
 
                           <td className="border border-slate-200 p-3">
                             {
-                              player.cumulativeError
+                              player.differenceScore
                             }
                           </td>
 
