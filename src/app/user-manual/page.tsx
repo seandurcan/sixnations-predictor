@@ -640,17 +640,88 @@ export default function UserManualPage() {
                 <div className="rounded-lg border border-[var(--brand-border)] p-4">
                   <h3 className="font-bold">Points Total</h3>
                   <p className="mt-1 text-[var(--brand-muted)]">
-                    The first official ranking criterion. Entrants
-                    with the highest points total rank ahead.
+                    The first official ranking criterion. Your Points Total
+                    is the sum of the points awarded for every completed
+                    match.
+                  </p>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-lg bg-[var(--brand-soft-lime)] p-3">
+                      <p className="font-bold">Correct winner</p>
+                      <p className="mt-1 text-sm">
+                        Predict the team that actually wins:
+                        <strong> 1 point</strong>.
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg bg-[var(--brand-soft-lime)] p-3">
+                      <p className="font-bold">Correct draw</p>
+                      <p className="mt-1 text-sm">
+                        Predict a draw and the match finishes level:
+                        <strong> 1 point</strong>.
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg bg-[var(--brand-soft-lime)] p-3">
+                      <p className="font-bold">Perfect score</p>
+                      <p className="mt-1 text-sm">
+                        Predict both teams&apos; exact final scores:
+                        <strong> 4 points total</strong> — the 1 point for
+                        the correct result plus a 3-point exact-score bonus.
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-sm text-[var(--brand-muted)]">
+                    An incorrect result scores <strong>0 points</strong>.
+                    There is no separate points bonus for predicting the
+                    correct winning margin unless the score itself is exact.
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-[var(--brand-border)] p-4">
                   <h3 className="font-bold">Correct Wins</h3>
                   <p className="mt-1 text-[var(--brand-muted)]">
-                    The second official ranking criterion when Points
-                    Total is tied. It counts correctly predicted match
-                    outcomes.
+                    The second official ranking criterion when Points Total
+                    is tied. Despite the heading, this counts every correctly
+                    predicted <strong>match outcome</strong>, including draws.
+                  </p>
+
+                  <div className="mt-3 space-y-2 text-[var(--brand-muted)]">
+                    <p>
+                      Perfect XV determines your predicted outcome from the
+                      two scores you enter:
+                    </p>
+                    <p>
+                      <strong>Home score higher than away score</strong> =
+                      you predicted a home win.
+                    </p>
+                    <p>
+                      <strong>Away score higher than home score</strong> =
+                      you predicted an away win.
+                    </p>
+                    <p>
+                      <strong>Scores equal</strong> = you predicted a draw.
+                    </p>
+                  </div>
+
+                  <div className="mt-3 rounded-lg bg-[var(--brand-soft-blue)] p-3">
+                    <p className="font-bold">How a Correct Win is recorded</p>
+                    <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                      Perfect XV compares the outcome implied by your
+                      prediction with the actual outcome of the match. If both
+                      are home win, both are away win, or both are draw, the
+                      prediction counts as one Correct Win. The exact score is
+                      not required for this statistic.
+                    </p>
+                  </div>
+
+                  <p className="mt-3 text-sm text-[var(--brand-muted)]">
+                    Example: you predict Ireland 24–18 England and Ireland
+                    actually win 30–20. The scores are different, but you
+                    correctly predicted an Ireland win, so you receive
+                    <strong> 1 point</strong> and one
+                    <strong> Correct Win</strong>.
                   </p>
                 </div>
 
