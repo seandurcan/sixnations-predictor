@@ -1,13 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { processReminders } from "@/lib/reminders/reminderService";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (!auth.authorized) return auth.response;
+
   try {
-    // Add logic here to dispatch verification reminder emails to pending users
-    return NextResponse.json({ 
-      success: true, 
-      message: "Verification reminders sent successfully." 
+    const results = await processReminders("verification");
+    return NextResponse.json({
+      success: results.failedCount === 0,
+      message: "Verification reminder batch processed.",
+      sent: results.sentCount,
+      failed: results.failedCount,
+      results,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to send verification reminders" }, { status: 500 });
   }
 }

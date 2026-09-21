@@ -53,10 +53,17 @@ export async function POST(
       },
     });
 
-    await sendEmailVerificationEmail(
-      user.email,
-      token
-    );
+    try {
+      await sendEmailVerificationEmail(
+        user.email,
+        token
+      );
+    } catch (error) {
+      await prisma.emailVerification
+        .delete({ where: { token } })
+        .catch(() => undefined);
+      throw error;
+    }
 
     return NextResponse.json({
       success: true,

@@ -112,38 +112,54 @@ export async function GET(
       });
 
     let verificationSent = 0;
+    let verificationFailed = 0;
 
     for (const user of unverifiedUsers) {
-      await sendVerificationReminder(
-        {
-          id: user.id,
-          firstName:
-            user.firstName,
-          email: user.email,
-        },
-        true
-      );
-
-      verificationSent++;
+      try {
+        await sendVerificationReminder(
+          {
+            id: user.id,
+            firstName:
+              user.firstName,
+            email: user.email,
+          },
+          true
+        );
+        verificationSent++;
+      } catch (error) {
+        verificationFailed++;
+        console.error("Final verification reminder failed", {
+          userId: user.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
 
     const predictionUsers =
       await getUsersNeedingPredictionReminder();
 
     let predictionSent = 0;
+    let predictionFailed = 0;
 
     for (const user of predictionUsers) {
-      await sendPredictionReminder(
-        {
-          id: user.id,
-          firstName:
-            user.firstName,
-          email: user.email,
-        },
-        true
-      );
-
-      predictionSent++;
+      try {
+        await sendPredictionReminder(
+          {
+            id: user.id,
+            firstName:
+              user.firstName,
+            email: user.email,
+          },
+          true
+        );
+        predictionSent++;
+      } catch (error) {
+        predictionFailed++;
+        console.error("Final prediction reminder failed", {
+          userId: user.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
 
     const runTimestamp =
@@ -178,7 +194,9 @@ export async function GET(
     return NextResponse.json({
       success: true,
       verificationSent,
+      verificationFailed,
       predictionSent,
+      predictionFailed,
       finalReminderRun: true,
       runTimestamp,
       finalReminderAt: finalReminderAt.toISOString(),

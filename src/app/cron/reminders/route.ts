@@ -97,6 +97,8 @@ export async function GET(
 
     let verificationSent = 0;
     let predictionSent = 0;
+    let verificationFailed = 0;
+    let predictionFailed = 0;
 
     const {
       getUsersNeedingPredictionReminder,
@@ -116,32 +118,46 @@ export async function GET(
       await getUsersNeedingVerificationReminder();
 
     for (const user of verificationUsers) {
-      await sendVerificationReminder(
-        {
-          id: user.id,
-          firstName:
-            user.firstName,
-          email: user.email,
-        }
-      );
-
-      verificationSent++;
+      try {
+        await sendVerificationReminder(
+          {
+            id: user.id,
+            firstName:
+              user.firstName,
+            email: user.email,
+          }
+        );
+        verificationSent++;
+      } catch (error) {
+        verificationFailed++;
+        console.error("Scheduled verification reminder failed", {
+          userId: user.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
 
     const predictionUsers =
       await getUsersNeedingPredictionReminder();
 
     for (const user of predictionUsers) {
-      await sendPredictionReminder(
-        {
-          id: user.id,
-          firstName:
-            user.firstName,
-          email: user.email,
-        }
-      );
-
-      predictionSent++;
+      try {
+        await sendPredictionReminder(
+          {
+            id: user.id,
+            firstName:
+              user.firstName,
+            email: user.email,
+          }
+        );
+        predictionSent++;
+      } catch (error) {
+        predictionFailed++;
+        console.error("Scheduled prediction reminder failed", {
+          userId: user.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
 
     await prisma.systemSetting.upsert({
@@ -160,7 +176,9 @@ export async function GET(
     return NextResponse.json({
       success: true,
       verificationSent,
+      verificationFailed,
       predictionSent,
+      predictionFailed,
       reminderStart: reminderStart.toISOString(),
       firstKickoff: tournament.firstKickoff.toISOString(),
     });

@@ -131,13 +131,12 @@ export async function processReminders(action: ReminderAction) {
       try {
         token = crypto.randomUUID() + crypto.randomUUID();
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-        const isFinal = user.lastVerificationReminderAt !== null;
         const verificationUrl =
           `${APP_URL}/verify-email?token=${encodeURIComponent(token)}`;
         const { subject, text } = buildVerificationReminderEmail(
           user.firstName,
           verificationUrl,
-          isFinal
+          false
         );
 
         await prisma.emailVerification.create({
