@@ -12,9 +12,9 @@ export default function RulesPage() {
         />
 
         <div className="space-y-6 text-[var(--brand-muted)]">
-          <Card title="Fixture Lock Times">
+          <Card title="Prediction Lock">
             <p>
-              All fixtures lock automatically at the scheduled kick-off time. No predictions can be entered or modified after a fixture has locked.
+              All predictions must be submitted before the official kick-off of the tournament. Once the first match has kicked off, all predictions are locked and no further entries or changes can be made.
             </p>
           </Card>
 
