@@ -110,9 +110,9 @@ export default function CountdownTimer({
         {label}
       </p>
 
-      <div className="mt-3 grid grid-cols-4 gap-2 text-center">
-        <div className="rounded bg-white p-2 shadow-sm">
-          <div className="text-2xl font-bold text-slate-900">
+      <div className="mt-3 grid grid-cols-4 gap-1 sm:gap-2 text-center">
+        <div className="rounded bg-white p-1.5 sm:p-2 shadow-sm">
+          <div className="text-xl sm:text-2xl font-bold text-slate-900">
             {timeRemaining.days}
           </div>
 
@@ -121,8 +121,8 @@ export default function CountdownTimer({
           </div>
         </div>
 
-        <div className="rounded bg-white p-2 shadow-sm">
-          <div className="text-2xl font-bold text-slate-900">
+        <div className="rounded bg-white p-1.5 sm:p-2 shadow-sm">
+          <div className="text-xl sm:text-2xl font-bold text-slate-900">
             {formatNumber(
               timeRemaining.hours
             )}
@@ -133,8 +133,8 @@ export default function CountdownTimer({
           </div>
         </div>
 
-        <div className="rounded bg-white p-2 shadow-sm">
-          <div className="text-2xl font-bold text-slate-900">
+        <div className="rounded bg-white p-1.5 sm:p-2 shadow-sm">
+          <div className="text-xl sm:text-2xl font-bold text-slate-900">
             {formatNumber(
               timeRemaining.minutes
             )}
@@ -145,8 +145,8 @@ export default function CountdownTimer({
           </div>
         </div>
 
-        <div className="rounded bg-white p-2 shadow-sm">
-          <div className="text-2xl font-bold text-slate-900">
+        <div className="rounded bg-white p-1.5 sm:p-2 shadow-sm">
+          <div className="text-xl sm:text-2xl font-bold text-slate-900">
             {formatNumber(
               timeRemaining.seconds
             )}
