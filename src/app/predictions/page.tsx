@@ -383,6 +383,21 @@ export default function PredictionsPage() {
           (match) => match.id === currentMatchId
         );
 
+  const tournamentFirstKickoff =
+    matches.find(
+      (match) =>
+        match.tournament?.firstKickoff
+    )?.tournament?.firstKickoff ??
+    matches[0]?.kickoffTime;
+
+  const tournamentPredictionsLocked =
+    tournamentFirstKickoff
+      ? new Date(
+          tournamentFirstKickoff
+        ).getTime() <=
+        new Date().getTime()
+      : false;
+
   if (
     currentMatchId !== null &&
     !currentMatch
@@ -406,7 +421,7 @@ export default function PredictionsPage() {
   const fixtureLocked =
     currentMatch
       ? isLocked || isMatchLocked(currentMatch)
-      : false;
+      : tournamentPredictionsLocked;
 
   return (
     <main className="bg-white p-8 text-[var(--brand-navy)]">
@@ -547,17 +562,10 @@ export default function PredictionsPage() {
           </div>
 
           <div className="space-y-6">
-            {!fixtureLocked && (
+            {!fixtureLocked && tournamentFirstKickoff && (
               <Card>
                 <CountdownTimer
-                  targetDate={
-                    currentMatch?.kickoffTime ??
-                    matches.find(
-                      (match) =>
-                        !getPredictionForMatch(match.id)
-                    )?.kickoffTime ??
-                    matches[0]?.kickoffTime
-                  }
+                  targetDate={tournamentFirstKickoff}
                   label="Time until all predictions lock"
                 />
               </Card>
@@ -595,8 +603,8 @@ export default function PredictionsPage() {
                     </div>
 
                     {fixtureLocked && (
-                      <Alert variant="warning" title="Fixture Locked">
-                        Predictions for this fixture are no longer editable.
+                      <Alert variant="warning" title="Predictions Locked">
+                        The tournament has kicked off. All predictions are locked and can no longer be edited.
                       </Alert>
                     )}
 

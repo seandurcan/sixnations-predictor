@@ -26,16 +26,16 @@ export default function InstructionsPage() {
 
               <ol className="list-decimal space-y-3 pl-5">
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Navigate to Predictions:</strong> Go to the Predictions page from the main navigation menu before kick-off.
+                  <strong className="text-[var(--brand-navy)]">Navigate to Predictions:</strong> Go to the Predictions page from the main navigation menu before the tournament kicks off.
                 </li>
                 <li>
                   <strong className="text-[var(--brand-navy)]">Enter Scores:</strong> Input your predicted score for both the home and away teams for each upcoming fixture.
                 </li>
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Save Changes:</strong> Submit or update your predictions anytime before the match officially kicks off.
+                  <strong className="text-[var(--brand-navy)]">Save Changes:</strong> Submit or update any of your predictions before the first match of the tournament officially kicks off.
                 </li>
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Automatic Locking:</strong> Once kick-off is reached, fixtures lock automatically to ensure a fair competition for all players.
+                  <strong className="text-[var(--brand-navy)]">Automatic Locking:</strong> When the first match of the tournament kicks off, all 15 predictions lock together and no further entries or changes can be made.
                 </li>
               </ol>
             </div>

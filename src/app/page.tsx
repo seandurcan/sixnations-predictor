@@ -166,8 +166,8 @@ export default function HomePage() {
                 </h2>
 
                 <p className="text-[var(--brand-muted)]">
-                  Enter your scores before kick-off, track every result, and see
-                  where you stand as the table changes.
+                  Enter all 15 predicted scores before the tournament kicks off,
+                  track every result, and see where you stand as the table changes.
                 </p>
 
                 <div className="grid gap-3 sm:grid-cols-3">
@@ -314,7 +314,7 @@ export default function HomePage() {
 
               <Card title="Predictions">
                 <p className="text-[var(--brand-muted)]">
-                  Submit and edit your match predictions while fixtures are still open.
+                  Submit and edit all 15 match predictions until the first match of the tournament kicks off.
                 </p>
               </Card>
 
@@ -324,7 +324,7 @@ export default function HomePage() {
                 </p>
               </Card>
 
-              <Card title="Locked Fixtures">
+              <Card title="Prediction Lock">
                 <p className="text-[var(--brand-muted)]">
                   All predictions lock when the first match of the tournament kicks off, and no further entries or changes can be made.
                 </p>

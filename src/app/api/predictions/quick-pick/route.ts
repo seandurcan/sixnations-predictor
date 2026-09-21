@@ -52,7 +52,7 @@ export async function POST() {
 
     if (openMatches.length === 0) {
       return NextResponse.json(
-        { success: false, error: "All tournament fixtures are locked." },
+        { success: false, error: "All tournament predictions are locked." },
         { status: 403 }
       );
     }
