@@ -547,13 +547,13 @@ export default function NavBar() {
           className="flex items-center"
           aria-label="Perfect XV home page"
         >
-          <span className="relative block h-25 w-25 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <span className="block h-25 w-25 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white">
             <Image
               src="/images/logo.jpeg"
               alt="Perfect XV logo"
-              fill
-              sizes="64px"
-              className="object-cover"
+              width={100}
+              height={100}
+              className="block h-[100px] w-[100px] object-cover"
               priority
             />
           </span>
