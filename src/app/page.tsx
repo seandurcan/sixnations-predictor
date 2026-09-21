@@ -284,8 +284,8 @@ export default function HomePage() {
 
             <Card title="2. Predict Scores">
               <p className="text-[var(--brand-muted)]">
-                Enter your predicted score for each Six Nations fixture before
-                kick-off.
+                Enter your predicted scores for all 15 Six Nations fixtures before
+                the tournament kicks off.
               </p>
             </Card>
 
