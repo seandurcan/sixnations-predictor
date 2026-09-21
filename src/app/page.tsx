@@ -183,7 +183,7 @@ export default function HomePage() {
 
                   <div id="pill-climb" className="rounded-lg bg-[var(--brand-soft-lime)] p-4 text-center shadow-sm">
                     <p className="text-2xl font-black text-[var(--brand-navy)]">
-                      â†‘
+                      &uarr;
                     </p>
 
                     <p className="text-xs font-semibold uppercase text-[var(--brand-navy)]">
