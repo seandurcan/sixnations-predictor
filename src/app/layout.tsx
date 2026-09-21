@@ -47,6 +47,7 @@ export default function RootLayout({
             <a href="/legal/terms" className="hover:text-slate-900 underline">Terms & Conditions</a>
             <a href="/legal/cookies" className="hover:text-slate-900 underline">Cookie Policy</a>
             <a href="/legal/rules" className="hover:text-slate-900 underline">Competition Rules</a>
+            <a href="/email-preferences" className="hover:text-slate-900 underline">Email Preferences</a>
           </div>
         </footer>
       </body>

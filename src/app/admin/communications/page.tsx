@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PageContainer from "@/components/layout/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
+import AnnouncementDraftManager from "@/components/admin/AnnouncementDraftManager";
 
 type CountsResponse = {
   success: boolean;
@@ -279,7 +280,7 @@ export default function CommunicationsPage() {
       <PageContainer>
         <PageHeader
           title="Communications"
-          subtitle="Manage reminder emails and automation"
+          subtitle="Manage reminders, optional announcements and email preferences"
         />
 
         {message && (
@@ -507,6 +508,7 @@ export default function CommunicationsPage() {
             </div>
           </Card>
         </div>
+        <AnnouncementDraftManager />
       </PageContainer>
     </main>
   );

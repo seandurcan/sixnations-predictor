@@ -42,6 +42,7 @@ model User {
 
   lastVerificationReminderAt DateTime?
   lastPredictionReminderAt   DateTime?
+  announcementOptOutAt       DateTime?
 
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
@@ -54,6 +55,7 @@ model User {
   competitionEntries CompetitionEntry[]
   sessions           Session[]
   emailVerifications EmailVerification[]
+  emailPreferenceTokens EmailPreferenceToken[]
 
   @@index([email])
   @@index([paymentStatus])
@@ -313,6 +315,53 @@ model SystemSetting {
   updatedAt DateTime @updatedAt
 }
 
+model AnnouncementCampaign {
+  id              Int                    @id @default(autoincrement())
+  subject         String
+  heading         String
+  message         String                 @db.Text
+  actionLabel     String?
+  actionUrl       String?
+  audience        AnnouncementAudience
+  status          AnnouncementStatus     @default(DRAFT)
+  createdByUserId Int
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  testDeliveries  AnnouncementDelivery[]
+
+  @@index([status, createdAt])
+  @@index([createdByUserId])
+}
+
+model AnnouncementDelivery {
+  id                Int                        @id @default(autoincrement())
+  campaignId        Int
+  recipientUserId   Int?
+  recipientEmail    String
+  deliveryType      AnnouncementDeliveryType
+  status            AnnouncementDeliveryStatus
+  providerMessageId String?
+  errorMessage      String?
+  createdAt         DateTime                   @default(now())
+  campaign          AnnouncementCampaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, deliveryType])
+  @@index([recipientUserId])
+}
+
+model EmailPreferenceToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  tokenHash String    @unique
+  testOnly  Boolean   @default(false)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
 enum UserRole {
   USER
   ADMIN
@@ -334,6 +383,30 @@ enum TournamentStatus {
   COMPLETED
   ARCHIVED
   CANCELLED
+}
+
+enum AnnouncementAudience {
+  ALL_VERIFIED
+  CURRENT_ENTRANTS
+  NO_CURRENT_ENTRY
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  READY
+  SENDING
+  SENT
+  CANCELLED
+}
+
+enum AnnouncementDeliveryType {
+  TEST
+  BULK
+}
+
+enum AnnouncementDeliveryStatus {
+  SENT
+  FAILED
 }
 
 enum CompetitionEntryStatus {

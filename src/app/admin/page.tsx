@@ -443,11 +443,11 @@ export default function AdminPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="font-semibold text-[var(--brand-navy)]">
-                  Manage verification and prediction reminder emails
+                  Manage reminder emails and optional announcements
                 </p>
 
                 <p className="mt-1 text-sm text-[var(--brand-muted)]">
-                  Send reminder campaigns, preview branded emails and manage automatic reminders.
+                  Preview branded messages, send admin-only tests and manage automatic reminders.
                 </p>
               </div>
 
