@@ -32,16 +32,34 @@ const QR_BASE_SIZE = 250;
 const QR_DISPLAY_SIZE = Math.round(QR_BASE_SIZE * 1.2);
 const QR_WINDOW_SIZE = Math.round(QR_DISPLAY_SIZE * 1.1);
 
+const ICONS = {
+  home: "\u{1F3E0}",
+  leaderboard: "\u{1F3C6}",
+  dashboard: "\u{1F4CA}",
+  predictions: "\u{1F4DD}",
+  admin: "\u{1F6E0}\uFE0F",
+  adminDashboard: "\u{1F4C8}",
+  audit: "\u{1F4CB}",
+  docs: "\u{1F4D6}",
+  adminManual: "\u{1F4D8}",
+  login: "\u{1F510}",
+  register: "\u2705",
+  mobile: "\u{1F4F1}",
+  logout: "\u{1F6AA}",
+  up: "\u25B2",
+  down: "\u25BC",
+} as const;
+
 const publicLinks: NavItem[] = [
   {
     label: "Home",
     href: "/",
-    icon: "🏠",
+    icon: ICONS.home,
   },
   {
     label: "Leaderboard",
     href: "/leaderboard",
-    icon: "🏆",
+    icon: ICONS.leaderboard,
   },
 ];
 
@@ -49,12 +67,12 @@ const authenticatedLinks: NavItem[] = [
   {
     label: "Dashboard",
     href: "/dashboard",
-    icon: "📊",
+    icon: ICONS.dashboard,
   },
   {
     label: "Predictions",
     href: "/predictions",
-    icon: "📝",
+    icon: ICONS.predictions,
   },
 ];
 
@@ -62,22 +80,22 @@ const adminLinks: NavItem[] = [
   {
     label: "Admin Results",
     href: "/admin",
-    icon: "🛠️",
+    icon: ICONS.admin,
   },
   {
     label: "Admin Dashboard",
     href: "/admin/dashboard",
-    icon: "📈",
+    icon: ICONS.adminDashboard,
   },
   {
     label: "Audit",
     href: "/admin/audit",
-    icon: "📋",
+    icon: ICONS.audit,
   },
   {
     label: "Operational Docs",
     href: "/admin/docs",
-    icon: "📖",
+    icon: ICONS.docs,
   },
   {
     label: "Administration Manual",
@@ -90,12 +108,12 @@ const guestLinks: NavItem[] = [
   {
     label: "Login",
     href: "/login",
-    icon: "🔐",
+    icon: ICONS.login,
   },
   {
     label: "Register",
     href: "/register",
-    icon: "✅",
+    icon: ICONS.register,
   },
 ];
 
@@ -394,7 +412,7 @@ export default function NavBar() {
     </style>
   </head>
   <body>
-    <button type="button" aria-label="Close" onclick="window.close()">×</button>
+    <button type="button" aria-label="Close" onclick="window.close()">&times;</button>
     <img src="${qrCodeUrl}" alt="Perfect XV Connect QR code" />
   </body>
 </html>`);
@@ -580,10 +598,10 @@ export default function NavBar() {
                 aria-haspopup="menu"
                 aria-expanded={adminOpen}
               >
-                <span aria-hidden="true">🛠️</span>
+                <span aria-hidden="true">{ICONS.admin}</span>
                 <span>Admin</span>
                 <span className="text-xs text-slate-500">
-                  {adminOpen ? "▲" : "▼"}
+                  {adminOpen ? ICONS.up : ICONS.down}
                 </span>
               </button>
 
@@ -672,7 +690,7 @@ export default function NavBar() {
                   className="text-xs text-slate-500"
                   aria-hidden="true"
                 >
-                  {profileOpen ? "▲" : "▼"}
+                  {profileOpen ? ICONS.up : ICONS.down}
                 </span>
               </button>
 
@@ -720,7 +738,7 @@ export default function NavBar() {
                       }
                     >
                       <span aria-hidden="true">
-                        📊
+                        {ICONS.dashboard}
                       </span>
                       <span>My Dashboard</span>
                     </Link>
@@ -736,7 +754,7 @@ export default function NavBar() {
                       }
                     >
                       <span aria-hidden="true">
-                        📝
+                        {ICONS.predictions}
                       </span>
                       <span>My Predictions</span>
                     </Link>
@@ -752,7 +770,7 @@ export default function NavBar() {
                       }
                     >
                       <span aria-hidden="true">
-                        🏆
+                        {ICONS.leaderboard}
                       </span>
                       <span>Leaderboard</span>
                     </Link>
@@ -768,7 +786,7 @@ export default function NavBar() {
                       }
                     >
                       <span aria-hidden="true">
-                        ðŸ“–
+                        {ICONS.docs}
                       </span>
                       <span>User Manual</span>
                     </Link>
@@ -780,7 +798,7 @@ export default function NavBar() {
                       onClick={openConnect}
                       className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-lime-50 hover:text-slate-900"
                     >
-                      <span aria-hidden="true">📱</span>
+                      <span aria-hidden="true">{ICONS.mobile}</span>
                       <span>Connect (QR Code)</span>
                     </button>
                   </div>
@@ -794,7 +812,7 @@ export default function NavBar() {
                       className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-orange-600 transition-colors hover:bg-orange-50 hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <span aria-hidden="true">
-                        🚪
+                        {ICONS.logout}
                       </span>
 
                       <span>
@@ -882,7 +900,7 @@ export default function NavBar() {
               onClick={openConnect}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base font-medium text-slate-700 transition-colors duration-200 hover:bg-lime-50 hover:text-slate-900"
             >
-              <span aria-hidden="true">📱</span>
+              <span aria-hidden="true">{ICONS.mobile}</span>
               <span>Connect (QR Code)</span>
             </button>
 
@@ -950,8 +968,8 @@ export default function NavBar() {
                     aria-hidden="true"
                   >
                     {profileOpen
-                      ? "▲"
-                      : "▼"}
+                      ? ICONS.up
+                      : ICONS.down}
                   </span>
                 </button>
 
@@ -976,7 +994,7 @@ export default function NavBar() {
                       onClick={closeMenus}
                     >
                       <span aria-hidden="true">
-                        📊
+                        {ICONS.dashboard}
                       </span>
                       <span>My Dashboard</span>
                     </Link>
@@ -990,7 +1008,7 @@ export default function NavBar() {
                       onClick={closeMenus}
                     >
                       <span aria-hidden="true">
-                        📝
+                        {ICONS.predictions}
                       </span>
                       <span>My Predictions</span>
                     </Link>
@@ -1004,7 +1022,7 @@ export default function NavBar() {
                       onClick={closeMenus}
                     >
                       <span aria-hidden="true">
-                        🏆
+                        {ICONS.leaderboard}
                       </span>
                       <span>Leaderboard</span>
                     </Link>
@@ -1018,7 +1036,7 @@ export default function NavBar() {
                       onClick={closeMenus}
                     >
                       <span aria-hidden="true">
-                        ðŸ“–
+                        {ICONS.docs}
                       </span>
                       <span>User Manual</span>
                     </Link>
@@ -1032,7 +1050,7 @@ export default function NavBar() {
                       className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base font-medium text-orange-600 transition-colors duration-200 hover:bg-orange-50 hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <span aria-hidden="true">
-                        🚪
+                        {ICONS.logout}
                       </span>
 
                       <span>
