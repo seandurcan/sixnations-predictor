@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { assignCompetitionRanks } from "@/lib/scoring";
 import { createLeaderboardPdf } from "@/lib/leaderboardPdf";
+import { formatCompetitionTitle } from "@/lib/competitionTitle";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -87,7 +88,7 @@ export async function GET() {
     }));
 
     const tournamentLabel = tournament
-      ? tournament.name + " - " + tournament.year
+      ? formatCompetitionTitle(tournament.name, tournament.year)
       : "Perfect XV";
 
     const bytes = await createLeaderboardPdf(

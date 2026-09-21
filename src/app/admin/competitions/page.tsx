@@ -8,6 +8,8 @@ import Input from "@/components/ui/Input";
 import PageContainer from "@/components/layout/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
+import { formatCompetitionTitle } from "@/lib/competitionTitle";
+import { getFollowingCompetitionYear } from "@/lib/competitionYear";
 
 type Competition = {
   id: number;
@@ -87,8 +89,8 @@ export default function CompetitionsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [currentTournamentId, setCurrentTournamentId] = useState<number | null>(null);
   const [teamSetComplete, setTeamSetComplete] = useState(false);
-  const [year, setYear] = useState(String(new Date().getFullYear() + 1));
-  const [name, setName] = useState(`${new Date().getFullYear() + 1} Six Nations Championship`);
+  const [year, setYear] = useState("");
+  const [name, setName] = useState("Six Nations Championship");
   const [entryFee, setEntryFee] = useState("20.00");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -123,6 +125,11 @@ export default function CompetitionsPage() {
       setTeams(data.permanentTeams);
       setTeamSetComplete(data.permanentTeamSetComplete);
       setCurrentTournamentId(data.currentTournamentId);
+      setYear(String(getFollowingCompetitionYear(
+        data.competitions,
+        data.currentTournamentId,
+        new Date().getFullYear()
+      )));
     }
     setLoading(false);
   }
@@ -143,7 +150,7 @@ export default function CompetitionsPage() {
       setError(data.error ?? "Unable to create the competition.");
       return;
     }
-    setSuccess(`${data.competition.name} was created safely as a draft. No fixtures or entrants were copied.`);
+    setSuccess(`${formatCompetitionTitle(data.competition.name, data.competition.year)} was created safely as a draft. No fixtures or entrants were copied.`);
     await loadCompetitions();
   }
 
@@ -209,7 +216,7 @@ export default function CompetitionsPage() {
     );
     const firstKickoff = formatKickoff(ordered[0]?.kickoffTime ?? null);
     const confirmed = window.confirm(
-      `Approve and import 15 fixtures for ${previewCompetition.name}?\n\n` +
+      `Approve and import 15 fixtures for ${formatCompetitionTitle(previewCompetition.name, previewCompetition.year)}?\n\n` +
       `First kickoff: ${firstKickoff}\n` +
       "Prediction locking: one minute before first kickoff\n\n" +
       "All 15 fixtures will be saved together. The competition will remain a draft."
@@ -260,7 +267,7 @@ export default function CompetitionsPage() {
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-bold">{competition.name}</h3>
+                          <h3 className="font-bold">{formatCompetitionTitle(competition.name, competition.year)}</h3>
                           <StatusBadge status={competition.status} />
                           {competition.id === currentTournamentId && (
                             <span className="rounded-full bg-lime-100 px-2 py-1 text-xs font-bold text-lime-900">CURRENT</span>
@@ -292,6 +299,7 @@ export default function CompetitionsPage() {
               <form className="space-y-4" onSubmit={createCompetition}>
                 <label className="block text-sm font-semibold">Year<Input className="mt-1" type="number" min="1883" max="2200" value={year} onChange={(event) => setYear(event.target.value)} required /></label>
                 <label className="block text-sm font-semibold">Competition name<Input className="mt-1" value={name} maxLength={120} onChange={(event) => setName(event.target.value)} required /></label>
+                <p className="text-sm text-[var(--brand-muted)]">Enter the competition name without a year. The year is added automatically wherever the full title is needed.</p>
                 <label className="block text-sm font-semibold">Entry fee (€)<Input className="mt-1" type="number" min="0" max="10000" step="0.01" value={entryFee} onChange={(event) => setEntryFee(event.target.value)} required /></label>
                 <Button fullWidth disabled={saving || !teamSetComplete} type="submit">{saving ? "Creating..." : "Create Safe Draft"}</Button>
               </form>
@@ -309,7 +317,7 @@ export default function CompetitionsPage() {
 
         {fixturePreview && previewCompetition && (
           <div className="mt-6">
-            <Card title={`Fixture Preview — ${previewCompetition.name}`}>
+            <Card title={`Fixture Preview — ${formatCompetitionTitle(previewCompetition.name, previewCompetition.year)}`}>
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold">

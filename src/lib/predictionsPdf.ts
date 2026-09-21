@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { PDFDocument, StandardFonts, rgb, type PDFImage, type PDFFont, type PDFPage } from "pdf-lib";
+import { formatCompetitionTitle } from "@/lib/competitionTitle";
 
 export type PredictionPdfRow = {
   id: number;
@@ -207,7 +208,7 @@ export async function createPredictionsPdf(
 
       drawText(page, "MY PERFECT XV PREDICTIONS", LEFT, 495, 19, true);
       drawText(page, safe(user.firstName + " " + user.lastName), LEFT, 472, 14, true);
-      drawText(page, safe(tournament.name + " - " + tournament.year), LEFT, 451, 12, true);
+      drawText(page, safe(formatCompetitionTitle(tournament.name, tournament.year)), LEFT, 451, 12, true);
 
       let top = 432;
       if (receipt) {

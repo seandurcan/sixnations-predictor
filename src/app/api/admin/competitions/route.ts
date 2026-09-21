@@ -74,6 +74,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    if (/\b\d{4}\b/.test(name)) {
+      return NextResponse.json(
+        { success: false, error: "Enter the competition name without the year. The year is added automatically." },
+        { status: 400 }
+      );
+    }
     if (!entryFee.isFinite() || entryFee.isNegative() || entryFee.greaterThan(10000)) {
       return NextResponse.json(
         { success: false, error: "Enter a valid non-negative entry fee." },

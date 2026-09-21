@@ -92,7 +92,7 @@ async function main() {
     update: {},
     create: {
       year: 2027,
-      name: "Six Nations 2027",
+      name: "Six Nations Championship",
       status: "OPEN",
       firstKickoff: new Date("2027-02-05T20:10:00Z"),
       predictionLockAt: new Date("2027-02-05T20:10:00Z"),
