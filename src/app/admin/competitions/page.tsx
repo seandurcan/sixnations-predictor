@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -55,6 +55,33 @@ function formatKickoff(value: string | null) {
   }).format(new Date(value));
 }
 
+function dateTimeInputValue(value: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 16);
+}
+
+function validateEditableFixtures(fixtures: PreviewFixture[], competitionYear: number) {
+  const warnings: string[] = [];
+  if (fixtures.length !== 15) warnings.push(`Exactly 15 fixtures are required; currently ${fixtures.length}.`);
+  fixtures.forEach((fixture, index) => {
+    if (!fixture.homeTeam || !fixture.awayTeam) warnings.push(`Fixture ${index + 1} needs both teams.`);
+    if (fixture.homeTeam && fixture.homeTeam === fixture.awayTeam) warnings.push(`Fixture ${index + 1} has the same team twice.`);
+    const kickoff = new Date(String(fixture.kickoffTime ?? ""));
+    if (Number.isNaN(kickoff.getTime())) warnings.push(`Fixture ${index + 1} needs a kickoff time.`);
+    else if (kickoff.getUTCFullYear() !== competitionYear) warnings.push(`Fixture ${index + 1} kickoff must be in ${competitionYear}.`);
+    if (!fixture.venue?.trim()) warnings.push(`Fixture ${index + 1} needs a stadium.`);
+  });
+  const complete = fixtures.filter((fixture) => fixture.homeTeam && fixture.awayTeam);
+  const pairings = complete.map((fixture) => [fixture.homeTeam, fixture.awayTeam].sort().join("|"));
+  if (new Set(pairings).size !== pairings.length) warnings.push("Duplicate team pairings must be corrected.");
+  for (const team of ["England", "France", "Ireland", "Italy", "Scotland", "Wales"]) {
+    const count = complete.filter((fixture) => fixture.homeTeam === team || fixture.awayTeam === team).length;
+    if (count !== 5) warnings.push(`${team} appears in ${count} fixtures; expected 5.`);
+  }
+  return [...new Set(warnings)];
+}
+
 export default function CompetitionsPage() {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -66,10 +93,18 @@ export default function CompetitionsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [discoveringId, setDiscoveringId] = useState<number | null>(null);
+  const [importing, setImporting] = useState(false);
   const [previewCompetition, setPreviewCompetition] = useState<Competition | null>(null);
   const [fixturePreview, setFixturePreview] = useState<FixturePreview | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const fixtureWarnings = useMemo(
+    () => previewCompetition && fixturePreview
+      ? validateEditableFixtures(fixturePreview.fixtures, previewCompetition.year)
+      : [],
+    [fixturePreview, previewCompetition]
+  );
 
   useEffect(() => { void loadCompetitions(); }, []);
 
@@ -131,6 +166,81 @@ export default function CompetitionsPage() {
     }
     setPreviewCompetition(competition);
     setFixturePreview(data.preview);
+  }
+
+  function updateFixture(index: number, field: keyof PreviewFixture, value: string | number | null) {
+    setFixturePreview((current) => current ? {
+      ...current,
+      fixtures: current.fixtures.map((fixture, fixtureIndex) =>
+        fixtureIndex === index ? { ...fixture, [field]: value } : fixture
+      ),
+    } : current);
+  }
+
+  function addFixture() {
+    setFixturePreview((current) => !current || current.fixtures.length >= 15 ? current : {
+      ...current,
+      fixtures: [...current.fixtures, {
+        providerGameId: null,
+        round: null,
+        kickoffTime: null,
+        homeTeam: null,
+        awayTeam: null,
+        providerHomeTeam: "",
+        providerAwayTeam: "",
+        venue: null,
+        city: null,
+        country: null,
+      }],
+    });
+  }
+
+  function removeFixture(index: number) {
+    setFixturePreview((current) => current ? {
+      ...current,
+      fixtures: current.fixtures.filter((_, fixtureIndex) => fixtureIndex !== index),
+    } : current);
+  }
+
+  async function approveAndImportFixtures() {
+    if (!fixturePreview || !previewCompetition || fixtureWarnings.length > 0) return;
+    const ordered = [...fixturePreview.fixtures].sort((a, b) =>
+      String(a.kickoffTime).localeCompare(String(b.kickoffTime))
+    );
+    const firstKickoff = formatKickoff(ordered[0]?.kickoffTime ?? null);
+    const confirmed = window.confirm(
+      `Approve and import 15 fixtures for ${previewCompetition.name}?\n\n` +
+      `First kickoff: ${firstKickoff}\n` +
+      "Prediction locking: one minute before first kickoff\n\n" +
+      "All 15 fixtures will be saved together. The competition will remain a draft."
+    );
+    if (!confirmed) return;
+
+    setImporting(true);
+    setError("");
+    setSuccess("");
+    const response = await fetch("/api/admin/competitions/fixtures/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tournamentId: previewCompetition.id,
+        fixtures: fixturePreview.fixtures,
+      }),
+    });
+    const data = await response.json();
+    setImporting(false);
+    if (!response.ok) {
+      const details = Array.isArray(data.errors) ? ` ${data.errors.join(" ")}` : "";
+      setError(`${data.error ?? "Unable to import fixtures."}${details}`);
+      return;
+    }
+    setFixturePreview(null);
+    setPreviewCompetition(null);
+    setSuccess(
+      `${data.imported} fixtures were approved and imported. ` +
+      `The competition remains a draft and predictions lock one minute before first kickoff.`
+    );
+    await loadCompetitions();
   }
 
   return (
@@ -206,54 +316,66 @@ export default function CompetitionsPage() {
                     {fixturePreview.discoveredFixtureCount} of {fixturePreview.expectedFixtureCount} fixtures found through {fixturePreview.provider}
                   </p>
                   <p className="text-sm text-[var(--brand-muted)]">
-                    Provider competition: {fixturePreview.providerLeague.name}. This is a review only; nothing has been saved.
+                    Provider competition: {fixturePreview.providerLeague.name}. Review and correct every field before approval.
                   </p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-sm font-bold ${fixturePreview.valid ? "bg-lime-100 text-lime-900" : "bg-amber-100 text-amber-900"}`}>
-                  {fixturePreview.valid ? "VALIDATED" : "REVIEW REQUIRED"}
+                <span className={`rounded-full px-3 py-1 text-sm font-bold ${fixtureWarnings.length === 0 ? "bg-lime-100 text-lime-900" : "bg-amber-100 text-amber-900"}`}>
+                  {fixtureWarnings.length === 0 ? "READY FOR APPROVAL" : "REVIEW REQUIRED"}
                 </span>
               </div>
 
-              {fixturePreview.warnings.length > 0 && (
+              {fixtureWarnings.length > 0 && (
                 <div className="mb-5 rounded-lg border border-amber-300 bg-amber-50 p-4">
                   <h3 className="font-bold text-amber-950">Validation warnings</h3>
                   <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-950">
-                    {fixturePreview.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+                    {fixtureWarnings.map((warning) => <li key={warning}>{warning}</li>)}
                   </ul>
                 </div>
               )}
 
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-[var(--brand-border)] text-xs uppercase text-[var(--brand-muted)]">
-                    <tr>
-                      <th className="px-3 py-2">No.</th>
-                      <th className="px-3 py-2">Round</th>
-                      <th className="px-3 py-2">Fixture</th>
-                      <th className="px-3 py-2">Kickoff (Ireland)</th>
-                      <th className="px-3 py-2">Stadium</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {fixturePreview.fixtures.map((fixture, index) => (
-                      <tr className="border-b border-[var(--brand-border)]" key={`${fixture.providerGameId ?? "unknown"}-${index}`}>
-                        <td className="px-3 py-3 font-semibold">{index + 1}</td>
-                        <td className="px-3 py-3">{fixture.round ?? "—"}</td>
-                        <td className="px-3 py-3 font-semibold">
-                          {fixture.homeTeam ?? fixture.providerHomeTeam} v {fixture.awayTeam ?? fixture.providerAwayTeam}
-                        </td>
-                        <td className="px-3 py-3">{formatKickoff(fixture.kickoffTime)}</td>
-                        <td className="px-3 py-3">
-                          {[fixture.venue, fixture.city, fixture.country].filter(Boolean).join(", ") || "Not supplied"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="space-y-4">
+                {fixturePreview.fixtures.map((fixture, index) => (
+                  <div className="rounded-lg border border-[var(--brand-border)] p-4" key={`${fixture.providerGameId ?? "manual"}-${index}`}>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <h3 className="font-bold">Fixture {index + 1}</h3>
+                      <Button type="button" variant="secondary" onClick={() => removeFixture(index)}>Remove</Button>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                      <label className="text-sm font-semibold">Home team
+                        <select className="mt-1 w-full rounded-lg border border-[var(--brand-border)] bg-white px-3 py-2" value={fixture.homeTeam ?? ""} onChange={(event) => updateFixture(index, "homeTeam", event.target.value || null)}>
+                          <option value="">Select team</option>
+                          {teams.map((team) => <option key={team.id} value={team.name}>{team.name}</option>)}
+                        </select>
+                      </label>
+                      <label className="text-sm font-semibold">Away team
+                        <select className="mt-1 w-full rounded-lg border border-[var(--brand-border)] bg-white px-3 py-2" value={fixture.awayTeam ?? ""} onChange={(event) => updateFixture(index, "awayTeam", event.target.value || null)}>
+                          <option value="">Select team</option>
+                          {teams.map((team) => <option key={team.id} value={team.name}>{team.name}</option>)}
+                        </select>
+                      </label>
+                      <label className="text-sm font-semibold">Kickoff (Ireland)
+                        <Input className="mt-1" type="datetime-local" value={dateTimeInputValue(fixture.kickoffTime)} onChange={(event) => updateFixture(index, "kickoffTime", event.target.value ? new Date(`${event.target.value}:00Z`).toISOString() : null)} />
+                      </label>
+                      <label className="text-sm font-semibold">Stadium
+                        <Input className="mt-1" value={fixture.venue ?? ""} onChange={(event) => updateFixture(index, "venue", event.target.value)} />
+                      </label>
+                      <label className="text-sm font-semibold">City
+                        <Input className="mt-1" value={fixture.city ?? ""} onChange={(event) => updateFixture(index, "city", event.target.value)} />
+                      </label>
+                      <label className="text-sm font-semibold">Country
+                        <Input className="mt-1" value={fixture.country ?? ""} onChange={(event) => updateFixture(index, "country", event.target.value)} />
+                      </label>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="mt-5 text-sm font-semibold text-[var(--brand-muted)]">
-                Saving and approval are deliberately disabled in this stage. The live competition and all participant data remain unchanged.
-              </p>
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+                <Button type="button" variant="secondary" disabled={fixturePreview.fixtures.length >= 15} onClick={addFixture}>Add Missing Fixture</Button>
+                <Button type="button" disabled={importing || fixtureWarnings.length > 0} onClick={() => void approveAndImportFixtures()}>
+                  {importing ? "Importing..." : "Approve and Import 15 Fixtures"}
+                </Button>
+              </div>
+              <p className="mt-3 text-sm text-[var(--brand-muted)]">Match numbers and five rounds are assigned automatically in kickoff order. Import is all-or-nothing and the competition remains a draft.</p>
             </Card>
           </div>
         )}
