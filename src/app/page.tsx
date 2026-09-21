@@ -326,7 +326,7 @@ export default function HomePage() {
 
               <Card title="Locked Fixtures">
                 <p className="text-[var(--brand-muted)]">
-                  Predictions lock after kick-off to keep the competition fair.
+                  All predictions lock when the first match of the tournament kicks off, and no further entries or changes can be made.
                 </p>
               </Card>
             </div>
