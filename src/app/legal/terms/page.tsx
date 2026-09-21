@@ -20,7 +20,7 @@ export default function TermsPage() {
 
           <Card title="2. Competition Rules & Eligibility">
             <p>
-              Participants must submit predictions prior to the official kick-off times. Any entry submitted after a fixture locks will be deemed invalid. Decisions made by administrators regarding scoring and leaderboards are final.
+              Participants must submit all predictions before the official kick-off of the tournament. Once the tournament has kicked off, no further entries may be submitted and all predictions are locked. Decisions made by administrators regarding scoring and leaderboards are final.
             </p>
           </Card>
 
