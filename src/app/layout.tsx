@@ -34,7 +34,7 @@ export default function RootLayout({
         <NavBar />
         <main className="flex-grow">{children}</main>
         
-        {/* Global Footer with Legal Links */}
+        {/* Global footer with legal links and optional email preferences. */}
         <footer className="bg-white text-slate-500 border-t border-slate-200 px-6 py-8 text-center">
           <p className="font-semibold text-slate-900">
             Perfect XV / Six Nations Predictor
