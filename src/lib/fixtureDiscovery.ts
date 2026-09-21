@@ -1,0 +1,217 @@
+const SIX_NATIONS_TEAMS = [
+  "England",
+  "France",
+  "Ireland",
+  "Italy",
+  "Scotland",
+  "Wales",
+] as const;
+
+type CanonicalTeam = (typeof SIX_NATIONS_TEAMS)[number];
+
+type ApiLeague = {
+  id?: number;
+  name?: string;
+  country?: { name?: string } | string;
+  seasons?: Array<number | { season?: number; year?: number }>;
+};
+
+type ApiGame = {
+  id?: number;
+  date?: string;
+  time?: string;
+  timezone?: string;
+  week?: string | number;
+  round?: string | number;
+  teams?: {
+    home?: { name?: string };
+    away?: { name?: string };
+  };
+  home?: string | { name?: string };
+  away?: string | { name?: string };
+  venue?: string | { name?: string; city?: string };
+  city?: string;
+  country?: string | { name?: string };
+  league?: { id?: number; name?: string; country?: string | { name?: string } };
+};
+
+export type FixturePreview = {
+  providerGameId: number | null;
+  round: number | null;
+  kickoffTime: string | null;
+  homeTeam: CanonicalTeam | null;
+  awayTeam: CanonicalTeam | null;
+  providerHomeTeam: string;
+  providerAwayTeam: string;
+  venue: string | null;
+  city: string | null;
+  country: string | null;
+};
+
+export type FixturePreviewResult = {
+  provider: "API-Sports";
+  providerLeague: { id: number; name: string };
+  fixtures: FixturePreview[];
+  warnings: string[];
+  valid: boolean;
+  expectedFixtureCount: number;
+  discoveredFixtureCount: number;
+};
+
+function normalise(value: unknown) {
+  return String(value ?? "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function canonicalTeam(value: unknown): CanonicalTeam | null {
+  const candidate = normalise(value);
+  return SIX_NATIONS_TEAMS.find((team) => normalise(team) === candidate) ?? null;
+}
+
+function teamName(value: unknown) {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && "name" in value) {
+    return String((value as { name?: unknown }).name ?? "");
+  }
+  return "";
+}
+
+function textValue(value: unknown) {
+  if (typeof value === "string") return value || null;
+  if (value && typeof value === "object" && "name" in value) {
+    const name = (value as { name?: unknown }).name;
+    return typeof name === "string" && name ? name : null;
+  }
+  return null;
+}
+
+function roundNumber(value: unknown) {
+  if (typeof value === "number" && Number.isInteger(value)) return value;
+  const match = String(value ?? "").match(/\d+/);
+  return match ? Number(match[0]) : null;
+}
+
+function kickoffIso(game: ApiGame) {
+  if (!game.date) return null;
+  const direct = new Date(game.date);
+  if (!Number.isNaN(direct.getTime()) && /T|\s\d{1,2}:\d{2}/.test(game.date)) {
+    return direct.toISOString();
+  }
+  if (!game.time) return null;
+  if (game.timezone && !["UTC", "GMT"].includes(game.timezone.toUpperCase())) return null;
+  const combined = new Date(`${game.date}T${game.time}:00Z`);
+  return Number.isNaN(combined.getTime()) ? null : combined.toISOString();
+}
+
+function seasonAvailable(league: ApiLeague, year: number) {
+  if (!Array.isArray(league.seasons) || league.seasons.length === 0) return true;
+  return league.seasons.some((season) =>
+    typeof season === "number"
+      ? season === year
+      : season.season === year || season.year === year
+  );
+}
+
+async function providerGet<T>(path: string, apiKey: string): Promise<T[]> {
+  const response = await fetch(`https://v1.rugby.api-sports.io/${path}`, {
+    headers: { "x-apisports-key": apiKey },
+    cache: "no-store",
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) {
+    throw new Error(`API-Sports returned ${response.status}.`);
+  }
+  const payload = (await response.json()) as { response?: T[]; errors?: unknown };
+  if (!Array.isArray(payload.response)) {
+    throw new Error("API-Sports returned an unexpected response.");
+  }
+  return payload.response;
+}
+
+export function validateFixturePreview(fixtures: FixturePreview[]) {
+  const warnings: string[] = [];
+  const recognised = fixtures.filter((fixture) => fixture.homeTeam && fixture.awayTeam);
+  const unknownTeams = fixtures.filter((fixture) => !fixture.homeTeam || !fixture.awayTeam);
+  if (unknownTeams.length > 0) {
+    warnings.push(`${unknownTeams.length} fixture(s) contain an unrecognised team.`);
+  }
+  if (fixtures.length !== 15) {
+    warnings.push(`Expected 15 fixtures but found ${fixtures.length}.`);
+  }
+  const pairKeys = recognised.map((fixture) =>
+    [fixture.homeTeam, fixture.awayTeam].sort().join("|")
+  );
+  if (new Set(pairKeys).size !== pairKeys.length) {
+    warnings.push("One or more team pairings are duplicated.");
+  }
+  for (const team of SIX_NATIONS_TEAMS) {
+    const appearances = recognised.filter(
+      (fixture) => fixture.homeTeam === team || fixture.awayTeam === team
+    ).length;
+    if (appearances !== 5) {
+      warnings.push(`${team} appears in ${appearances} fixtures; expected 5.`);
+    }
+  }
+  const missingKickoffs = fixtures.filter((fixture) => !fixture.kickoffTime).length;
+  if (missingKickoffs > 0) warnings.push(`${missingKickoffs} fixture(s) have no verified kickoff time.`);
+  const missingVenues = fixtures.filter((fixture) => !fixture.venue).length;
+  if (missingVenues > 0) warnings.push(`${missingVenues} fixture(s) have no stadium supplied.`);
+
+  return { warnings, valid: warnings.length === 0 };
+}
+
+export async function discoverSixNationsFixtures(
+  year: number,
+  apiKey: string
+): Promise<FixturePreviewResult> {
+  const leagues = await providerGet<ApiLeague>("leagues?search=Six%20Nations", apiKey);
+  const candidates = leagues.filter((league) =>
+    normalise(league.name).includes("sixnations") && seasonAvailable(league, year)
+  );
+  const league = candidates.find((item) => normalise(item.name) === "sixnations") ?? candidates[0];
+  if (!league?.id || !league.name) {
+    throw new Error(`API-Sports has no Six Nations competition available for ${year}.`);
+  }
+
+  const games = await providerGet<ApiGame>(
+    `games?league=${league.id}&season=${year}`,
+    apiKey
+  );
+  const fixtures = games
+    .map((game): FixturePreview => {
+      const providerHomeTeam = teamName(game.teams?.home ?? game.home);
+      const providerAwayTeam = teamName(game.teams?.away ?? game.away);
+      const venue = textValue(game.venue);
+      const city =
+        (typeof game.venue === "object" ? game.venue.city ?? null : null) ??
+        game.city ??
+        null;
+      return {
+        providerGameId: Number.isInteger(game.id) ? game.id! : null,
+        round: roundNumber(game.round ?? game.week),
+        kickoffTime: kickoffIso(game),
+        homeTeam: canonicalTeam(providerHomeTeam),
+        awayTeam: canonicalTeam(providerAwayTeam),
+        providerHomeTeam,
+        providerAwayTeam,
+        venue,
+        city,
+        country: textValue(game.country ?? game.league?.country),
+      };
+    })
+    .filter((fixture) => fixture.homeTeam || fixture.awayTeam)
+    .sort((a, b) => String(a.kickoffTime).localeCompare(String(b.kickoffTime)));
+
+  const validation = validateFixturePreview(fixtures);
+  return {
+    provider: "API-Sports",
+    providerLeague: { id: league.id, name: league.name },
+    fixtures,
+    warnings: validation.warnings,
+    valid: validation.valid,
+    expectedFixtureCount: 15,
+    discoveredFixtureCount: fixtures.length,
+  };
+}

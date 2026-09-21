@@ -23,6 +23,38 @@ type Competition = {
 
 type Team = { id: number; name: string; shortCode: string };
 
+type PreviewFixture = {
+  providerGameId: number | null;
+  round: number | null;
+  kickoffTime: string | null;
+  homeTeam: string | null;
+  awayTeam: string | null;
+  providerHomeTeam: string;
+  providerAwayTeam: string;
+  venue: string | null;
+  city: string | null;
+  country: string | null;
+};
+
+type FixturePreview = {
+  provider: string;
+  providerLeague: { id: number; name: string };
+  fixtures: PreviewFixture[];
+  warnings: string[];
+  valid: boolean;
+  expectedFixtureCount: number;
+  discoveredFixtureCount: number;
+};
+
+function formatKickoff(value: string | null) {
+  if (!value) return "Kickoff time unavailable";
+  return new Intl.DateTimeFormat("en-IE", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Europe/Dublin",
+  }).format(new Date(value));
+}
+
 export default function CompetitionsPage() {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -33,6 +65,9 @@ export default function CompetitionsPage() {
   const [entryFee, setEntryFee] = useState("20.00");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [discoveringId, setDiscoveringId] = useState<number | null>(null);
+  const [previewCompetition, setPreviewCompetition] = useState<Competition | null>(null);
+  const [fixturePreview, setFixturePreview] = useState<FixturePreview | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -77,6 +112,27 @@ export default function CompetitionsPage() {
     await loadCompetitions();
   }
 
+  async function previewFixtures(competition: Competition) {
+    setDiscoveringId(competition.id);
+    setError("");
+    setSuccess("");
+    setFixturePreview(null);
+    setPreviewCompetition(null);
+    const response = await fetch("/api/admin/competitions/fixtures/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tournamentId: competition.id }),
+    });
+    const data = await response.json();
+    setDiscoveringId(null);
+    if (!response.ok) {
+      setError(data.error ?? "Unable to discover fixtures.");
+      return;
+    }
+    setPreviewCompetition(competition);
+    setFixturePreview(data.preview);
+  }
+
   return (
     <main className="bg-white text-[var(--brand-navy)]">
       <PageContainer>
@@ -104,6 +160,16 @@ export default function CompetitionsPage() {
                           {competition._count.matches} fixtures · {competition._count.entries} annual entries · {competition.currency} {Number(competition.entryFee).toFixed(2)}
                         </p>
                       </div>
+                      {competition.status === "DRAFT" && competition._count.matches === 0 && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={discoveringId !== null}
+                          onClick={() => void previewFixtures(competition)}
+                        >
+                          {discoveringId === competition.id ? "Finding..." : "Find Fixture Preview"}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -130,6 +196,67 @@ export default function CompetitionsPage() {
             </Card>
           </div>
         </div>
+
+        {fixturePreview && previewCompetition && (
+          <div className="mt-6">
+            <Card title={`Fixture Preview — ${previewCompetition.name}`}>
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">
+                    {fixturePreview.discoveredFixtureCount} of {fixturePreview.expectedFixtureCount} fixtures found through {fixturePreview.provider}
+                  </p>
+                  <p className="text-sm text-[var(--brand-muted)]">
+                    Provider competition: {fixturePreview.providerLeague.name}. This is a review only; nothing has been saved.
+                  </p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-sm font-bold ${fixturePreview.valid ? "bg-lime-100 text-lime-900" : "bg-amber-100 text-amber-900"}`}>
+                  {fixturePreview.valid ? "VALIDATED" : "REVIEW REQUIRED"}
+                </span>
+              </div>
+
+              {fixturePreview.warnings.length > 0 && (
+                <div className="mb-5 rounded-lg border border-amber-300 bg-amber-50 p-4">
+                  <h3 className="font-bold text-amber-950">Validation warnings</h3>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-950">
+                    {fixturePreview.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-[var(--brand-border)] text-xs uppercase text-[var(--brand-muted)]">
+                    <tr>
+                      <th className="px-3 py-2">No.</th>
+                      <th className="px-3 py-2">Round</th>
+                      <th className="px-3 py-2">Fixture</th>
+                      <th className="px-3 py-2">Kickoff (Ireland)</th>
+                      <th className="px-3 py-2">Stadium</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fixturePreview.fixtures.map((fixture, index) => (
+                      <tr className="border-b border-[var(--brand-border)]" key={`${fixture.providerGameId ?? "unknown"}-${index}`}>
+                        <td className="px-3 py-3 font-semibold">{index + 1}</td>
+                        <td className="px-3 py-3">{fixture.round ?? "—"}</td>
+                        <td className="px-3 py-3 font-semibold">
+                          {fixture.homeTeam ?? fixture.providerHomeTeam} v {fixture.awayTeam ?? fixture.providerAwayTeam}
+                        </td>
+                        <td className="px-3 py-3">{formatKickoff(fixture.kickoffTime)}</td>
+                        <td className="px-3 py-3">
+                          {[fixture.venue, fixture.city, fixture.country].filter(Boolean).join(", ") || "Not supplied"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-5 text-sm font-semibold text-[var(--brand-muted)]">
+                Saving and approval are deliberately disabled in this stage. The live competition and all participant data remain unchanged.
+              </p>
+            </Card>
+          </div>
+        )}
       </PageContainer>
     </main>
   );
