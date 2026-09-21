@@ -344,7 +344,7 @@ export default function HomePage() {
 
                 <ul className="list-disc space-y-2 pl-5">
                   <li>
-                    Predict each fixture score before kick-off.
+                    Predict all fixture scores before the tournament kicks off.
                   </li>
 
                   <li>
