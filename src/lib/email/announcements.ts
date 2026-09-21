@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentTournament } from "@/lib/currentTournament";
 import { resend } from "@/lib/resend";
@@ -118,27 +119,33 @@ export function buildAnnouncementEmail(
   return { html, text };
 }
 
-export async function getAnnouncementAudienceCount(audience: AnnouncementAudience) {
+export async function getAnnouncementAudienceWhere(
+  audience: AnnouncementAudience
+): Promise<Prisma.UserWhereInput> {
   const baseWhere = {
     emailVerified: true,
     deletedAt: null,
     announcementOptOutAt: null,
-  } as const;
+  } satisfies Prisma.UserWhereInput;
 
   if (audience === "ALL_VERIFIED") {
-    return prisma.user.count({ where: baseWhere });
+    return baseWhere;
   }
 
   const currentTournament = await getCurrentTournament();
-  if (!currentTournament) return 0;
+  if (!currentTournament) return { id: -1 };
 
+  return {
+    ...baseWhere,
+    competitionEntries: audience === "CURRENT_ENTRANTS"
+      ? { some: { tournamentId: currentTournament.id, status: "ENTERED" } }
+      : { none: { tournamentId: currentTournament.id } },
+  };
+}
+
+export async function getAnnouncementAudienceCount(audience: AnnouncementAudience) {
   return prisma.user.count({
-    where: {
-      ...baseWhere,
-      competitionEntries: audience === "CURRENT_ENTRANTS"
-        ? { some: { tournamentId: currentTournament.id, status: "ENTERED" } }
-        : { none: { tournamentId: currentTournament.id } },
-    },
+    where: await getAnnouncementAudienceWhere(audience),
   });
 }
 
@@ -146,14 +153,18 @@ function tokenHash(token: string) {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-export async function createEmailPreferenceToken(userId: number, testOnly: boolean) {
+export async function createEmailPreferenceToken(
+  userId: number,
+  testOnly: boolean,
+  validityDays = 7
+) {
   const token = crypto.randomBytes(32).toString("hex");
   await prisma.emailPreferenceToken.create({
     data: {
       userId,
       tokenHash: tokenHash(token),
       testOnly,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + validityDays * 24 * 60 * 60 * 1000),
     },
   });
   return token;

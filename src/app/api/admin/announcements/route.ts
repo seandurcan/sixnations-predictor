@@ -6,18 +6,21 @@ import {
   getAnnouncementAudienceCount,
   prepareAnnouncementDraft,
 } from "@/lib/email/announcements";
+import {
+  ANNOUNCEMENT_BATCH_SIZE,
+  getAnnouncementDeliverySummaries,
+} from "@/lib/email/announcementDelivery";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized) return auth.response;
 
-  const [campaigns, ...counts] = await Promise.all([
-    prisma.announcementCampaign.findMany({
-      where: { status: "DRAFT" },
-      orderBy: { updatedAt: "desc" },
-      take: 20,
-      include: { _count: { select: { testDeliveries: true } } },
-    }),
+  const campaigns = await prisma.announcementCampaign.findMany({
+    orderBy: { updatedAt: "desc" },
+    take: 30,
+  });
+  const [summaries, ...counts] = await Promise.all([
+    getAnnouncementDeliverySummaries(campaigns.map((campaign) => campaign.id)),
     ...ANNOUNCEMENT_AUDIENCES.map((audience) =>
       getAnnouncementAudienceCount(audience)
     ),
@@ -25,11 +28,15 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    campaigns,
+    campaigns: campaigns.map((campaign) => ({
+      ...campaign,
+      deliverySummary: summaries[campaign.id],
+    })),
     audienceCounts: Object.fromEntries(
       ANNOUNCEMENT_AUDIENCES.map((audience, index) => [audience, counts[index]])
     ),
-    bulkSendingEnabled: false,
+    bulkSendingEnabled: true,
+    batchSize: ANNOUNCEMENT_BATCH_SIZE,
   });
 }
 
@@ -69,7 +76,6 @@ export async function POST(request: NextRequest) {
     campaign = await prisma.announcementCampaign.update({
       where: { id: campaignId },
       data: prepared.draft,
-      include: { _count: { select: { testDeliveries: true } } },
     });
   } else {
     campaign = await prisma.announcementCampaign.create({
@@ -78,7 +84,6 @@ export async function POST(request: NextRequest) {
         status: "DRAFT",
         createdByUserId: adminUserId,
       },
-      include: { _count: { select: { testDeliveries: true } } },
     });
   }
 
