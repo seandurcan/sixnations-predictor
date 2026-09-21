@@ -6,6 +6,7 @@ import {
   CURRENT_TOURNAMENT_SETTING,
   getCurrentTournament,
 } from "@/lib/currentTournament";
+import { validateCompetitionReadiness } from "@/lib/competitionReadiness";
 
 const PERMANENT_TEAMS = [
   "England",
@@ -130,38 +131,169 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized) return auth.response;
+  const adminUserId = auth.user?.id;
+  if (!adminUserId) {
+    return NextResponse.json(
+      { success: false, error: "Authenticated administrator could not be identified." },
+      { status: 500 }
+    );
+  }
 
   const body = await request.json().catch(() => ({}));
   const tournamentId = Number(body.tournamentId);
+  const action = body.action;
   if (!Number.isInteger(tournamentId) || tournamentId <= 0) {
     return NextResponse.json(
       { success: false, error: "Select a valid competition." },
       { status: 400 }
     );
   }
-
-  const competition = await prisma.tournament.findUnique({
-    where: { id: tournamentId },
-    include: { _count: { select: { matches: true } } },
-  });
-  if (!competition) {
+  if (action !== "mark_ready" && action !== "activate") {
     return NextResponse.json(
-      { success: false, error: "Competition not found." },
-      { status: 404 }
-    );
-  }
-  if (competition.status === "DRAFT" || competition._count.matches === 0) {
-    return NextResponse.json(
-      { success: false, error: "A draft competition cannot become current until its fixtures are approved." },
-      { status: 409 }
+      { success: false, error: "Select a valid competition action." },
+      { status: 400 }
     );
   }
 
-  await prisma.systemSetting.upsert({
-    where: { key: CURRENT_TOURNAMENT_SETTING },
-    update: { value: String(tournamentId) },
-    create: { key: CURRENT_TOURNAMENT_SETTING, value: String(tournamentId) },
-  });
+  try {
+    const result = await prisma.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(82317)`;
+        const competition = await tx.tournament.findUnique({
+          where: { id: tournamentId },
+          include: {
+            matches: {
+              include: {
+                homeTeam: { select: { name: true } },
+                awayTeam: { select: { name: true } },
+              },
+            },
+          },
+        });
+        if (!competition) throw new Error("Competition not found.");
 
-  return NextResponse.json({ success: true, currentTournamentId: tournamentId });
+        const readinessErrors = validateCompetitionReadiness(competition);
+        if (readinessErrors.length > 0) {
+          throw new Error(`Competition validation failed: ${readinessErrors.join(" ")}`);
+        }
+
+        if (action === "mark_ready") {
+          if (competition.status !== "DRAFT") {
+            throw new Error("Only a draft competition can be marked ready.");
+          }
+          await tx.tournament.update({
+            where: { id: tournamentId },
+            data: { status: "READY" },
+          });
+          await tx.systemSetting.upsert({
+            where: { key: `COMPETITION_READY_AUDIT_${tournamentId}` },
+            update: {
+              value: JSON.stringify({
+                tournamentId,
+                markedReadyByUserId: adminUserId,
+                markedReadyAt: new Date().toISOString(),
+              }),
+            },
+            create: {
+              key: `COMPETITION_READY_AUDIT_${tournamentId}`,
+              value: JSON.stringify({
+                tournamentId,
+                markedReadyByUserId: adminUserId,
+                markedReadyAt: new Date().toISOString(),
+              }),
+            },
+          });
+          return { status: "READY", previousTournamentId: null };
+        }
+
+        if (competition.status !== "READY") {
+          throw new Error("Only a ready competition can be activated.");
+        }
+
+        const selected = await tx.systemSetting.findUnique({
+          where: { key: CURRENT_TOURNAMENT_SETTING },
+        });
+        const selectedId = Number(selected?.value);
+        let previousCompetition = Number.isInteger(selectedId) && selectedId > 0
+          ? await tx.tournament.findUnique({ where: { id: selectedId } })
+          : null;
+        if (!previousCompetition) {
+          previousCompetition = await tx.tournament.findFirst({
+            where: { status: { in: ["OPEN", "LOCKED", "IN_PROGRESS"] } },
+            orderBy: [{ firstKickoff: "asc" }, { id: "asc" }],
+          });
+        }
+        if (
+          previousCompetition &&
+          previousCompetition.id !== tournamentId &&
+          !["COMPLETED", "ARCHIVED", "CANCELLED"].includes(previousCompetition.status)
+        ) {
+          throw new Error(
+            `The current ${previousCompetition.year} competition must be completed before it can be replaced.`
+          );
+        }
+
+        if (
+          previousCompetition &&
+          previousCompetition.id !== tournamentId &&
+          previousCompetition.status === "COMPLETED"
+        ) {
+          await tx.tournament.update({
+            where: { id: previousCompetition.id },
+            data: { status: "ARCHIVED" },
+          });
+        }
+        await tx.tournament.update({
+          where: { id: tournamentId },
+          data: { status: "OPEN" },
+        });
+        await tx.systemSetting.upsert({
+          where: { key: CURRENT_TOURNAMENT_SETTING },
+          update: { value: String(tournamentId) },
+          create: { key: CURRENT_TOURNAMENT_SETTING, value: String(tournamentId) },
+        });
+        await tx.systemSetting.upsert({
+          where: { key: `COMPETITION_ACTIVATION_AUDIT_${tournamentId}` },
+          update: {
+            value: JSON.stringify({
+              tournamentId,
+              previousTournamentId: previousCompetition?.id ?? null,
+              activatedByUserId: adminUserId,
+              activatedAt: new Date().toISOString(),
+            }),
+          },
+          create: {
+            key: `COMPETITION_ACTIVATION_AUDIT_${tournamentId}`,
+            value: JSON.stringify({
+              tournamentId,
+              previousTournamentId: previousCompetition?.id ?? null,
+              activatedByUserId: adminUserId,
+              activatedAt: new Date().toISOString(),
+            }),
+          },
+        });
+
+        return {
+          status: "OPEN",
+          previousTournamentId: previousCompetition?.id ?? null,
+        };
+      },
+      { isolationLevel: "Serializable", maxWait: 10_000, timeout: 30_000 }
+    );
+
+    return NextResponse.json({
+      success: true,
+      currentTournamentId: action === "activate" ? tournamentId : undefined,
+      competitionStatus: result.status,
+      previousTournamentId: result.previousTournamentId,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Competition update failed.";
+    const notFound = message === "Competition not found.";
+    console.error("Competition lifecycle update failed", error);
+    return NextResponse.json(
+      { success: false, error: message },
+      { status: notFound ? 404 : 409 }
+    );
+  }
 }

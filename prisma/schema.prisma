@@ -327,6 +327,7 @@ enum PaymentStatus {
 
 enum TournamentStatus {
   DRAFT
+  READY
   OPEN
   LOCKED
   IN_PROGRESS

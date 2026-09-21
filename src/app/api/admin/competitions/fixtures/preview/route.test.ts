@@ -56,7 +56,7 @@ describe("POST fixture discovery preview", () => {
       discoveredFixtureCount: 0,
     });
 
-    const response = await POST(request(8) as never);
+    const response = (await POST(request(8) as never))!;
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -71,7 +71,7 @@ describe("POST fixture discovery preview", () => {
       _count: { matches: 15 },
     } as never);
 
-    const response = await POST(request(1) as never);
+    const response = (await POST(request(1) as never))!;
 
     expect(response.status).toBe(409);
     expect(discoverSixNationsFixtures).not.toHaveBeenCalled();
@@ -84,7 +84,7 @@ describe("POST fixture discovery preview", () => {
       _count: { matches: 1 },
     } as never);
 
-    const response = await POST(request(8) as never);
+    const response = (await POST(request(8) as never))!;
     const body = await response.json();
 
     expect(response.status).toBe(409);

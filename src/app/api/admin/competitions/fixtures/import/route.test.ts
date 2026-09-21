@@ -68,7 +68,7 @@ describe("POST fixture import", () => {
       .mockResolvedValueOnce({ id: 8, name: "2028 Six Nations", year: 2028, status: "DRAFT" } as never)
       .mockResolvedValueOnce({ status: "DRAFT", _count: { matches: 0 } } as never);
 
-    const response = await POST(request() as never);
+    const response = (await POST(request() as never))!;
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -91,7 +91,7 @@ describe("POST fixture import", () => {
       id: 8, name: "2028 Six Nations", year: 2028, status: "DRAFT",
     } as never);
 
-    const response = await POST(request(fixtures().slice(0, 14)) as never);
+    const response = (await POST(request(fixtures().slice(0, 14)) as never))!;
 
     expect(response.status).toBe(400);
     expect(prisma.$transaction).not.toHaveBeenCalled();
@@ -102,7 +102,7 @@ describe("POST fixture import", () => {
       .mockResolvedValueOnce({ id: 8, name: "2028 Six Nations", year: 2028, status: "DRAFT" } as never)
       .mockResolvedValueOnce({ status: "DRAFT", _count: { matches: 15 } } as never);
 
-    const response = await POST(request() as never);
+    const response = (await POST(request() as never))!;
     const body = await response.json();
 
     expect(response.status).toBe(409);

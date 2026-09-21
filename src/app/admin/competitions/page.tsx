@@ -94,6 +94,7 @@ export default function CompetitionsPage() {
   const [entryFee, setEntryFee] = useState("20.00");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [discoveringId, setDiscoveringId] = useState<number | null>(null);
   const [importing, setImporting] = useState(false);
   const [previewCompetition, setPreviewCompetition] = useState<Competition | null>(null);
@@ -106,6 +107,13 @@ export default function CompetitionsPage() {
       ? validateEditableFixtures(fixturePreview.fixtures, previewCompetition.year)
       : [],
     [fixturePreview, previewCompetition]
+  );
+  const currentCompetition = competitions.find(
+    (competition) => competition.id === currentTournamentId
+  );
+  const currentCompetitionIsActive = Boolean(
+    currentCompetition &&
+    !["COMPLETED", "ARCHIVED", "CANCELLED"].includes(currentCompetition.status)
   );
 
   useEffect(() => { void loadCompetitions(); }, []);
@@ -173,6 +181,49 @@ export default function CompetitionsPage() {
     }
     setPreviewCompetition(competition);
     setFixturePreview(data.preview);
+  }
+
+  async function updateCompetitionLifecycle(
+    competition: Competition,
+    action: "mark_ready" | "activate"
+  ) {
+    const title = formatCompetitionTitle(competition.name, competition.year);
+    const currentCompetition = competitions.find(
+      (candidate) => candidate.id === currentTournamentId
+    );
+    const confirmed = action === "mark_ready"
+      ? window.confirm(
+        `Validate all fixtures and mark ${title} as ready?\n\n` +
+        "This will not make it current or affect any users."
+      )
+      : window.confirm(
+        `Activate ${title} as the current competition?\n\n` +
+        `${currentCompetition ? `${formatCompetitionTitle(currentCompetition.name, currentCompetition.year)} will become historical. ` : ""}` +
+        "All existing accounts and previous competition records will be preserved. Annual entries and predictions will not be copied."
+      );
+    if (!confirmed) return;
+
+    setUpdatingId(competition.id);
+    setError("");
+    setSuccess("");
+    const response = await fetch("/api/admin/competitions", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tournamentId: competition.id, action }),
+    });
+    const data = await response.json();
+    setUpdatingId(null);
+    if (!response.ok) {
+      setError(data.error ?? "Unable to update the competition.");
+      return;
+    }
+
+    setSuccess(
+      action === "mark_ready"
+        ? `${title} passed validation and is ready. The current competition was not changed.`
+        : `${title} is now the current competition. Previous records and user accounts were preserved.`
+    );
+    await loadCompetitions();
   }
 
   function updateFixture(index: number, field: keyof PreviewFixture, value: string | number | null) {
@@ -277,16 +328,44 @@ export default function CompetitionsPage() {
                           {competition._count.matches} fixtures · {competition._count.entries} annual entries · {competition.currency} {Number(competition.entryFee).toFixed(2)}
                         </p>
                       </div>
-                      {competition.status === "DRAFT" && competition._count.matches === 0 && (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          disabled={discoveringId !== null}
-                          onClick={() => void previewFixtures(competition)}
-                        >
-                          {discoveringId === competition.id ? "Finding..." : "Find Fixture Preview"}
-                        </Button>
-                      )}
+                      <div className="flex flex-col items-end gap-2">
+                        {competition.status === "DRAFT" && competition._count.matches === 0 && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={discoveringId !== null || updatingId !== null}
+                            onClick={() => void previewFixtures(competition)}
+                          >
+                            {discoveringId === competition.id ? "Finding..." : "Find Fixture Preview"}
+                          </Button>
+                        )}
+                        {competition.status === "DRAFT" && competition._count.matches === 15 && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={updatingId !== null}
+                            onClick={() => void updateCompetitionLifecycle(competition, "mark_ready")}
+                          >
+                            {updatingId === competition.id ? "Validating..." : "Validate and Mark Ready"}
+                          </Button>
+                        )}
+                        {competition.status === "READY" && competition.id !== currentTournamentId && (
+                          <>
+                            <Button
+                              type="button"
+                              disabled={updatingId !== null || currentCompetitionIsActive}
+                              onClick={() => void updateCompetitionLifecycle(competition, "activate")}
+                            >
+                              {updatingId === competition.id ? "Activating..." : "Activate Competition"}
+                            </Button>
+                            {currentCompetitionIsActive && (
+                              <p className="max-w-64 text-right text-xs text-[var(--brand-muted)]">
+                                Activation becomes available after the current competition is completed.
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

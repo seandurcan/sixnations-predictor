@@ -9,6 +9,8 @@ export default function StatusBadge({
     status?.toUpperCase?.() ?? "";
 
   const statusClasses = {
+    READY:
+      "bg-[var(--brand-soft-blue)] text-[var(--brand-blue)] border-[rgba(0,123,255,0.35)]",
     OPEN: "bg-[var(--brand-soft-lime)] text-[var(--brand-navy)] border-[rgba(157,255,0,0.75)]",
     LOCKED:
       "bg-[var(--brand-soft-orange)] text-[var(--brand-orange)] border-[rgba(255,106,0,0.45)]",
