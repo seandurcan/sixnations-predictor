@@ -2,15 +2,18 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { enrichMatchesWithLiveScoreInfo, syncLiveScores } from "@/lib/liveScoring";
+import { requireCurrentTournament } from "@/lib/currentTournament";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
     await requireAdmin();
+    const tournament = await requireCurrentTournament();
     await syncLiveScores();
 
     const matches = await prisma.match.findMany({
+      where: { tournamentId: tournament.id },
       orderBy: { matchNumber: "asc" },
       include: {
         homeTeam: true,

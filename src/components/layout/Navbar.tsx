@@ -39,6 +39,7 @@ const ICONS = {
   predictions: "\u{1F4DD}",
   admin: "\u{1F6E0}\uFE0F",
   adminDashboard: "\u{1F4C8}",
+  competitions: "\u{1F3C9}",
   audit: "\u{1F4CB}",
   docs: "\u{1F4D6}",
   adminManual: "\u{1F4D8}",
@@ -77,6 +78,11 @@ const authenticatedLinks: NavItem[] = [
 ];
 
 const adminLinks: NavItem[] = [
+  {
+    label: "Competition Manager",
+    href: "/admin/competitions",
+    icon: ICONS.competitions,
+  },
   {
     label: "Admin Results",
     href: "/admin",

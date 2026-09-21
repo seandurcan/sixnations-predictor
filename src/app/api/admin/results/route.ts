@@ -53,6 +53,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!targetMatch.tournament.firstKickoff) {
+      return NextResponse.json(
+        { success: false, error: "This competition has no approved kickoff schedule." },
+        { status: 409 }
+      );
+    }
+
     if (
       body.testMode !== true &&
       Date.now() <

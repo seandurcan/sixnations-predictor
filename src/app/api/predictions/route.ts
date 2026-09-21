@@ -55,6 +55,13 @@ export async function POST(
       );
     }
 
+    if (!match.tournament.firstKickoff) {
+      return NextResponse.json(
+        { success: false, error: "This competition is not open for predictions." },
+        { status: 409 }
+      );
+    }
+
     const now = new Date();
 
     if (

@@ -3,6 +3,10 @@ import { beforeEach, afterEach, describe, it, expect, vi } from "vitest";
 import { syncLiveScores, applyMatchScore, POLL_INTERVAL_MS } from "./liveScoring";
 import { prisma } from "./prisma";
 
+vi.mock("@/lib/currentTournament", () => ({
+  getCurrentTournament: async () => ({ id: 1 }),
+}));
+
 vi.mock("./prisma", () => ({ prisma: {
   match: { findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   user: { findFirst: vi.fn() },

@@ -17,7 +17,7 @@ export type PredictionPdfRow = {
       id: number;
       name: string;
       year: number;
-      firstKickoff: Date;
+      firstKickoff: Date | null;
     };
   };
 };
@@ -239,7 +239,8 @@ export async function createPredictionsPdf(
       });
 
       y -= 28;
-      pageFooters.set(page, remainingText(tournament.firstKickoff, generatedAt));
+      const firstKickoff = tournament.firstKickoff ?? rows[0].match.kickoffTime;
+      pageFooters.set(page, remainingText(firstKickoff, generatedAt));
     };
 
     header();
@@ -250,8 +251,10 @@ export async function createPredictionsPdf(
         safe(row.match.awayTeam.name),
       ];
 
+      const tournamentKickoff =
+        row.match.tournament.firstKickoff ?? row.match.kickoffTime;
       const kickoff =
-        generatedAt >= row.match.tournament.firstKickoff && row.match.completed
+        generatedAt >= tournamentKickoff && row.match.completed
           ? "Concluded"
           : formatKickoff(row.match.kickoffTime);
 

@@ -32,7 +32,7 @@ export async function POST() {
       include: { matches: { orderBy: { kickoffTime: "asc" } } },
     });
 
-    if (!tournament || tournament.matches.length === 0) {
+    if (!tournament || !tournament.firstKickoff || tournament.matches.length === 0) {
       return NextResponse.json(
         { success: false, error: "No open tournament is available for Quick Pick." },
         { status: 409 }

@@ -124,7 +124,15 @@ export default function AdminDashboardPage() {
           subtitle="System overview and tournament telemetry"
         />
 
-        <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <Button
+            fullWidth
+            onClick={() => {
+              window.location.href = "/admin/competitions";
+            }}
+          >
+            Competition Manager
+          </Button>
           <Button
             fullWidth
             onClick={() => {

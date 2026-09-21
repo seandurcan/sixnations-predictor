@@ -20,6 +20,16 @@ vi.mock("@/lib/auth", () => ({
   requireAdmin: vi.fn(),
 }));
 
+vi.mock("@/lib/currentTournament", () => ({
+  requireCurrentTournament: async () => ({ id: 1 }),
+  getCurrentTournament: async () => ({ id: 1 }),
+}));
+
+vi.mock("@/lib/liveScoring", () => ({
+  syncLiveScores: vi.fn().mockResolvedValue({}),
+  enrichMatchesWithLiveScoreInfo: async <T,>(matches: T[]) => matches,
+}));
+
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 
@@ -71,12 +81,20 @@ describe("GET /api/admin/matches", () => {
     expect(body).toEqual(mockMatches);
 
     expect(prisma.match.findMany).toHaveBeenCalledWith({
+      where: {
+        tournamentId: 1,
+      },
       orderBy: {
         matchNumber: "asc",
       },
       include: {
         homeTeam: true,
         awayTeam: true,
+        tournament: {
+          select: {
+            firstKickoff: true,
+          },
+        },
       },
     });
   });

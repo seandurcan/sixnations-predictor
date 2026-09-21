@@ -8,9 +8,9 @@ datasource db {
 }
 
 model EmailVerification {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   userId     Int
-  token      String   @unique
+  token      String    @unique
   expiresAt  DateTime
   verifiedAt DateTime?
 
@@ -21,132 +21,162 @@ model EmailVerification {
 }
 
 model User {
-  id                    Int                    @id @default(autoincrement())
+  id                    Int             @id @default(autoincrement())
   firstName             String
   lastName              String
-  email                 String                 @unique
+  email                 String          @unique
   mobile                String
   passwordHash          String
-  role                  UserRole               @default(USER)
-  paymentStatus         PaymentStatus          @default(PENDING)
-  themePreference       ThemePreference        @default(SYSTEM)
-  emailVerified         Boolean                @default(false)
+  role                  UserRole        @default(USER)
+  paymentStatus         PaymentStatus   @default(PENDING)
+  themePreference       ThemePreference @default(SYSTEM)
+  emailVerified         Boolean         @default(false)
   paidAt                DateTime?
-  totalPoints           Int                    @default(0)
-  cumulativeError       Int                    @default(0)
-  exactScores           Int                    @default(0)
+  totalPoints           Int             @default(0)
+  cumulativeError       Int             @default(0)
+  exactScores           Int             @default(0)
   registrationOrder     Int
-  predictionsSubmitted  Boolean                @default(false)
+  predictionsSubmitted  Boolean         @default(false)
   predictionSubmittedAt DateTime?
   tournamentPointsGuess Int?
 
   lastVerificationReminderAt DateTime?
   lastPredictionReminderAt   DateTime?
 
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  deletedAt             DateTime?
-  snapshots             LeaderboardSnapshot[]
-  passwordResets        PasswordReset[]
-  payments              Payment[]
-  predictions           Prediction[]
-  submissions           PredictionSubmission[]
-  sessions 		Session[]
-  emailVerifications 	EmailVerification[]
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  deletedAt          DateTime?
+  snapshots          LeaderboardSnapshot[]
+  passwordResets     PasswordReset[]
+  payments           Payment[]
+  predictions        Prediction[]
+  submissions        PredictionSubmission[]
+  competitionEntries CompetitionEntry[]
+  sessions           Session[]
+  emailVerifications EmailVerification[]
 
   @@index([email])
   @@index([paymentStatus])
 }
 
 model Team {
-  id              Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  name            String @unique
+  name String @unique
 
-  shortCode       String @unique
+  shortCode String @unique
 
-  country         String
+  country String
 
-  flagSvg         String
+  flagSvg String
 
-  primaryColor    String
+  primaryColor String
 
-  secondaryColor  String?
+  secondaryColor String?
 
-  homeVenue       String?
+  homeVenue String?
 
-  city            String?
+  city String?
 
-  foundedYear     Int?
+  foundedYear Int?
 
-  worldRanking    Int?
+  worldRanking Int?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt       DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 
-  homeMatches     Match[] @relation("HomeTeam")
+  homeMatches Match[] @relation("HomeTeam")
 
-  awayMatches     Match[] @relation("AwayTeam")
+  awayMatches Match[] @relation("AwayTeam")
 }
+
 model Tournament {
   id               Int                    @id @default(autoincrement())
   year             Int                    @unique
   name             String
   status           TournamentStatus
-  firstKickoff     DateTime
-  predictionLockAt DateTime
+  firstKickoff     DateTime?
+  predictionLockAt DateTime?
+  entryFee         Decimal                @default(20) @db.Decimal(10, 2)
+  currency         String                 @default("EUR")
+  entriesOpenAt    DateTime?
+  entriesCloseAt   DateTime?
   createdAt        DateTime               @default(now())
   updatedAt        DateTime               @updatedAt
   snapshots        LeaderboardSnapshot[]
   matches          Match[]
   submissions      PredictionSubmission[]
+  entries          CompetitionEntry[]
+}
+
+model CompetitionEntry {
+  id                    Int                    @id @default(autoincrement())
+  userId                Int
+  tournamentId          Int
+  status                CompetitionEntryStatus @default(INVITED)
+  paymentStatus         PaymentStatus          @default(PENDING)
+  paidAt                DateTime?
+  predictionsSubmitted  Boolean                @default(false)
+  predictionSubmittedAt DateTime?
+  tournamentPointsGuess Int?
+  totalPoints           Int                    @default(0)
+  cumulativeError       Int                    @default(0)
+  exactScores           Int                    @default(0)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament            Tournament             @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tournamentId])
+  @@index([tournamentId, status])
+  @@index([tournamentId, paymentStatus])
 }
 
 model Match {
-  id                Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  tournamentId      Int
+  tournamentId Int
 
-  round             Int
-  matchNumber       Int
+  round       Int
+  matchNumber Int
 
-  kickoffTime       DateTime
+  kickoffTime DateTime
 
-  venue             String
+  venue String
 
-  city              String?
-  country           String?
+  city    String?
+  country String?
 
-  stadiumCapacity   Int?
+  stadiumCapacity Int?
 
-  referee           String?
+  referee String?
 
-  attendance        Int?
+  attendance Int?
 
-  weather           String?
+  weather String?
 
-  homeTeamId        Int
+  homeTeamId Int
 
-  awayTeamId        Int
+  awayTeamId Int
 
-  actualHomeScore   Int?
+  actualHomeScore Int?
 
-  actualAwayScore   Int?
+  actualAwayScore Int?
 
-  homeTries         Int?
+  homeTries Int?
 
-  awayTries         Int?
+  awayTries Int?
 
-  completed         Boolean @default(false)
+  completed Boolean @default(false)
 
-  sourceUrl         String?
+  sourceUrl String?
 
-  notes             String?
+  notes String?
 
-  createdAt         DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt         DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 
   tournament Tournament @relation(fields: [tournamentId], references: [id])
 
@@ -156,43 +186,39 @@ model Match {
 
   predictions Prediction[]
 
-  @@index([tournamentId])
-
-  @@index([kickoffTime])
-
   @@unique([tournamentId, matchNumber])
+  @@index([tournamentId])
+  @@index([kickoffTime])
 }
 
 model Prediction {
-  id                 Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  userId             Int
-  matchId            Int
+  userId  Int
+  matchId Int
 
   predictedHomeScore Int
   predictedAwayScore Int
 
-  pointsAwarded      Int      @default(0)
+  pointsAwarded Int @default(0)
 
-  errorValue         Int      @default(0)
+  errorValue Int @default(0)
 
-  differenceScore    Int      @default(0)
+  differenceScore Int @default(0)
 
-  exactScore         Boolean  @default(false)
-  correctMargin      Boolean  @default(false)
-  correctResult      Boolean  @default(false)
+  exactScore    Boolean @default(false)
+  correctMargin Boolean @default(false)
+  correctResult Boolean @default(false)
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  match              Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, matchId])
-
   @@index([userId])
-
   @@index([matchId])
 }
 
@@ -303,7 +329,16 @@ enum TournamentStatus {
   DRAFT
   OPEN
   LOCKED
+  IN_PROGRESS
   COMPLETED
+  ARCHIVED
+  CANCELLED
+}
+
+enum CompetitionEntryStatus {
+  INVITED
+  ENTERED
+  WITHDRAWN
 }
 
 enum PaymentProvider {

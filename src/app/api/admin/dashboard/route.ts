@@ -1,23 +1,21 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { getCurrentTournament } from "@/lib/currentTournament";
 
-const TOURNAMENT_ID = 1;
 const MATCH_DURATION_MINUTES = 90;
 
 export async function GET() {
   try {
     await requireAdmin();
 
-    const tournament = await prisma.tournament.findUnique({
-      where: { id: TOURNAMENT_ID },
-    });
+    const tournament = await getCurrentTournament();
 
     if (!tournament) {
       return NextResponse.json(
         {
           success: false,
-          error: `Tournament id=${TOURNAMENT_ID} was not found`,
+          error: "No current competition is configured",
         },
         { status: 404 }
       );
@@ -39,7 +37,7 @@ export async function GET() {
     const playersWithPredictions = await prisma.prediction.findMany({
       where: {
         match: {
-          tournamentId: TOURNAMENT_ID,
+          tournamentId: tournament.id,
         },
         user: {
           deletedAt: null,
@@ -61,7 +59,8 @@ export async function GET() {
       });
 
     const tournamentHasStarted =
-      new Date() >= new Date(tournament.firstKickoff);
+      tournament.firstKickoff !== null &&
+      new Date() >= tournament.firstKickoff;
 
     const testScoringActive =
       testScoringSetting?.value === "true" &&
@@ -69,7 +68,7 @@ export async function GET() {
 
     const totalFixtures = await prisma.match.count({
       where: {
-        tournamentId: TOURNAMENT_ID,
+        tournamentId: tournament.id,
       },
     });
 
@@ -87,7 +86,7 @@ export async function GET() {
     const completedFixtures =
       await prisma.match.count({
         where: {
-          tournamentId: TOURNAMENT_ID,
+          tournamentId: tournament.id,
           ...(testScoringActive
             ? {}
             : {
@@ -174,7 +173,7 @@ export async function GET() {
 
     const winnerRecord = await prisma.tournamentWinner.findFirst({
       where: {
-        tournamentId: TOURNAMENT_ID,
+        tournamentId: tournament.id,
       },
       orderBy: {
         createdAt: "desc",

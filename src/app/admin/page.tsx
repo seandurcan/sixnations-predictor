@@ -224,11 +224,12 @@ export default function AdminPage() {
     }
   }
 
-  function getTournamentOneMatches() {
+  function getCurrentTournamentMatches() {
+    const currentTournamentId = matches[0]?.tournamentId;
     return [...matches]
       .filter(
         (match: any) =>
-          match.tournamentId === 1
+          match.tournamentId === currentTournamentId
       )
       .sort(
         (a: any, b: any) =>
@@ -244,7 +245,7 @@ export default function AdminPage() {
 
     try {
       const tournamentMatches =
-        getTournamentOneMatches();
+        getCurrentTournamentMatches();
 
       const nextMatch =
         tournamentMatches.find(
@@ -360,7 +361,7 @@ export default function AdminPage() {
       await loadMatches();
 
       setSuccessMessage(
-        "All Tournament 1 scores and calculated scoring have been reset. Test games scored: 0 / 15."
+        "All current competition scores and calculated scoring have been reset. Test games scored: 0 / 15."
       );
     } catch (error) {
       setErrorMessage(
@@ -411,7 +412,7 @@ export default function AdminPage() {
     );
 
   const tournamentOneMatches =
-    getTournamentOneMatches();
+    getCurrentTournamentMatches();
 
   const testGamesScored =
     tournamentOneMatches.filter(
@@ -467,7 +468,7 @@ export default function AdminPage() {
                   Test Games Scored: {testGamesScored} / 15
                 </p>
                 <p className="mt-1 text-sm text-[var(--brand-muted)]">
-                  Complete one Tournament 1 fixture per click. Press the first button 15 times to score all 15 games. Reset removes the entered results and all calculated scoring while keeping entrants and their predictions.
+                  Complete one current-competition fixture per click. Press the first button 15 times to score all 15 games. Reset removes the entered results and all calculated scoring while keeping entrants and their predictions.
                 </p>
               </div>
 

@@ -64,7 +64,7 @@ export async function GET(
       orderBy: { firstKickoff: "asc" },
     });
 
-    if (!tournament) {
+    if (!tournament || !tournament.firstKickoff) {
       return NextResponse.json({
         success: true,
         skipped: true,

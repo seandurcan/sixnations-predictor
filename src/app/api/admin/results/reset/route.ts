@@ -1,41 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
-
-const TOURNAMENT_ID = 1;
+import { requireCurrentTournament } from "@/lib/currentTournament";
 
 export async function POST() {
   try {
     await requireAdmin();
 
-    const tournament =
-      await prisma.tournament.findUnique({
-        where: {
-          id: TOURNAMENT_ID,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-    if (!tournament) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Tournament 1 was not found.",
-        },
-        {
-          status: 404,
-        }
-      );
-    }
+    const tournament = await requireCurrentTournament();
 
     const matches =
       await prisma.match.findMany({
         where: {
           tournamentId:
-            TOURNAMENT_ID,
+            tournament.id,
         },
         select: {
           id: true,
@@ -59,7 +37,7 @@ export async function POST() {
       prisma.match.updateMany({
         where: {
           tournamentId:
-            TOURNAMENT_ID,
+            tournament.id,
         },
         data: {
           actualHomeScore: null,
@@ -95,20 +73,20 @@ export async function POST() {
       prisma.leaderboardSnapshot.deleteMany({
         where: {
           tournamentId:
-            TOURNAMENT_ID,
+            tournament.id,
         },
       }),
 
       prisma.tournamentWinner.deleteMany({
         where: {
           tournamentId:
-            TOURNAMENT_ID,
+            tournament.id,
         },
       }),
 
       prisma.tournament.update({
         where: {
-          id: TOURNAMENT_ID,
+          id: tournament.id,
         },
         data: {
           status: "OPEN",
@@ -143,7 +121,7 @@ export async function POST() {
     return NextResponse.json({
       success: true,
       tournamentId:
-        TOURNAMENT_ID,
+        tournament.id,
       resetMatches:
         matchIds.length,
       testGamesScored: 0,
@@ -151,7 +129,7 @@ export async function POST() {
     });
   } catch (error) {
     console.error(
-      "Failed to reset Tournament 1 scores:",
+      "Failed to reset current competition scores:",
       error
     );
 
@@ -196,7 +174,7 @@ export async function POST() {
       {
         success: false,
         error:
-          "Failed to reset Tournament 1 scores.",
+          "Failed to reset current competition scores.",
       },
       {
         status: 500,

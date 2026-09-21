@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { assignCompetitionRanks, calculateMatchScore } from "@/lib/scoring";
 import type { Prisma } from "@prisma/client";
+import { getCurrentTournament } from "@/lib/currentTournament";
 
-const TOURNAMENT_ID = 1;
 export const POLL_INTERVAL_MS = 30 * 1000;
 // Match records have no expected-end field. Allow two hours from kickoff,
 // then a further 30 minutes for stoppages / delayed provider results.
@@ -302,10 +302,15 @@ export async function enrichMatchesWithLiveScoreInfo<T extends { id: number }>(m
 
 export async function syncLiveScores() {
   const now = Date.now();
+  const currentTournament = await getCurrentTournament();
+
+  if (!currentTournament) {
+    return { checked: true, activeMatches: 0, providerQueries: 0, updates: 0 };
+  }
 
   const candidates = await prisma.match.findMany({
     where: {
-      tournamentId: TOURNAMENT_ID,
+      tournamentId: currentTournament.id,
       kickoffTime: { lte: new Date(now), gte: new Date(now - MATCH_WINDOW_MS) },
     },
     include: { homeTeam: true, awayTeam: true },

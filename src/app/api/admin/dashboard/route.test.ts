@@ -26,6 +26,9 @@ vi.mock("@/lib/prisma", () => ({
     tournament: {
       findUnique: vi.fn(),
     },
+    systemSetting: {
+      findUnique: vi.fn(),
+    },
     scoreAudit: {
       findMany: vi.fn(),
     },
@@ -39,8 +42,13 @@ vi.mock("@/lib/auth", () => ({
   requireAdmin: vi.fn(),
 }));
 
+vi.mock("@/lib/currentTournament", () => ({
+  getCurrentTournament: vi.fn(),
+}));
+
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { getCurrentTournament } from "@/lib/currentTournament";
 
 const mockAdmin = {
   id: 1,
@@ -53,13 +61,16 @@ const tournament = {
   name: "Six Nations 2027 Championship",
   year: 2027,
   status: "OPEN",
+  firstKickoff: new Date("2027-01-29T14:15:00.000Z"),
 };
 
 function mockSuccessfulDashboard() {
   vi.mocked(requireAdmin).mockResolvedValueOnce(mockAdmin as any);
+  vi.mocked(getCurrentTournament).mockResolvedValueOnce(tournament as any);
   vi.mocked(prisma.tournament.findUnique).mockResolvedValueOnce(
     tournament as any
   );
+  vi.mocked(prisma.systemSetting.findUnique).mockResolvedValueOnce(null);
 
   vi.mocked(prisma.user.count)
     .mockResolvedValueOnce(35)
@@ -115,6 +126,7 @@ describe("GET /api/admin/dashboard", () => {
       completedFixtures: 6,
       remainingFixtures: 9,
       totalFixtures: 15,
+      testScoringActive: false,
     });
 
     expect(body.totalUsers).toBe(35);
@@ -190,9 +202,9 @@ describe("GET /api/admin/dashboard", () => {
     });
   });
 
-  it("returns 404 instead of misleading zeroes when tournament id=1 is missing", async () => {
+  it("returns 404 instead of misleading zeroes when no current competition exists", async () => {
     vi.mocked(requireAdmin).mockResolvedValueOnce(mockAdmin as any);
-    vi.mocked(prisma.tournament.findUnique).mockResolvedValueOnce(null);
+    vi.mocked(getCurrentTournament).mockResolvedValueOnce(null);
 
     const response = await GET();
     const body = await response.json();
@@ -200,7 +212,7 @@ describe("GET /api/admin/dashboard", () => {
     expect(response.status).toBe(404);
     expect(body).toEqual({
       success: false,
-      error: "Tournament id=1 was not found",
+      error: "No current competition is configured",
     });
 
     expect(prisma.user.count).not.toHaveBeenCalled();
