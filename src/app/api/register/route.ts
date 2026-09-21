@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
@@ -91,17 +91,19 @@ export async function POST(
       },
     });
 
-    try {
-      await sendEmailVerificationEmail(
-        user.email,
-        token
-      );
-    } catch (emailError) {
-      console.error(
-        "Verification email failed:",
-        emailError
-      );
-    }
+    after(async () => {
+      try {
+        await sendEmailVerificationEmail(
+          user.email,
+          token
+        );
+      } catch (emailError) {
+        console.error(
+          "Verification email failed:",
+          emailError
+        );
+      }
+    });
 
     return NextResponse.json({
       success: true,

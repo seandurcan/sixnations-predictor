@@ -5,9 +5,15 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import PasswordInput from "@/components/ui/PasswordInput";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+const REGISTRATION_EMAIL_KEY =
+  "perfect-xv-registration-email";
+
 export default function RegisterPage() {
+  const router = useRouter();
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -18,7 +24,6 @@ export default function RegisterPage() {
   });
 
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const passwordsMatch = form.password === form.confirmPassword;
@@ -89,7 +94,6 @@ export default function RegisterPage() {
     e.preventDefault();
 
     setError("");
-    setSuccess("");
 
     const validationError = validateForm();
 
@@ -116,18 +120,12 @@ export default function RegisterPage() {
         return;
       }
 
-      setSuccess(
-        "Registration successful. Please verify your email before logging in."
+      sessionStorage.setItem(
+        REGISTRATION_EMAIL_KEY,
+        form.email.trim().toLowerCase()
       );
 
-      setForm({
-        firstName: "",
-        lastName: "",
-        email: "",
-        mobile: "",
-        password: "",
-        confirmPassword: "",
-      });
+      router.push("/registration-success");
     } catch {
       setError("Unable to connect. Please try again.");
     } finally {
@@ -151,15 +149,6 @@ export default function RegisterPage() {
             Passwords must be at least 8 characters and include
             uppercase, lowercase, a number, and a special character.
           </p>
-
-          {success && (
-            <Alert
-              variant="success"
-              title="Registration Successful"
-            >
-              {success}
-            </Alert>
-          )}
 
           {error && (
             <Alert
@@ -259,7 +248,7 @@ export default function RegisterPage() {
             fullWidth
             disabled={loading}
           >
-            {loading ? "Registering..." : "Register"}
+            {loading ? "Creating account..." : "Register"}
           </Button>
         </form>
       </Card>
