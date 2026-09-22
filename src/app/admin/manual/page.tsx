@@ -696,14 +696,22 @@ export default function AdministrationManualPage() {
               <div className="space-y-4 text-[var(--brand-muted)]">
                 <p>
                   Audit History records administrative changes to match
-                  results. Each entry shows the date, match, previous
-                  score, new score and administrator responsible.
+                  results and controlled account-support actions. Each
+                  entry shows the date, action, subject, outcome and
+                  administrator responsible.
                 </p>
 
                 <p>
-                  Use the audit after corrections and whenever a score
-                  discrepancy is reported. The page is paginated.
+                  Search by administrator, user, account number, match or
+                  team. Filters are available for category, action,
+                  success or failure and date range. The page is
+                  read-only and paginated.
                 </p>
+
+                <Note title="Privacy protection">
+                  Passwords, verification links, reset tokens and deleted
+                  email addresses are never displayed in Audit History.
+                </Note>
 
                 <Warning>
                   The Tournament 1 test reset intentionally clears the

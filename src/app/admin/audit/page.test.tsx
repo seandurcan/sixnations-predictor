@@ -1,145 +1,41 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AuditPage from "./page";
 
-const mockAuditsPageOne = [
-  {
-    id: 301,
-    matchId: 101,
-    previousHome: null,
-    previousAway: null,
-    newHome: 28,
-    newAway: 20,
-    createdAt: "2027-01-29T18:30:00.000Z",
-    adminUserId: 1,
-    adminUser: {
-      firstName: "Admin",
-      lastName: "User",
+const responseBody = {
+  success: true,
+  records: [
+    {
+      id: "account-4",
+      category: "ACCOUNT",
+      action: "DELETE_ACCOUNT",
+      status: "SUCCEEDED",
+      createdAt: "2026-09-22T10:00:00.000Z",
+      admin: { id: 1, name: "Admin User" },
+      target: { id: 9, label: "Former Participant (account 9)" },
+      detail: "Identity anonymised; anonymous competition history retained.",
     },
-    match: {
-      id: 101,
-      homeTeam: {
-        shortCode: "IRE",
-      },
-      awayTeam: {
-        shortCode: "FRA",
-      },
+    {
+      id: "result-3",
+      category: "RESULT",
+      action: "RESULT_CHANGED",
+      status: "SUCCEEDED",
+      createdAt: "2026-09-21T10:00:00.000Z",
+      admin: { id: 1, name: "Admin User" },
+      target: { id: 8, label: "IRE v FRA", previous: "10 - 12", current: "20 - 19" },
+      detail: "Match result changed.",
     },
-  },
-  {
-    id: 302,
-    matchId: 102,
-    previousHome: 17,
-    previousAway: 14,
-    newHome: 24,
-    newAway: 17,
-    createdAt: "2027-01-30T20:15:00.000Z",
-    adminUserId: 2,
-    adminUser: {
-      firstName: "Result",
-      lastName: "Manager",
-    },
-    match: {
-      id: 102,
-      homeTeam: {
-        shortCode: "SCO",
-      },
-      awayTeam: {
-        shortCode: "ENG",
-      },
-    },
-  },
-];
+  ],
+  pagination: { page: 1, pageSize: 20, total: 2, totalPages: 2 },
+  totals: { resultChanges: 1, accountActions: 1 },
+};
 
-const mockAuditsPageTwo = [
-  {
-    id: 401,
-    matchId: 103,
-    previousHome: 10,
-    previousAway: 8,
-    newHome: 12,
-    newAway: 11,
-    createdAt: "2027-02-01T12:00:00.000Z",
-    adminUserId: 3,
-    adminUser: {
-      firstName: "Second",
-      lastName: "Admin",
-    },
-    match: {
-      id: 103,
-      homeTeam: {
-        shortCode: "WAL",
-      },
-      awayTeam: {
-        shortCode: "ITA",
-      },
-    },
-  },
-];
-
-const mockAuditWithoutMatch = [
-  {
-    id: 501,
-    matchId: 999,
-    previousHome: 20,
-    previousAway: 18,
-    newHome: 21,
-    newAway: 19,
-    createdAt: "2027-02-05T10:45:00.000Z",
-    adminUserId: 9,
-    adminUser: {
-      firstName: "Fallback",
-      lastName: "Admin",
-    },
-    match: null,
-  },
-];
-
-const mockAuditWithoutAdminUser = [
-  {
-    id: 601,
-    matchId: 104,
-    previousHome: 5,
-    previousAway: 3,
-    newHome: 8,
-    newAway: 6,
-    createdAt: "2027-02-06T09:15:00.000Z",
-    adminUserId: 44,
-    adminUser: null,
-    match: {
-      id: 104,
-      homeTeam: {
-        shortCode: "ENG",
-      },
-      awayTeam: {
-        shortCode: "IRE",
-      },
-    },
-  },
-];
-
-function mockSuccessfulAuditLoad({
-  audits = mockAuditsPageOne,
-  totalPages = 2,
-}: {
-  audits?: any[];
-  totalPages?: number;
-} = {}) {
+function mockSuccess(body = responseBody) {
   vi.mocked(global.fetch).mockResolvedValueOnce({
     ok: true,
     status: 200,
-    json: async () => ({
-      audits,
-      totalPages,
-    }),
+    json: async () => body,
   } as Response);
 }
 
@@ -147,504 +43,87 @@ describe("AuditPage", () => {
   const originalLocation = window.location;
 
   beforeEach(() => {
-    vi.restoreAllMocks();
-
     global.fetch = vi.fn();
-
     Object.defineProperty(window, "location", {
-      value: {
-        href: "",
-        assign: vi.fn(),
-      },
+      value: { href: "" },
       writable: true,
     });
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-
-    Object.defineProperty(window, "location", {
-      value: originalLocation,
-      writable: true,
-    });
+    Object.defineProperty(window, "location", { value: originalLocation, writable: true });
   });
 
-  it("renders loading state before audit data loads", () => {
-    vi.mocked(global.fetch).mockReturnValue(
-      new Promise(() => {}) as Promise<Response>
-    );
+  it("loads and displays result and account-support audit records", async () => {
+    mockSuccess();
 
     render(<AuditPage />);
 
-    expect(
-      screen.getByText("Loading audit records...")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("Loading audit history...")
-    ).toBeInTheDocument();
-  });
-
-  it("fetches audit history on render", async () => {
-    mockSuccessfulAuditLoad();
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByRole("heading", {
-        name: "Audit History",
-      })
-    ).toBeInTheDocument();
-
+    expect((await screen.findAllByText("Former Participant (account 9)")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Account deleted").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("IRE v FRA").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/10 - 12/).length).toBeGreaterThan(0);
+    expect(screen.getByText("Matching Records")).toBeInTheDocument();
     expect(global.fetch).toHaveBeenCalledWith(
-      "/api/admin/audit?page=1&pageSize=10"
+      expect.stringContaining("/api/admin/audit?"),
+      expect.objectContaining({ cache: "no-store" })
     );
-
-    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  it("redirects to login when audit API returns 401", async () => {
+  it("applies selected filters and starts again at page one", async () => {
+    const user = userEvent.setup();
+    mockSuccess();
+    mockSuccess({ ...responseBody, records: [responseBody.records[0]] });
+    render(<AuditPage />);
+    await screen.findAllByText("Former Participant (account 9)");
+
+    await user.selectOptions(screen.getByLabelText("Category"), "ACCOUNT");
+    await user.selectOptions(screen.getByLabelText("Action"), "DELETE_ACCOUNT");
+    await user.click(screen.getByRole("button", { name: "Apply Filters" }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
+    const secondUrl = vi.mocked(global.fetch).mock.calls[1][0] as string;
+    expect(secondUrl).toContain("category=ACCOUNT");
+    expect(secondUrl).toContain("action=DELETE_ACCOUNT");
+    expect(secondUrl).toContain("page=1");
+  });
+
+  it("uses the applied filters when moving to the next page", async () => {
+    const user = userEvent.setup();
+    mockSuccess();
+    mockSuccess({ ...responseBody, pagination: { ...responseBody.pagination, page: 2 } });
+    render(<AuditPage />);
+    await screen.findAllByText("Former Participant (account 9)");
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
+    expect(vi.mocked(global.fetch).mock.calls[1][0]).toContain("page=2");
+  });
+
+  it("redirects unauthenticated users to login", async () => {
     vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: false,
       status: 401,
-      json: async () => ({
-        audits: [],
-        totalPages: 1,
-      }),
+      json: async () => ({ success: false, error: "Unauthorized" }),
     } as Response);
 
     render(<AuditPage />);
 
-    await waitFor(() => {
-      expect(window.location.href).toBe("/login");
-    });
-
-    expect(global.fetch).toHaveBeenCalledWith(
-      "/api/admin/audit?page=1&pageSize=10"
-    );
+    await waitFor(() => expect(window.location.href).toBe("/login"));
   });
 
-  it("redirects to dashboard when audit API returns 403", async () => {
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: false,
-      status: 403,
-      json: async () => ({
-        audits: [],
-        totalPages: 1,
-      }),
-    } as Response);
-
-    render(<AuditPage />);
-
-    await waitFor(() => {
-      expect(window.location.href).toBe("/dashboard");
-    });
-
-    expect(global.fetch).toHaveBeenCalledWith(
-      "/api/admin/audit?page=1&pageSize=10"
-    );
-  });
-
-  it("renders audit table with headings", async () => {
-    mockSuccessfulAuditLoad();
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("Date")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("Match")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("Previous Score")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("New Score")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("Admin")
-    ).toBeInTheDocument();
-  });
-
-  it("renders audit rows with match names and score changes", async () => {
-    mockSuccessfulAuditLoad();
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("IRE v FRA")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("SCO v ENG")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("- - -")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("28 - 20")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("17 - 14")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("24 - 17")
-    ).toBeInTheDocument();
-  });
-
-  it("renders admin user names", async () => {
-    mockSuccessfulAuditLoad();
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("Admin User")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("Result Manager")
-    ).toBeInTheDocument();
-  });
-
-  it("renders Irish formatted audit dates", async () => {
-    mockSuccessfulAuditLoad();
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText(/29 Jan 2027/i)
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText(/18:30/i)
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText(/30 Jan 2027/i)
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText(/20:15/i)
-    ).toBeInTheDocument();
-  });
-
-  it("renders empty audit state", async () => {
-    mockSuccessfulAuditLoad({
-      audits: [],
-      totalPages: 1,
+  it("shows an empty filtered state", async () => {
+    mockSuccess({
+      ...responseBody,
+      records: [],
+      pagination: { page: 1, pageSize: 20, total: 0, totalPages: 1 },
+      totals: { resultChanges: 0, accountActions: 0 },
     });
 
     render(<AuditPage />);
 
-    expect(
-      await screen.findByText("No audit records found.")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.queryByText("Date")
-    ).not.toBeInTheDocument();
-  });
-
-  it("renders fallback match label when match relationship is missing", async () => {
-    mockSuccessfulAuditLoad({
-      audits: mockAuditWithoutMatch,
-      totalPages: 1,
-    });
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("Match 999")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("20 - 18")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("21 - 19")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("Fallback Admin")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText(/05 Feb 2027/i)
-    ).toBeInTheDocument();
-  });
-
-  it("renders fallback admin id when admin user relationship is missing", async () => {
-    mockSuccessfulAuditLoad({
-      audits: mockAuditWithoutAdminUser,
-      totalPages: 1,
-    });
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("ENG v IRE")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("44")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("5 - 3")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("8 - 6")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText(/06 Feb 2027/i)
-    ).toBeInTheDocument();
-  });
-
-  it("shows pagination controls when audit rows exist", async () => {
-    mockSuccessfulAuditLoad({
-      audits: mockAuditsPageOne,
-      totalPages: 2,
-    });
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("IRE v FRA")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("button", {
-        name: "Previous",
-      })
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("button", {
-        name: "Next",
-      })
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("Page 1 of 2")
-    ).toBeInTheDocument();
-  });
-
-  it("disables previous button on first page", async () => {
-    mockSuccessfulAuditLoad({
-      audits: mockAuditsPageOne,
-      totalPages: 2,
-    });
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("IRE v FRA")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("button", {
-        name: "Previous",
-      })
-    ).toBeDisabled();
-  });
-
-  it("disables next button on final page", async () => {
-    mockSuccessfulAuditLoad({
-      audits: mockAuditsPageOne,
-      totalPages: 1,
-    });
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("IRE v FRA")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("button", {
-        name: "Next",
-      })
-    ).toBeDisabled();
-
-    expect(
-      screen.getByText("Page 1 of 1")
-    ).toBeInTheDocument();
-  });
-
-  it("loads next page of audit results", async () => {
-    const user = userEvent.setup();
-
-    mockSuccessfulAuditLoad({
-      audits: mockAuditsPageOne,
-      totalPages: 2,
-    });
-
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        audits: mockAuditsPageTwo,
-        totalPages: 2,
-      }),
-    } as Response);
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("IRE v FRA")
-    ).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Next",
-      })
-    );
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        "/api/admin/audit?page=2&pageSize=10"
-      );
-    });
-
-    expect(
-      await screen.findByText("WAL v ITA")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("12 - 11")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("Page 2 of 2")
-    ).toBeInTheDocument();
-  });
-
-  it("returns to previous page of audit results", async () => {
-    const user = userEvent.setup();
-
-    mockSuccessfulAuditLoad({
-      audits: mockAuditsPageOne,
-      totalPages: 2,
-    });
-
-    vi.mocked(global.fetch)
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          audits: mockAuditsPageTwo,
-          totalPages: 2,
-        }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          audits: mockAuditsPageOne,
-          totalPages: 2,
-        }),
-      } as Response);
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("IRE v FRA")
-    ).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Next",
-      })
-    );
-
-    expect(
-      await screen.findByText("WAL v ITA")
-    ).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Previous",
-      })
-    );
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        "/api/admin/audit?page=1&pageSize=10"
-      );
-    });
-
-    expect(
-      await screen.findByText("IRE v FRA")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("Page 1 of 2")
-    ).toBeInTheDocument();
-  });
-
-  it("handles audit API throwing by ending loading state", async () => {
-    vi.mocked(global.fetch).mockRejectedValueOnce(
-      new Error("Audit API unavailable")
-    );
-
-    render(<AuditPage />);
-
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading audit history...")
-      ).not.toBeInTheDocument();
-    });
-
-    expect(
-      screen.getByText("No audit records found.")
-    ).toBeInTheDocument();
-  });
-
-  it("falls back to one page when totalPages is missing", async () => {
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        audits: mockAuditsPageOne,
-      }),
-    } as Response);
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("IRE v FRA")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("Page 1 of 1")
-    ).toBeInTheDocument();
-  });
-
-  it("falls back to empty audit array when audits is missing", async () => {
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        totalPages: 1,
-      }),
-    } as Response);
-
-    render(<AuditPage />);
-
-    expect(
-      await screen.findByText("No audit records found.")
-    ).toBeInTheDocument();
+    expect(await screen.findByText("No audit records match the selected filters.")).toBeInTheDocument();
   });
 });
