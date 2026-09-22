@@ -9,6 +9,7 @@ const CATEGORIES = ["ALL", "RESULT", "ACCOUNT"] as const;
 const ACTIONS = [
   "ALL",
   "RESULT_CHANGED",
+  "CORRECT_ACCOUNT",
   "RESEND_VERIFICATION",
   "SEND_PASSWORD_RESET",
   "DELETE_ACCOUNT",
@@ -107,8 +108,9 @@ export async function GET(request: NextRequest) {
     }
 
     const createdAt = dateWhere(from, to);
-    const scoreEligible = category !== "ACCOUNT" && action !== "RESEND_VERIFICATION"
-      && action !== "SEND_PASSWORD_RESET" && action !== "DELETE_ACCOUNT" && status !== "FAILED";
+    const scoreEligible = category !== "ACCOUNT"
+      && (action === "ALL" || action === "RESULT_CHANGED")
+      && status !== "FAILED";
     const accountEligible = category !== "RESULT" && action !== "RESULT_CHANGED";
 
     const scoreWhere: Prisma.ScoreAuditWhereInput = {

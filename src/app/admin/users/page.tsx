@@ -42,13 +42,23 @@ type Filters = {
   announcements: "ALL" | "SUBSCRIBED" | "OPTED_OUT";
 };
 
-type SupportAction = "RESEND_VERIFICATION" | "SEND_PASSWORD_RESET" | "DELETE_ACCOUNT";
+type SupportAction = "CORRECT_ACCOUNT" | "RESEND_VERIFICATION" | "SEND_PASSWORD_RESET" | "DELETE_ACCOUNT";
+
+type CorrectionForm = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
+};
 
 type ActionResponse = {
   success: boolean;
   message?: string;
+  warning?: string;
   error?: string;
 };
+
+const EMPTY_CORRECTION: CorrectionForm = { firstName: "", lastName: "", email: "", mobile: "" };
 
 const EMPTY_FILTERS: Filters = {
   q: "",
@@ -106,6 +116,7 @@ export default function AdminUsersPage() {
   const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
   const [pendingAction, setPendingAction] = useState<SupportAction | null>(null);
   const [confirmationEmail, setConfirmationEmail] = useState("");
+  const [correction, setCorrection] = useState<CorrectionForm>(EMPTY_CORRECTION);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -154,11 +165,20 @@ export default function AdminUsersPage() {
     setSelectedUser(null);
     setPendingAction(null);
     setConfirmationEmail("");
+    setCorrection(EMPTY_CORRECTION);
   }
 
   function chooseAction(action: SupportAction) {
     setPendingAction(action);
     setConfirmationEmail("");
+    if (action === "CORRECT_ACCOUNT" && selectedUser) {
+      setCorrection({
+        firstName: selectedUser.firstName,
+        lastName: selectedUser.lastName,
+        email: selectedUser.email,
+        mobile: selectedUser.mobile,
+      });
+    }
     setError("");
     setNotice("");
   }
@@ -167,6 +187,7 @@ export default function AdminUsersPage() {
     setSelectedUser(user);
     setPendingAction(null);
     setConfirmationEmail("");
+    setCorrection(EMPTY_CORRECTION);
     setError("");
     setNotice("");
   }
@@ -179,16 +200,19 @@ export default function AdminUsersPage() {
     setNotice("");
     try {
       const deleting = pendingAction === "DELETE_ACCOUNT";
+      const correcting = pendingAction === "CORRECT_ACCOUNT";
       const response = await fetch(
-        deleting
+        deleting || correcting
           ? `/api/admin/users/${selectedUser.id}`
           : `/api/admin/users/${selectedUser.id}/actions`,
         {
-          method: deleting ? "DELETE" : "POST",
+          method: deleting ? "DELETE" : correcting ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(
             deleting
               ? { confirmationEmail }
+              : correcting
+                ? { ...correction, confirmationEmail }
               : { action: pendingAction }
           ),
         }
@@ -202,7 +226,8 @@ export default function AdminUsersPage() {
       setSelectedUser(null);
       setPendingAction(null);
       setConfirmationEmail("");
-      if (deleting) {
+      setCorrection(EMPTY_CORRECTION);
+      if (deleting || correcting) {
         await loadUsers(appliedFilters, data?.pagination.page ?? 1);
       }
     } catch (actionError) {
@@ -215,6 +240,16 @@ export default function AdminUsersPage() {
   const competitionTitle = data?.currentCompetition
     ? `${data.currentCompetition.year} ${data.currentCompetition.name}`
     : "No current competition";
+  const correctionEmailChanged = Boolean(selectedUser)
+    && correction.email.trim().toLowerCase() !== selectedUser?.email.toLowerCase();
+  const correctionUnchanged = Boolean(selectedUser)
+    && correction.firstName.trim() === selectedUser?.firstName
+    && correction.lastName.trim() === selectedUser?.lastName
+    && correction.mobile.trim() === selectedUser?.mobile
+    && !correctionEmailChanged;
+  const correctionInvalid = !correction.firstName.trim() || !correction.lastName.trim()
+    || !correction.email.trim() || correctionUnchanged
+    || (correctionEmailChanged && confirmationEmail.trim().toLowerCase() !== selectedUser?.email.toLowerCase());
 
   return (
     <main className="bg-white p-4 text-[var(--brand-navy)] sm:p-8">
@@ -390,6 +425,9 @@ export default function AdminUsersPage() {
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <Button variant="secondary" disabled={actionLoading} onClick={() => chooseAction("CORRECT_ACCOUNT")}>
+                Correct Account Details
+              </Button>
               <Button
                 variant="secondary"
                 disabled={selectedUser.emailVerified || actionLoading}
@@ -416,6 +454,66 @@ export default function AdminUsersPage() {
               <div className={`mt-6 rounded-lg border p-4 ${pendingAction === "DELETE_ACCOUNT" ? "border-red-300 bg-red-50" : "border-amber-300 bg-amber-50"}`}>
                 <h3 className="font-bold">{supportActionTitle(pendingAction)}</h3>
                 <p className="mt-2 text-sm">{supportActionDescription(pendingAction)}</p>
+                {pendingAction === "CORRECT_ACCOUNT" ? (
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <label className="block text-sm font-semibold">
+                      First name
+                      <Input
+                        autoComplete="off"
+                        className="mt-1"
+                        maxLength={60}
+                        value={correction.firstName}
+                        onChange={(event) => setCorrection((current) => ({ ...current, firstName: event.target.value }))}
+                      />
+                    </label>
+                    <label className="block text-sm font-semibold">
+                      Surname
+                      <Input
+                        autoComplete="off"
+                        className="mt-1"
+                        maxLength={80}
+                        value={correction.lastName}
+                        onChange={(event) => setCorrection((current) => ({ ...current, lastName: event.target.value }))}
+                      />
+                    </label>
+                    <label className="block text-sm font-semibold sm:col-span-2">
+                      Email address
+                      <Input
+                        autoComplete="off"
+                        className="mt-1"
+                        maxLength={254}
+                        type="email"
+                        value={correction.email}
+                        onChange={(event) => setCorrection((current) => ({ ...current, email: event.target.value }))}
+                      />
+                    </label>
+                    <label className="block text-sm font-semibold sm:col-span-2">
+                      Mobile number (optional)
+                      <Input
+                        autoComplete="off"
+                        className="mt-1"
+                        inputMode="tel"
+                        maxLength={30}
+                        value={correction.mobile}
+                        onChange={(event) => setCorrection((current) => ({ ...current, mobile: event.target.value }))}
+                      />
+                    </label>
+                    {correctionEmailChanged ? (
+                      <label className="block rounded-lg border border-amber-300 bg-white p-3 text-sm font-semibold sm:col-span-2">
+                        Enter the current email address to confirm this email change
+                        <Input
+                          autoComplete="off"
+                          className="mt-2"
+                          value={confirmationEmail}
+                          onChange={(event) => setConfirmationEmail(event.target.value)}
+                        />
+                        <span className="mt-2 block font-normal text-[var(--brand-muted)]">
+                          The new address will be unverified until the user opens a fresh verification link. Existing verification, reset and unsubscribe links will stop working.
+                        </span>
+                      </label>
+                    ) : null}
+                  </div>
+                ) : null}
                 {pendingAction === "DELETE_ACCOUNT" ? (
                   <label className="mt-4 block text-sm font-semibold">
                     Enter the account email address to confirm
@@ -430,12 +528,14 @@ export default function AdminUsersPage() {
                 <div className="mt-4 flex flex-wrap gap-3">
                   <Button
                     className={pendingAction === "DELETE_ACCOUNT" ? "bg-red-700 hover:bg-red-800 focus:ring-red-700" : ""}
-                    disabled={actionLoading || (pendingAction === "DELETE_ACCOUNT" && confirmationEmail.trim().toLowerCase() !== selectedUser.email.toLowerCase())}
+                    disabled={actionLoading
+                      || (pendingAction === "DELETE_ACCOUNT" && confirmationEmail.trim().toLowerCase() !== selectedUser.email.toLowerCase())
+                      || (pendingAction === "CORRECT_ACCOUNT" && correctionInvalid)}
                     onClick={() => void performSupportAction()}
                   >
                     {actionLoading ? "Working..." : supportActionConfirmLabel(pendingAction)}
                   </Button>
-                  <Button variant="secondary" disabled={actionLoading} onClick={() => { setPendingAction(null); setConfirmationEmail(""); }}>
+                  <Button variant="secondary" disabled={actionLoading} onClick={() => { setPendingAction(null); setConfirmationEmail(""); setCorrection(EMPTY_CORRECTION); }}>
                     Cancel
                   </Button>
                 </div>
@@ -449,18 +549,21 @@ export default function AdminUsersPage() {
 }
 
 function supportActionTitle(action: SupportAction) {
+  if (action === "CORRECT_ACCOUNT") return "Correct account details";
   if (action === "RESEND_VERIFICATION") return "Confirm verification email";
   if (action === "SEND_PASSWORD_RESET") return "Confirm password-reset email";
   return "Confirm account deletion";
 }
 
 function supportActionDescription(action: SupportAction) {
+  if (action === "CORRECT_ACCOUNT") return "Correct an account-holder’s name, mobile number or email address. Competition records, payments, roles and predictions will not be changed.";
   if (action === "RESEND_VERIFICATION") return "A new one-hour verification link will be emailed to this user.";
   if (action === "SEND_PASSWORD_RESET") return "A secure one-hour password-reset link will be emailed to this user. Administrators cannot view or set the password.";
   return "This is irreversible. Login access and identifying details will be removed. Existing competition history will remain anonymously as Former Participant.";
 }
 
 function supportActionConfirmLabel(action: SupportAction) {
+  if (action === "CORRECT_ACCOUNT") return "Save Corrections";
   if (action === "RESEND_VERIFICATION") return "Send Verification Email";
   if (action === "SEND_PASSWORD_RESET") return "Send Password Reset";
   return "Delete Account";

@@ -259,9 +259,10 @@ export default function AdministrationManualPage() {
                 <Note title="User Manager">
                   Search and filter active accounts, verification,
                   current competition entry and announcement status.
-                  Open Account Support to resend verification, send a
-                  secure password-reset link or delete a non-admin
-                  account after explicit confirmation.
+                  Open Account Support to correct a name, mobile number
+                  or email address, resend verification, send a secure
+                  password-reset link or delete a non-admin account
+                  after explicit confirmation.
                 </Note>
 
                 <Note title="Audit History">
@@ -320,7 +321,11 @@ export default function AdministrationManualPage() {
                 administrator to set one. Account deletion removes
                 identifying and login details while retaining anonymous
                 competition history, and administrator accounts are
-                protected from deletion.
+                protected from deletion. Account corrections never
+                alter roles, payments, entries, predictions or results.
+                Changing an email address requires the current address
+                as confirmation, invalidates existing security links and
+                sends a fresh verification email to the new address.
               </p>
             </Card>
           </section>
