@@ -99,6 +99,27 @@ export async function getUsersNeedingPredictionReminder(
   );
 }
 
+export async function getUsersWithOutstandingPredictions(tournamentId: number) {
+  const matches = await prisma.match.findMany({
+    where: { tournamentId },
+    select: { id: true },
+  });
+  if (matches.length === 0) return [];
+
+  const matchIds = matches.map((match) => match.id);
+  const users = await prisma.user.findMany({
+    where: { emailVerified: true, deletedAt: null },
+    include: {
+      predictions: {
+        where: { matchId: { in: matchIds } },
+        select: { matchId: true },
+      },
+    },
+  });
+
+  return users.filter((user) => user.predictions.length < matchIds.length);
+}
+
 async function sendOrThrow(message: {
   to: string;
   subject: string;

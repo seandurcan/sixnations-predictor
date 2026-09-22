@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
-  getUsersNeedingPredictionReminder,
+  getUsersWithOutstandingPredictions,
 } from "@/lib/reminders/reminderService";
 import {
   sendPredictionReminder,
@@ -58,13 +58,13 @@ export async function GET(
     const now = new Date();
     const tournament = await prisma.tournament.findFirst({
       where: {
-        status: { in: ["OPEN", "LOCKED"] },
-        firstKickoff: { gt: now },
+        status: "OPEN",
+        predictionLockAt: { gt: now },
       },
-      orderBy: { firstKickoff: "asc" },
+      orderBy: { predictionLockAt: "asc" },
     });
 
-    if (!tournament || !tournament.firstKickoff) {
+    if (!tournament || !tournament.predictionLockAt) {
       return NextResponse.json({
         success: true,
         skipped: true,
@@ -73,10 +73,10 @@ export async function GET(
     }
 
     const finalReminderAt = new Date(
-      tournament.firstKickoff.getTime() - 2 * 60 * 60 * 1000
+      tournament.predictionLockAt.getTime() - 60 * 60 * 1000
     );
 
-    if (now < finalReminderAt || now >= tournament.firstKickoff) {
+    if (now < finalReminderAt || now >= tournament.predictionLockAt) {
       return NextResponse.json({
         success: true,
         skipped: true,
@@ -123,7 +123,8 @@ export async function GET(
               user.firstName,
             email: user.email,
           },
-          true
+          true,
+          "One hour"
         );
         verificationSent++;
       } catch (error) {
@@ -136,7 +137,7 @@ export async function GET(
     }
 
     const predictionUsers =
-      await getUsersNeedingPredictionReminder();
+      await getUsersWithOutstandingPredictions(tournament.id);
 
     let predictionSent = 0;
     let predictionFailed = 0;
@@ -150,7 +151,8 @@ export async function GET(
               user.firstName,
             email: user.email,
           },
-          true
+          true,
+          "One hour"
         );
         predictionSent++;
       } catch (error) {

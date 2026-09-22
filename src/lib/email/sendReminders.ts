@@ -43,7 +43,8 @@ export async function sendVerificationReminder(
     firstName: string;
     email: string;
   },
-  finalReminder = false
+  finalReminder = false,
+  timeRemaining?: string
 ) {
   const token = crypto.randomUUID() + crypto.randomUUID();
 
@@ -59,7 +60,8 @@ export async function sendVerificationReminder(
     const email = buildVerificationReminderEmail(
       user.firstName,
       `${APP_URL}/verify-email?token=${encodeURIComponent(token)}`,
-      finalReminder
+      finalReminder,
+      timeRemaining
     );
 
     await sendOrThrow({
@@ -83,12 +85,14 @@ export async function sendPredictionReminder(
     firstName: string;
     email: string;
   },
-  finalReminder = false
+  finalReminder = false,
+  timeRemaining?: string
 ) {
   const email = buildPredictionReminderEmail(
     user.firstName,
     APP_URL,
-    finalReminder
+    finalReminder,
+    timeRemaining
   );
 
   await sendOrThrow({

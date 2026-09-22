@@ -2,16 +2,16 @@
   "buildCommand": "npx prisma generate && npx prisma migrate deploy && next build",
   "crons": [
     {
-      "path": "/api/cron/reminders",
-      "schedule": "0 9 * * 6"
+      "path": "/cron/reminders",
+      "schedule": "10 20 * * *"
     },
     {
-      "path": "/api/cron/reminders/final",
-      "schedule": "10 18 * * *"
+      "path": "/cron/reminders/final",
+      "schedule": "10 19 * * *"
     },
     {
       "path": "/api/cron/prediction-confirmations",
-      "schedule": "* * * * *"
+      "schedule": "10 20 * * *"
     }
   ]
 }

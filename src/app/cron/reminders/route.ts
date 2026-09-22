@@ -1,23 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-function nearestSaturdayOneMonthBefore(firstKickoff: Date) {
-  const year = firstKickoff.getUTCFullYear();
-  const month = firstKickoff.getUTCMonth() - 1;
-  const day = firstKickoff.getUTCDate();
-  const lastDayOfTargetMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-  const oneMonthBefore = new Date(
-    Date.UTC(year, month, Math.min(day, lastDayOfTargetMonth))
-  );
-  const dayOfWeek = oneMonthBefore.getUTCDay();
-  const daysBack = (dayOfWeek + 1) % 7;
-  const daysForward = (6 - dayOfWeek + 7) % 7;
-  const offset = daysBack <= daysForward ? -daysBack : daysForward;
-
-  oneMonthBefore.setUTCDate(oneMonthBefore.getUTCDate() + offset);
-  return oneMonthBefore;
-}
-
 export async function GET(
   request: Request
 ) {
@@ -69,13 +52,13 @@ export async function GET(
 
     const tournament = await prisma.tournament.findFirst({
       where: {
-        status: { in: ["OPEN", "LOCKED"] },
-        firstKickoff: { gt: now },
+        status: "OPEN",
+        predictionLockAt: { gt: now },
       },
-      orderBy: { firstKickoff: "asc" },
+      orderBy: { predictionLockAt: "asc" },
     });
 
-    if (!tournament || !tournament.firstKickoff) {
+    if (!tournament || !tournament.predictionLockAt) {
       return NextResponse.json({
         success: true,
         skipped: true,
@@ -83,15 +66,29 @@ export async function GET(
       });
     }
 
-    const reminderStart = nearestSaturdayOneMonthBefore(tournament.firstKickoff);
+    const reminderAt = new Date(
+      tournament.predictionLockAt.getTime() - 7 * 24 * 60 * 60 * 1000
+    );
 
-    if (now < reminderStart || now >= tournament.firstKickoff) {
+    if (now < reminderAt || now >= tournament.predictionLockAt) {
       return NextResponse.json({
         success: true,
         skipped: true,
-        reason: "Outside the tournament reminder window",
-        reminderStart: reminderStart.toISOString(),
-        firstKickoff: tournament.firstKickoff.toISOString(),
+        reason: "Not the one-week lockdown reminder window",
+        reminderAt: reminderAt.toISOString(),
+        predictionLockAt: tournament.predictionLockAt.toISOString(),
+      });
+    }
+
+    const alreadyRun = await prisma.systemSetting.findUnique({
+      where: { key: "lastOneWeekPredictionReminderRun" },
+    });
+    const runKey = String(tournament.id);
+    if (alreadyRun?.value === runKey) {
+      return NextResponse.json({
+        success: true,
+        skipped: true,
+        reason: "One-week reminder already sent for this tournament",
       });
     }
 
@@ -101,8 +98,7 @@ export async function GET(
     let predictionFailed = 0;
 
     const {
-      getUsersNeedingPredictionReminder,
-      getUsersNeedingVerificationReminder,
+      getUsersWithOutstandingPredictions,
     } = await import(
       "@/lib/reminders/reminderService"
     );
@@ -114,8 +110,10 @@ export async function GET(
       "@/lib/email/sendReminders"
     );
 
-    const verificationUsers =
-      await getUsersNeedingVerificationReminder();
+    const verificationUsers = await prisma.user.findMany({
+      where: { emailVerified: false, deletedAt: null },
+      select: { id: true, firstName: true, email: true },
+    });
 
     for (const user of verificationUsers) {
       try {
@@ -125,7 +123,9 @@ export async function GET(
             firstName:
               user.firstName,
             email: user.email,
-          }
+          },
+          false,
+          "One week"
         );
         verificationSent++;
       } catch (error) {
@@ -138,7 +138,7 @@ export async function GET(
     }
 
     const predictionUsers =
-      await getUsersNeedingPredictionReminder();
+      await getUsersWithOutstandingPredictions(tournament.id);
 
     for (const user of predictionUsers) {
       try {
@@ -148,7 +148,9 @@ export async function GET(
             firstName:
               user.firstName,
             email: user.email,
-          }
+          },
+          false,
+          "One week"
         );
         predictionSent++;
       } catch (error) {
@@ -173,14 +175,20 @@ export async function GET(
       },
     });
 
+    await prisma.systemSetting.upsert({
+      where: { key: "lastOneWeekPredictionReminderRun" },
+      update: { value: runKey },
+      create: { key: "lastOneWeekPredictionReminderRun", value: runKey },
+    });
+
     return NextResponse.json({
       success: true,
       verificationSent,
       verificationFailed,
       predictionSent,
       predictionFailed,
-      reminderStart: reminderStart.toISOString(),
-      firstKickoff: tournament.firstKickoff.toISOString(),
+      reminderAt: reminderAt.toISOString(),
+      predictionLockAt: tournament.predictionLockAt.toISOString(),
     });
   } catch (error) {
     console.error(
