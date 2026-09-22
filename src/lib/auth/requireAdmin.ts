@@ -21,7 +21,7 @@ export async function requireAdmin(request: NextRequest) {
       include: { user: true },
     });
 
-    if (!session || session.expiresAt < new Date()) {
+    if (!session || session.expiresAt < new Date() || session.user.deletedAt) {
       return {
         authorized: false,
         response: NextResponse.json(

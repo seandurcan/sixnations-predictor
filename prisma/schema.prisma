@@ -44,17 +44,17 @@ model User {
   lastPredictionReminderAt   DateTime?
   announcementOptOutAt       DateTime?
 
-  createdAt          DateTime               @default(now())
-  updatedAt          DateTime               @updatedAt
-  deletedAt          DateTime?
-  snapshots          LeaderboardSnapshot[]
-  passwordResets     PasswordReset[]
-  payments           Payment[]
-  predictions        Prediction[]
-  submissions        PredictionSubmission[]
-  competitionEntries CompetitionEntry[]
-  sessions           Session[]
-  emailVerifications EmailVerification[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  deletedAt             DateTime?
+  snapshots             LeaderboardSnapshot[]
+  passwordResets        PasswordReset[]
+  payments              Payment[]
+  predictions           Prediction[]
+  submissions           PredictionSubmission[]
+  competitionEntries    CompetitionEntry[]
+  sessions              Session[]
+  emailVerifications    EmailVerification[]
   emailPreferenceTokens EmailPreferenceToken[]
 
   @@index([email])
@@ -315,6 +315,20 @@ model SystemSetting {
   updatedAt DateTime @updatedAt
 }
 
+model AdminUserActionAudit {
+  id              Int      @id @default(autoincrement())
+  adminUserId     Int
+  targetUserId    Int
+  action          String
+  status          String
+  targetEmailHash String
+  detail          String?
+  createdAt       DateTime @default(now())
+
+  @@index([targetUserId, createdAt])
+  @@index([adminUserId, createdAt])
+}
+
 model AnnouncementCampaign {
   id                Int                    @id @default(autoincrement())
   subject           String
@@ -345,9 +359,9 @@ model AnnouncementDelivery {
   recipientEmail    String
   deliveryType      AnnouncementDeliveryType
   status            AnnouncementDeliveryStatus
-  dedupeKey         String?                     @unique
+  dedupeKey         String?                    @unique
   unsubscribeToken  String?
-  attemptCount      Int                         @default(0)
+  attemptCount      Int                        @default(0)
   lastAttemptAt     DateTime?
   providerMessageId String?
   errorMessage      String?

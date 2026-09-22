@@ -25,7 +25,10 @@ export async function getCurrentSession() {
       },
     });
 
-  if (!session) {
+  if (!session || session.user.deletedAt) {
+    if (session) {
+      await prisma.session.delete({ where: { id: session.id } });
+    }
     return null;
   }
 

@@ -42,6 +42,14 @@ type Filters = {
   announcements: "ALL" | "SUBSCRIBED" | "OPTED_OUT";
 };
 
+type SupportAction = "RESEND_VERIFICATION" | "SEND_PASSWORD_RESET" | "DELETE_ACCOUNT";
+
+type ActionResponse = {
+  success: boolean;
+  message?: string;
+  error?: string;
+};
+
 const EMPTY_FILTERS: Filters = {
   q: "",
   verification: "ALL",
@@ -94,6 +102,11 @@ export default function AdminUsersPage() {
   const [data, setData] = useState<DirectoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
+  const [pendingAction, setPendingAction] = useState<SupportAction | null>(null);
+  const [confirmationEmail, setConfirmationEmail] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -136,6 +149,61 @@ export default function AdminUsersPage() {
     void loadUsers(EMPTY_FILTERS, 1);
   }
 
+  function closeSupportPanel() {
+    if (actionLoading) return;
+    setSelectedUser(null);
+    setPendingAction(null);
+    setConfirmationEmail("");
+  }
+
+  function chooseAction(action: SupportAction) {
+    setPendingAction(action);
+    setConfirmationEmail("");
+    setError("");
+    setNotice("");
+  }
+
+  async function performSupportAction() {
+    if (!selectedUser || !pendingAction) return;
+
+    setActionLoading(true);
+    setError("");
+    setNotice("");
+    try {
+      const deleting = pendingAction === "DELETE_ACCOUNT";
+      const response = await fetch(
+        deleting
+          ? `/api/admin/users/${selectedUser.id}`
+          : `/api/admin/users/${selectedUser.id}/actions`,
+        {
+          method: deleting ? "DELETE" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            deleting
+              ? { confirmationEmail }
+              : { action: pendingAction }
+          ),
+        }
+      );
+      const result = await response.json() as ActionResponse;
+      if (response.status === 401) { window.location.href = "/login"; return; }
+      if (response.status === 403) { window.location.href = "/dashboard"; return; }
+      if (!response.ok) throw new Error(result.error ?? "The support action could not be completed.");
+
+      setNotice(result.message ?? "The support action was completed.");
+      setSelectedUser(null);
+      setPendingAction(null);
+      setConfirmationEmail("");
+      if (deleting) {
+        await loadUsers(appliedFilters, data?.pagination.page ?? 1);
+      }
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "The support action could not be completed.");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   const competitionTitle = data?.currentCompetition
     ? `${data.currentCompetition.year} ${data.currentCompetition.name}`
     : "No current competition";
@@ -145,7 +213,7 @@ export default function AdminUsersPage() {
       <PageContainer>
         <PageHeader
           title="User Manager"
-          subtitle="Read-only account and current competition overview"
+          subtitle="Account support and current competition overview"
         />
 
         <div className="mb-6 flex flex-wrap gap-3">
@@ -195,7 +263,8 @@ export default function AdminUsersPage() {
             <p>{data ? `${data.pagination.total} matching account${data.pagination.total === 1 ? "" : "s"}` : "Loading accounts..."}</p>
           </div>
 
-          {error ? <p className="rounded-lg border border-red-300 bg-red-50 p-4 font-semibold text-red-800">{error}</p> : null}
+          {notice ? <p className="mb-4 rounded-lg border border-lime-300 bg-lime-50 p-4 font-semibold text-slate-900">{notice}</p> : null}
+          {error ? <p className="mb-4 rounded-lg border border-red-300 bg-red-50 p-4 font-semibold text-red-800">{error}</p> : null}
           {loading && !data ? <p>Loading user directory...</p> : null}
           {!loading && data?.users.length === 0 ? <p>No accounts match the selected filters.</p> : null}
 
@@ -213,6 +282,7 @@ export default function AdminUsersPage() {
                       <th className="px-3 py-2">Current Entry</th>
                       <th className="px-3 py-2">Announcements</th>
                       <th className="px-3 py-2">Registered</th>
+                      <th className="px-3 py-2">Support</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -229,6 +299,20 @@ export default function AdminUsersPage() {
                         </td>
                         <td className="px-3 py-3"><StatusLabel active={!user.announcementOptOutAt} warning={Boolean(user.announcementOptOutAt)}>{user.announcementOptOutAt ? "Opted out" : "Subscribed"}</StatusLabel></td>
                         <td className="px-3 py-3">{formatDate(user.createdAt)}</td>
+                        <td className="px-3 py-3">
+                          <Button
+                            variant="secondary"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setPendingAction(null);
+                              setConfirmationEmail("");
+                              setError("");
+                              setNotice("");
+                            }}
+                          >
+                            Account Support
+                          </Button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -246,8 +330,99 @@ export default function AdminUsersPage() {
           ) : null}
         </Card>
       </PageContainer>
+
+      {selectedUser ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="presentation">
+          <section
+            aria-labelledby="account-support-title"
+            aria-modal="true"
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-2xl"
+            role="dialog"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 id="account-support-title" className="text-2xl font-bold">Account Support</h2>
+                <p className="mt-1 font-semibold">{selectedUser.firstName} {selectedUser.lastName}</p>
+                <p className="break-all text-sm text-[var(--brand-muted)]">{selectedUser.email}</p>
+              </div>
+              <Button variant="secondary" disabled={actionLoading} onClick={closeSupportPanel}>Close</Button>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <Button
+                variant="secondary"
+                disabled={selectedUser.emailVerified || actionLoading}
+                onClick={() => chooseAction("RESEND_VERIFICATION")}
+              >
+                {selectedUser.emailVerified ? "Already Verified" : "Resend Verification"}
+              </Button>
+              <Button variant="secondary" disabled={actionLoading} onClick={() => chooseAction("SEND_PASSWORD_RESET")}>
+                Send Password Reset
+              </Button>
+              <Button
+                variant="secondary"
+                className="border-red-300 text-red-700 hover:bg-red-50"
+                disabled={selectedUser.role === "ADMIN" || actionLoading}
+                onClick={() => chooseAction("DELETE_ACCOUNT")}
+              >
+                {selectedUser.role === "ADMIN" ? "Admin Protected" : "Delete Account"}
+              </Button>
+            </div>
+
+            {error ? <p className="mt-4 rounded-lg border border-red-300 bg-red-50 p-4 font-semibold text-red-800">{error}</p> : null}
+
+            {pendingAction ? (
+              <div className={`mt-6 rounded-lg border p-4 ${pendingAction === "DELETE_ACCOUNT" ? "border-red-300 bg-red-50" : "border-amber-300 bg-amber-50"}`}>
+                <h3 className="font-bold">{supportActionTitle(pendingAction)}</h3>
+                <p className="mt-2 text-sm">{supportActionDescription(pendingAction)}</p>
+                {pendingAction === "DELETE_ACCOUNT" ? (
+                  <label className="mt-4 block text-sm font-semibold">
+                    Enter the account email address to confirm
+                    <Input
+                      autoComplete="off"
+                      className="mt-1"
+                      value={confirmationEmail}
+                      onChange={(event) => setConfirmationEmail(event.target.value)}
+                    />
+                  </label>
+                ) : null}
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Button
+                    className={pendingAction === "DELETE_ACCOUNT" ? "bg-red-700 hover:bg-red-800 focus:ring-red-700" : ""}
+                    disabled={actionLoading || (pendingAction === "DELETE_ACCOUNT" && confirmationEmail.trim().toLowerCase() !== selectedUser.email.toLowerCase())}
+                    onClick={() => void performSupportAction()}
+                  >
+                    {actionLoading ? "Working..." : supportActionConfirmLabel(pendingAction)}
+                  </Button>
+                  <Button variant="secondary" disabled={actionLoading} onClick={() => { setPendingAction(null); setConfirmationEmail(""); }}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </section>
+        </div>
+      ) : null}
     </main>
   );
+}
+
+function supportActionTitle(action: SupportAction) {
+  if (action === "RESEND_VERIFICATION") return "Confirm verification email";
+  if (action === "SEND_PASSWORD_RESET") return "Confirm password-reset email";
+  return "Confirm account deletion";
+}
+
+function supportActionDescription(action: SupportAction) {
+  if (action === "RESEND_VERIFICATION") return "A new one-hour verification link will be emailed to this user.";
+  if (action === "SEND_PASSWORD_RESET") return "A secure one-hour password-reset link will be emailed to this user. Administrators cannot view or set the password.";
+  return "This is irreversible. Login access and identifying details will be removed. Existing competition history will remain anonymously as Former Participant.";
+}
+
+function supportActionConfirmLabel(action: SupportAction) {
+  if (action === "RESEND_VERIFICATION") return "Send Verification Email";
+  if (action === "SEND_PASSWORD_RESET") return "Send Password Reset";
+  return "Delete Account";
 }
 
 function FilterSelect({ label, value, options, onChange }: {

@@ -259,7 +259,9 @@ export default function AdministrationManualPage() {
                 <Note title="User Manager">
                   Search and filter active accounts, verification,
                   current competition entry and announcement status.
-                  The current version is read-only.
+                  Open Account Support to resend verification, send a
+                  secure password-reset link or delete a non-admin
+                  account after explicit confirmation.
                 </Note>
 
                 <Note title="Audit History">
@@ -314,9 +316,11 @@ export default function AdministrationManualPage() {
 
               <p className="mt-4 text-[var(--brand-muted)]">
                 Open <strong>User Manager</strong> for the detailed
-                account list. It displays only operational account
-                information and does not expose passwords or provide
-                account-changing actions.
+                account list. It never exposes passwords or permits an
+                administrator to set one. Account deletion removes
+                identifying and login details while retaining anonymous
+                competition history, and administrator accounts are
+                protected from deletion.
               </p>
             </Card>
           </section>

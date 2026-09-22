@@ -64,7 +64,7 @@ export async function POST(
         },
       });
 
-    if (!user) {
+    if (!user || user.deletedAt) {
       return NextResponse.json(
         {
           success: false,
