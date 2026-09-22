@@ -28,6 +28,17 @@ type TestUser = {
   email: string;
   emailVerified: boolean;
 };
+type ConfirmationData = {
+  tournament: { id: number; year: number; name: string; predictionLockAt: string | null } | null;
+  deliveries: Array<{
+    id: number;
+    user: { id: number; firstName: string; lastName: string; email: string; deletedAt: string | null };
+    status: string;
+    attemptCount: number;
+    sentAt: string | null;
+    errorMessage: string | null;
+  }>;
+};
 
 export default function CommunicationsPage() {
   const [message, setMessage] = useState("");
@@ -37,6 +48,7 @@ export default function CommunicationsPage() {
   const [selectedUserId, setSelectedUserId] = useState("");
   const [testingWindowActive, setTestingWindowActive] = useState(false);
   const [testingWindowExpiresAt, setTestingWindowExpiresAt] = useState<string | null>(null);
+  const [confirmationData, setConfirmationData] = useState<ConfirmationData>({ tournament: null, deliveries: [] });
 
   const [
     automaticRemindersEnabled,
@@ -79,7 +91,7 @@ export default function CommunicationsPage() {
 
   async function loadDashboardData() {
     try {
-      const [countsResponse, settingsResponse, testingResponse] = await Promise.all([
+      const [countsResponse, settingsResponse, testingResponse, confirmationsResponse] = await Promise.all([
         fetch("/api/admin/reminders/counts", {
           cache: "no-store",
           credentials: "include",
@@ -92,11 +104,13 @@ export default function CommunicationsPage() {
           cache: "no-store",
           credentials: "include",
         }),
+        fetch("/api/admin/prediction-confirmations", { cache: "no-store", credentials: "include" }),
       ]);
 
       const counts = (await countsResponse.json()) as CountsResponse;
       const settings = (await settingsResponse.json()) as SettingsResponse;
       const testing = await testingResponse.json();
+      const confirmations = await confirmationsResponse.json();
 
       if (!countsResponse.ok || !counts.success) {
         throw new Error(counts.error || "Unable to load reminder counts.");
@@ -107,6 +121,7 @@ export default function CommunicationsPage() {
       if (!testingResponse.ok || !testing.success) {
         throw new Error(testing.error || "Unable to load reminder testing controls.");
       }
+      if (!confirmationsResponse.ok || !confirmations.success) throw new Error(confirmations.error || "Unable to load prediction confirmations.");
 
       setVerificationRemindersDue(counts.verificationRemindersDue ?? 0);
       setPredictionRemindersDue(counts.predictionRemindersDue ?? 0);
@@ -114,12 +129,36 @@ export default function CommunicationsPage() {
       setTestUsers(testing.users ?? []);
       setTestingWindowActive(Boolean(testing.active));
       setTestingWindowExpiresAt(testing.expiresAt ?? null);
+      setConfirmationData({ tournament: confirmations.tournament ?? null, deliveries: confirmations.deliveries ?? [] });
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
           : "Unable to load communications data."
       );
+    }
+  }
+
+  async function resendPredictionConfirmation(userId: number) {
+    if (!confirmationData.tournament) return;
+    setLoading(true);
+    setMessage("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/prediction-confirmations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ userId, tournamentId: confirmationData.tournament.id }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Unable to resend the prediction confirmation.");
+      setMessage(result.message);
+      await loadDashboardData();
+    } catch (resendError) {
+      setError(resendError instanceof Error ? resendError.message : "Unable to resend the prediction confirmation.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -508,6 +547,28 @@ export default function CommunicationsPage() {
             </div>
           </Card>
         </div>
+        <Card title="Locked Prediction Confirmations" className="mt-6">
+          {confirmationData.tournament ? (
+            <div className="space-y-4">
+              <p className="text-sm text-slate-600">{confirmationData.tournament.name} {confirmationData.tournament.year}. Emails are sent automatically when predictions lock and recorded here.</p>
+              {confirmationData.deliveries.length ? (
+                <div className="space-y-3">
+                  {confirmationData.deliveries.map((delivery) => (
+                    <div key={delivery.id} className="flex flex-col justify-between gap-3 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center">
+                      <div>
+                        <p className="font-semibold">{delivery.user.firstName} {delivery.user.lastName}</p>
+                        <p className="break-all text-sm text-slate-600">{delivery.user.email}</p>
+                        <p className="text-sm">{delivery.status} · {delivery.attemptCount} attempt{delivery.attemptCount === 1 ? "" : "s"}{delivery.sentAt ? ` · sent ${new Date(delivery.sentAt).toLocaleString("en-IE")}` : ""}</p>
+                        {delivery.errorMessage ? <p className="text-sm text-red-700">{delivery.errorMessage}</p> : null}
+                      </div>
+                      {!delivery.user.deletedAt ? <Button variant="secondary" disabled={loading} onClick={() => void resendPredictionConfirmation(delivery.user.id)}>Resend</Button> : null}
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="text-sm text-slate-600">No prediction confirmations have been processed for this competition yet.</p>}
+            </div>
+          ) : <p className="text-sm text-slate-600">No current competition is available.</p>}
+        </Card>
         <AnnouncementDraftManager />
       </PageContainer>
     </main>

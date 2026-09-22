@@ -5,7 +5,7 @@ export async function GET() {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; color: #0b1f34; padding: 20px;">
         <h2>Perfect XV Prediction Deadline Reminder</h2>
-        <p>Don't forget to submit or update all 15 score predictions before the first match of the tournament kicks off. After that, all predictions are locked.</p>
+        <p>Don't forget to submit or update all 15 score predictions before the deadline, one minute before the tournament's first kick-off. After that, all predictions are locked.</p>
         <p style="margin: 20px 0;">
           <a href="#" style="background-color: #00857c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Make Predictions</a>
         </p>

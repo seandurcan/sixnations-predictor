@@ -43,12 +43,12 @@ describe("Duplicate Account Review page", () => {
     Object.defineProperty(window, "location", { value: originalLocation, writable: true });
   });
 
-  it("shows both accounts, evidence and the no-merge safeguard", async () => {
+  it("shows both accounts, evidence and the controlled-merge safeguard", async () => {
     render(<DuplicateAccountsPage />);
     expect(await screen.findByText("Caroline Lister")).toBeInTheDocument();
     expect(screen.getByText("Caroline Litster")).toBeInTheDocument();
     expect(screen.getByText("Same mobile")).toBeInTheDocument();
-    expect(screen.getByText(/cannot merge, delete or alter accounts/i)).toBeInTheDocument();
+    expect(screen.getByText(/requires a preview, a surviving account, a conflict rule and typed email confirmation/i)).toBeInTheDocument();
   });
 
   it("requires explicit confirmation before saving a classification", async () => {

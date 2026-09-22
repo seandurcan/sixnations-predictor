@@ -267,8 +267,11 @@ export default function AdministrationManualPage() {
 
                 <Note title="Duplicate Account Review">
                   Compare possible duplicate accounts side by side and
-                  record whether they belong to the same person. This
-                  review does not merge or alter either account.
+                  record whether they belong to the same person. Pairs
+                  classified as the same person can then be merged only
+                  after a dry-run preview, survivor selection, conflict
+                  rule and exact-email confirmation. Administrator
+                  accounts cannot be merged.
                 </Note>
 
                 <Note title="Audit History">
@@ -338,8 +341,11 @@ export default function AdministrationManualPage() {
                 Open <strong>Duplicate Account Review</strong> to inspect
                 matches suggested by email address, mobile number or
                 name. Review decisions are recorded in Audit History.
-                The facility cannot merge, delete or move any account
-                records.
+                A controlled merge transfers compatible competition
+                records, payments and predictions to the selected
+                survivor. Conflicting records follow the administrator&apos;s
+                confirmed choice. The redundant login is revoked and
+                anonymised, and the merge is recorded in Audit History.
               </p>
             </Card>
           </section>
@@ -500,6 +506,14 @@ export default function AdministrationManualPage() {
                   The page also displays the number of verification
                   and prediction reminders currently due and provides
                   the automatic-reminder control.
+                </p>
+                <p>
+                  <strong>Locked Prediction Confirmations</strong> records
+                  the final prediction email sent to each eligible entrant
+                  when the competition-wide deadline passes. Each message
+                  lists every fixture and the score held at lock time. A
+                  failed or missing delivery can be resent individually;
+                  every administrator resend is audited.
                 </p>
               </div>
             </Card>

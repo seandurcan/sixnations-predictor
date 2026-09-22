@@ -116,7 +116,7 @@ export default function UserManualPage() {
               Perfect XV → pay the &euro;20 competition entry fee
               when you are ready to make predictions → predict
               all 15 matches → check or edit any prediction before
-              the first match of the tournament kicks off → follow
+              one minute before the first match kicks off → receive your locked-prediction email → follow
               live scores, your points and your rank as results arrive.
             </p>
           </div>
@@ -517,8 +517,8 @@ export default function UserManualPage() {
 
                 <Instruction number={3} title="Change the scores">
                   Enter the revised prediction while predictions are still
-                  open. All 15 predictions remain editable until the first
-                  match of the tournament kicks off.
+                  open. All 15 predictions remain editable until one minute
+                  before the first match of the tournament kicks off.
                 </Instruction>
 
                 <Instruction number={4} title="Update Prediction">
@@ -534,8 +534,8 @@ export default function UserManualPage() {
             <Card title="11. Prediction Status and Locking">
               <p className="text-[var(--brand-muted)]">
                 Perfect XV uses one tournament-wide prediction deadline.
-                <strong> All 15 predictions lock at the scheduled kick-off
-                time of the first match of the tournament.</strong> After
+                <strong> All 15 predictions lock one minute before the
+                scheduled kick-off time of the first match.</strong> After
                 that moment, no prediction can be added or changed, including
                 predictions for matches being played days or weeks later.
               </p>
@@ -544,7 +544,7 @@ export default function UserManualPage() {
                 <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                   <strong>OPEN</strong>
                   <p className="mt-1 text-sm">
-                    Before the first tournament match kicks off, any of your
+                    Before the one-minute deadline, any of your
                     15 predictions can be entered or edited.
                   </p>
                 </div>
@@ -552,7 +552,7 @@ export default function UserManualPage() {
                 <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
                   <strong>LOCKED</strong>
                   <p className="mt-1 text-sm">
-                    At first-match kickoff, all 15 predictions lock together.
+                    One minute before first-match kickoff, all 15 predictions lock together.
                     No further changes are accepted.
                   </p>
                 </div>
@@ -565,6 +565,13 @@ export default function UserManualPage() {
                   </p>
                 </div>
               </div>
+
+              <p className="mt-4 text-[var(--brand-muted)]">
+                When the deadline passes, Perfect XV automatically emails
+                eligible entrants a record of every fixture and the prediction
+                held for it. Keep this email as confirmation of your locked
+                predictions; it cannot be used to change them.
+              </p>
 
               <div className="mt-4 rounded-lg bg-[var(--brand-soft-lime)] p-4">
                 <strong>Important:</strong> do not wait for the kickoff of

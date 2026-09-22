@@ -18,15 +18,34 @@ import {
   useState,
 } from "react";
 
+type PredictionUser = { firstName?: string; paymentStatus?: string };
+type Team = { name?: string; shortCode?: string };
+type TournamentTiming = { firstKickoff?: string | null; predictionLockAt?: string | null };
+type Match = {
+  id: number;
+  completed: boolean;
+  kickoffTime: string;
+  round?: number;
+  homeTeam: Team;
+  awayTeam: Team;
+  tournament?: TournamentTiming;
+};
+type SavedPrediction = {
+  id: number;
+  matchId: number;
+  predictedHomeScore: number;
+  predictedAwayScore: number;
+  match?: Match;
+};
+
 export default function PredictionsPage() {
-  const [user, setUser] = useState<any>(null);
-  const [matches, setMatches] = useState<any[]>([]);
-  const [savedPredictions, setSavedPredictions] = useState<any[]>([]);
+  const [user, setUser] = useState<PredictionUser | null>(null);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [savedPredictions, setSavedPredictions] = useState<SavedPrediction[]>([]);
   const [currentMatchId, setCurrentMatchId] = useState<number | null>(null);
   const [homeScore, setHomeScore] = useState("");
   const [awayScore, setAwayScore] = useState("");
   const [editing, setEditing] = useState(false);
-  const [editingPredictionId, setEditingPredictionId] = useState<number | null>(null);
   const [lockMessage, setLockMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLocked, setIsLocked] = useState(false);
@@ -71,25 +90,25 @@ export default function PredictionsPage() {
       }
 
       const matchesResponse = await fetch("/api/matches");
-      const matchesData = await matchesResponse.json();
+      const matchesData = await matchesResponse.json() as Match[];
 
       const sortedMatches = [...matchesData].sort(
-        (a: any, b: any) =>
+        (a, b) =>
           new Date(a.kickoffTime).getTime() - new Date(b.kickoffTime).getTime()
       );
 
       const predictionsResponse = await fetch("/api/predictions/list");
-      const predictionsData = await predictionsResponse.json();
+      const predictionsData = await predictionsResponse.json() as SavedPrediction[];
 
       setMatches(sortedMatches);
       setSavedPredictions(predictionsData);
 
       const predictedMatchIds = predictionsData.map(
-        (prediction: any) => prediction.matchId
+        (prediction) => prediction.matchId
       );
 
       const firstUnpredictedMatch = sortedMatches.find(
-        (match: any) =>
+        (match) =>
           !predictedMatchIds.includes(match.id) && !match.completed
       );
 
@@ -112,7 +131,7 @@ export default function PredictionsPage() {
 
   async function refreshPredictions() {
     const response = await fetch("/api/predictions/list");
-    const data = await response.json();
+    const data = await response.json() as SavedPrediction[];
     setSavedPredictions(data);
     return data;
   }
@@ -143,9 +162,9 @@ export default function PredictionsPage() {
     }
   }
 
-  function goToFirstUnpredictedMatch(predictions: any[]) {
+  function goToFirstUnpredictedMatch(predictions: SavedPrediction[]) {
     const predictedMatchIds = predictions.map(
-      (prediction: any) => prediction.matchId
+      (prediction) => prediction.matchId
     );
 
     const nextMatch = matches.find(
@@ -160,7 +179,6 @@ export default function PredictionsPage() {
 
     setCurrentMatchId(null);
     setEditing(false);
-    setEditingPredictionId(null);
     setHomeScore("");
     setAwayScore("");
     setSuccessMessage("");
@@ -172,13 +190,13 @@ export default function PredictionsPage() {
     );
   }
 
-  function isMatchLocked(match: any) {
+  function isMatchLocked(match: Match) {
     if (match.completed) {
       return true;
     }
 
     const tournamentKickoff =
-      match.tournament?.firstKickoff;
+      match.tournament?.predictionLockAt ?? match.tournament?.firstKickoff;
 
     if (!tournamentKickoff) {
       return false;
@@ -190,7 +208,7 @@ export default function PredictionsPage() {
     );
   }
 
-  function getMatchStatus(match: any) {
+  function getMatchStatus(match: Match) {
     if (match.completed) {
       return "COMPLETE";
     }
@@ -213,18 +231,16 @@ export default function PredictionsPage() {
 
     if (existingPrediction) {
       setEditing(true);
-      setEditingPredictionId(existingPrediction.id);
       setHomeScore(existingPrediction.predictedHomeScore.toString());
       setAwayScore(existingPrediction.predictedAwayScore.toString());
     } else {
       setEditing(false);
-      setEditingPredictionId(null);
       setHomeScore("");
       setAwayScore("");
     }
   }
 
-  function editPrediction(prediction: any) {
+  function editPrediction(prediction: SavedPrediction) {
     selectMatch(prediction.matchId);
   }
 
@@ -261,7 +277,7 @@ export default function PredictionsPage() {
         if (response.status === 403) {
           setIsLocked(true);
           setLockMessage(
-            "The tournament has kicked off. All predictions are now locked and can no longer be edited."
+            "The prediction deadline has passed. All predictions are now locked and can no longer be edited."
           );
         } else {
           setLockMessage(
@@ -282,7 +298,6 @@ export default function PredictionsPage() {
       setHomeScore("");
       setAwayScore("");
       setEditing(false);
-      setEditingPredictionId(null);
 
       goToFirstUnpredictedMatch(refreshedPredictions);
     } catch (error) {
@@ -386,8 +401,8 @@ export default function PredictionsPage() {
   const tournamentFirstKickoff =
     matches.find(
       (match) =>
-        match.tournament?.firstKickoff
-    )?.tournament?.firstKickoff ??
+        match.tournament?.predictionLockAt || match.tournament?.firstKickoff
+    )?.tournament?.predictionLockAt ?? matches.find((match) => match.tournament?.firstKickoff)?.tournament?.firstKickoff ??
     matches[0]?.kickoffTime;
 
   const tournamentPredictionsLocked =
@@ -467,7 +482,7 @@ export default function PredictionsPage() {
 
         <Card title="Quick Pick (Testing)" className="mb-6">
           <p className="mb-4 text-sm text-[var(--brand-muted)]">
-            Generate and save random scores for all tournament fixtures before the first match kicks off. Existing predictions will be replaced.
+            Generate and save random scores for all tournament fixtures before the one-minute prediction deadline. Existing predictions will be replaced.
           </p>
           <Button
             fullWidth
@@ -604,7 +619,7 @@ export default function PredictionsPage() {
 
                     {fixtureLocked && (
                       <Alert variant="warning" title="Predictions Locked">
-                        The tournament has kicked off. All predictions are locked and can no longer be edited.
+                        The prediction deadline has passed. All predictions are locked and can no longer be edited.
                       </Alert>
                     )}
 

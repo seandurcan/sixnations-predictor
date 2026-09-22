@@ -42,6 +42,7 @@ export async function GET() {
                   name: true,
                   year: true,
                   firstKickoff: true,
+                  predictionLockAt: true,
                 },
               },
             },

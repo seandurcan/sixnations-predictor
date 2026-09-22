@@ -15,7 +15,10 @@ vi.mock("@/lib/prisma", () => ({
     },
     prediction: {
       upsert: vi.fn(),
+      count: vi.fn(),
     },
+    tournament: { findUnique: vi.fn() },
+    user: { update: vi.fn() },
   },
 }));
 
@@ -29,16 +32,22 @@ import { requireUser } from "@/lib/auth";
 const mockUser = {
   id: 1,
   email: "sean@example.com",
+  paymentStatus: "COMPLETED",
+  predictionSubmittedAt: null,
 };
 
 const futureMatch = {
   id: 101,
+  tournamentId: 1,
   kickoffTime: "2099-01-29T14:15:00.000Z",
+  tournament: { firstKickoff: new Date("2099-01-29T14:15:00.000Z"), predictionLockAt: new Date("2099-01-29T14:14:00.000Z") },
 };
 
 const pastMatch = {
   id: 102,
+  tournamentId: 1,
   kickoffTime: "2020-01-29T14:15:00.000Z",
+  tournament: { firstKickoff: new Date("2020-01-29T14:15:00.000Z"), predictionLockAt: new Date("2020-01-29T14:14:00.000Z") },
 };
 
 const mockPrediction = {
@@ -62,6 +71,9 @@ function createPredictionRequest(body: any) {
 describe("POST /api/predictions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(prisma.tournament.findUnique).mockResolvedValue({ matches: [{ id: 101 }] } as never);
+    vi.mocked(prisma.prediction.count).mockResolvedValue(1);
+    vi.mocked(prisma.user.update).mockResolvedValue(mockUser as never);
   });
 
   afterEach(() => {
@@ -141,7 +153,7 @@ describe("POST /api/predictions", () => {
     expect(prisma.prediction.upsert).not.toHaveBeenCalled();
   });
 
-  it("returns 403 when match has already kicked off", async () => {
+  it("returns 403 when the one-minute prediction deadline has passed", async () => {
     vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
 
     vi.mocked(prisma.match.findUnique).mockResolvedValueOnce(
@@ -163,9 +175,23 @@ describe("POST /api/predictions", () => {
     expect(body).toEqual({
       success: false,
       error:
-        "Predictions are locked because the match has already kicked off",
+        "All predictions are locked because the prediction deadline has passed",
     });
 
+    expect(prisma.prediction.upsert).not.toHaveBeenCalled();
+  });
+
+  it("locks writes at predictionLockAt even while first kickoff is still in the future", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
+    vi.mocked(prisma.match.findUnique).mockResolvedValueOnce({
+      ...futureMatch,
+      tournament: {
+        firstKickoff: new Date(Date.now() + 30_000),
+        predictionLockAt: new Date(Date.now() - 30_000),
+      },
+    } as any);
+    const response = await POST(createPredictionRequest({ matchId: 101, homeScore: 24, awayScore: 18 }));
+    expect(response.status).toBe(403);
     expect(prisma.prediction.upsert).not.toHaveBeenCalled();
   });
 

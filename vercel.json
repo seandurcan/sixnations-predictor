@@ -8,6 +8,10 @@
     {
       "path": "/api/cron/reminders/final",
       "schedule": "10 18 * * *"
+    },
+    {
+      "path": "/api/cron/prediction-confirmations",
+      "schedule": "* * * * *"
     }
   ]
 }

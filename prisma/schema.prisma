@@ -44,18 +44,19 @@ model User {
   lastPredictionReminderAt   DateTime?
   announcementOptOutAt       DateTime?
 
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  deletedAt             DateTime?
-  snapshots             LeaderboardSnapshot[]
-  passwordResets        PasswordReset[]
-  payments              Payment[]
-  predictions           Prediction[]
-  submissions           PredictionSubmission[]
-  competitionEntries    CompetitionEntry[]
-  sessions              Session[]
-  emailVerifications    EmailVerification[]
-  emailPreferenceTokens EmailPreferenceToken[]
+  createdAt                        DateTime                         @default(now())
+  updatedAt                        DateTime                         @updatedAt
+  deletedAt                        DateTime?
+  snapshots                        LeaderboardSnapshot[]
+  passwordResets                   PasswordReset[]
+  payments                         Payment[]
+  predictions                      Prediction[]
+  submissions                      PredictionSubmission[]
+  competitionEntries               CompetitionEntry[]
+  sessions                         Session[]
+  emailVerifications               EmailVerification[]
+  emailPreferenceTokens            EmailPreferenceToken[]
+  predictionConfirmationDeliveries PredictionConfirmationDelivery[]
 
   @@index([email])
   @@index([paymentStatus])
@@ -94,22 +95,23 @@ model Team {
 }
 
 model Tournament {
-  id               Int                    @id @default(autoincrement())
-  year             Int                    @unique
-  name             String
-  status           TournamentStatus
-  firstKickoff     DateTime?
-  predictionLockAt DateTime?
-  entryFee         Decimal                @default(20) @db.Decimal(10, 2)
-  currency         String                 @default("EUR")
-  entriesOpenAt    DateTime?
-  entriesCloseAt   DateTime?
-  createdAt        DateTime               @default(now())
-  updatedAt        DateTime               @updatedAt
-  snapshots        LeaderboardSnapshot[]
-  matches          Match[]
-  submissions      PredictionSubmission[]
-  entries          CompetitionEntry[]
+  id                               Int                              @id @default(autoincrement())
+  year                             Int                              @unique
+  name                             String
+  status                           TournamentStatus
+  firstKickoff                     DateTime?
+  predictionLockAt                 DateTime?
+  entryFee                         Decimal                          @default(20) @db.Decimal(10, 2)
+  currency                         String                           @default("EUR")
+  entriesOpenAt                    DateTime?
+  entriesCloseAt                   DateTime?
+  createdAt                        DateTime                         @default(now())
+  updatedAt                        DateTime                         @updatedAt
+  snapshots                        LeaderboardSnapshot[]
+  matches                          Match[]
+  submissions                      PredictionSubmission[]
+  entries                          CompetitionEntry[]
+  predictionConfirmationDeliveries PredictionConfirmationDelivery[]
 }
 
 model CompetitionEntry {
@@ -341,6 +343,26 @@ model DuplicateAccountReview {
   @@unique([lowerUserId, higherUserId])
   @@index([decision, reviewedAt])
   @@index([reviewedById])
+}
+
+model PredictionConfirmationDelivery {
+  id                Int        @id @default(autoincrement())
+  userId            Int
+  tournamentId      Int
+  status            String     @default("PENDING")
+  attemptCount      Int        @default(0)
+  lastAttemptAt     DateTime?
+  sentAt            DateTime?
+  providerMessageId String?
+  errorMessage      String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament        Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tournamentId])
+  @@index([tournamentId, status])
+  @@index([status, lastAttemptAt])
 }
 
 model AnnouncementCampaign {

@@ -314,7 +314,7 @@ export default function HomePage() {
 
               <Card title="Predictions">
                 <p className="text-[var(--brand-muted)]">
-                  Submit and edit all 15 match predictions until the first match of the tournament kicks off.
+                  Submit and edit all 15 match predictions until one minute before the tournament&apos;s first match kicks off.
                 </p>
               </Card>
 
@@ -326,7 +326,7 @@ export default function HomePage() {
 
               <Card title="Prediction Lock">
                 <p className="text-[var(--brand-muted)]">
-                  All predictions lock when the first match of the tournament kicks off, and no further entries or changes can be made.
+                  All predictions lock one minute before the tournament&apos;s first match kicks off, and no further entries or changes can be made.
                 </p>
               </Card>
             </div>

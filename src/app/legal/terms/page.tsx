@@ -20,7 +20,7 @@ export default function TermsPage() {
 
           <Card title="2. Competition Rules & Eligibility">
             <p>
-              Participants must submit all predictions before the official kick-off of the tournament. Once the tournament has kicked off, no further entries may be submitted and all predictions are locked. Decisions made by administrators regarding scoring and leaderboards are final.
+              Participants must submit all predictions before the competition-wide deadline, one minute before the tournament&apos;s first kick-off. Once that deadline passes, no further entries may be submitted and all predictions are locked. Decisions made by administrators regarding scoring and leaderboards are final.
             </p>
           </Card>
 

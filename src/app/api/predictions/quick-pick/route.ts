@@ -26,20 +26,20 @@ export async function POST() {
     const tournament = await prisma.tournament.findFirst({
       where: {
         status: { in: ["OPEN", "LOCKED"] },
-        firstKickoff: { gt: now },
+        predictionLockAt: { gt: now },
       },
       orderBy: { firstKickoff: "asc" },
       include: { matches: { orderBy: { kickoffTime: "asc" } } },
     });
 
-    if (!tournament || !tournament.firstKickoff || tournament.matches.length === 0) {
+    if (!tournament || !tournament.firstKickoff || !tournament.predictionLockAt || tournament.matches.length === 0) {
       return NextResponse.json(
         { success: false, error: "No open tournament is available for Quick Pick." },
         { status: 409 }
       );
     }
 
-    if (tournament.firstKickoff <= now) {
+    if (tournament.predictionLockAt <= now) {
       return NextResponse.json(
         { success: false, error: "All tournament predictions are locked." },
         { status: 403 }

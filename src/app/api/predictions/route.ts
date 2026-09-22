@@ -38,6 +38,7 @@ export async function POST(
           tournament: {
             select: {
               firstKickoff: true,
+              predictionLockAt: true,
             },
           },
         },
@@ -55,7 +56,7 @@ export async function POST(
       );
     }
 
-    if (!match.tournament.firstKickoff) {
+    if (!match.tournament.firstKickoff || !match.tournament.predictionLockAt) {
       return NextResponse.json(
         { success: false, error: "This competition is not open for predictions." },
         { status: 409 }
@@ -66,14 +67,14 @@ export async function POST(
 
     if (
       new Date(
-        match.tournament.firstKickoff
+        match.tournament.predictionLockAt
       ) <= now
     ) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "All predictions are locked because the tournament has already kicked off",
+            "All predictions are locked because the prediction deadline has passed",
         },
         {
           status: 403,

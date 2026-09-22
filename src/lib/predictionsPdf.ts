@@ -19,6 +19,7 @@ export type PredictionPdfRow = {
       name: string;
       year: number;
       firstKickoff: Date | null;
+      predictionLockAt: Date | null;
     };
   };
 };
@@ -75,7 +76,7 @@ function formatSubmission(value: Date) {
 function remainingText(firstKickoff: Date, generatedAt: Date) {
   const remaining = firstKickoff.getTime() - generatedAt.getTime();
   if (remaining <= 0) {
-    return "Predictions are locked. Predictions cannot be changed after tournament kickoff.";
+    return "Predictions are locked. Predictions cannot be changed after the competition deadline.";
   }
 
   const totalMinutes = Math.floor(remaining / 60000);
@@ -89,7 +90,7 @@ function remainingText(firstKickoff: Date, generatedAt: Date) {
   parts.push(minutes + " minute" + (minutes === 1 ? "" : "s"));
 
   return "Time remaining to modify predictions: " + parts.join(" ") +
-    ". Predictions cannot be changed after tournament kickoff.";
+    ". Predictions cannot be changed after the competition deadline.";
 }
 
 export async function createPredictionsPdf(
@@ -240,7 +241,7 @@ export async function createPredictionsPdf(
       });
 
       y -= 28;
-      const firstKickoff = tournament.firstKickoff ?? rows[0].match.kickoffTime;
+      const firstKickoff = tournament.predictionLockAt ?? tournament.firstKickoff ?? rows[0].match.kickoffTime;
       pageFooters.set(page, remainingText(firstKickoff, generatedAt));
     };
 
@@ -253,7 +254,7 @@ export async function createPredictionsPdf(
       ];
 
       const tournamentKickoff =
-        row.match.tournament.firstKickoff ?? row.match.kickoffTime;
+        row.match.tournament.predictionLockAt ?? row.match.tournament.firstKickoff ?? row.match.kickoffTime;
       const kickoff =
         generatedAt >= tournamentKickoff && row.match.completed
           ? "Concluded"
@@ -296,7 +297,7 @@ export async function createPredictionsPdf(
   const pages = pdf.getPages();
   pages.forEach((page, index) => {
     const footer = pageFooters.get(page) ??
-      "Predictions cannot be changed after tournament kickoff.";
+      "Predictions cannot be changed after the competition deadline.";
     const footerLines = wrap(footer, 690, 8);
     footerLines.slice(0, 2).forEach((line, lineIndex) => {
       drawText(page, line, LEFT, 30 - lineIndex * 10, 8, false, MUTED);

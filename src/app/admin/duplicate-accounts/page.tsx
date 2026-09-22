@@ -43,6 +43,12 @@ type ResponseData = {
   pagination: { page: number; pageSize: number; total: number; totalPages: number };
   totals: { all: number; unreviewed: number; samePerson: number; notDuplicate: number };
 };
+type MergePreview = {
+  survivor: Account;
+  redundant: Account;
+  conflicts: { predictions: number; competitionEntries: number; leaderboardSnapshots: number; tournamentWins: number; predictionConfirmations: number };
+  transfers: { predictions: number; competitionEntries: number; payments: number; submissions: number; leaderboardSnapshots: number; tournamentWins: number; predictionConfirmations: number };
+};
 
 async function requestCandidates(filter: Decision, page: number, signal?: AbortSignal) {
   const response = await fetch(`/api/admin/duplicate-accounts?decision=${filter}&page=${page}`, { cache: "no-store", signal });
@@ -63,6 +69,11 @@ export default function DuplicateAccountsPage() {
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState<{ candidate: Candidate; decision: Exclude<Decision, "UNREVIEWED"> } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [mergeCandidate, setMergeCandidate] = useState<Candidate | null>(null);
+  const [survivorUserId, setSurvivorUserId] = useState<number | null>(null);
+  const [mergePreview, setMergePreview] = useState<MergePreview | null>(null);
+  const [conflictResolution, setConflictResolution] = useState<"KEEP_SURVIVOR" | "KEEP_REDUNDANT">("KEEP_SURVIVOR");
+  const [confirmationEmail, setConfirmationEmail] = useState("");
 
   async function load(filter: Decision, page = 1) {
     setLoading(true);
@@ -127,6 +138,60 @@ export default function DuplicateAccountsPage() {
     }
   }
 
+  async function previewMerge(candidate: Candidate, survivorId: number) {
+    setSaving(true);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/duplicate-accounts/merge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "preview", firstUserId: candidate.lowerUser.id, secondUserId: candidate.higherUser.id, survivorUserId: survivorId }),
+      });
+      const result = await response.json() as { success: boolean; preview?: MergePreview; error?: string };
+      if (!response.ok || !result.preview) throw new Error(result.error ?? "The merge preview could not be generated.");
+      setMergeCandidate(candidate);
+      setSurvivorUserId(survivorId);
+      setMergePreview(result.preview);
+      setConfirmationEmail("");
+      setConflictResolution("KEEP_SURVIVOR");
+    } catch (mergeError) {
+      setError(mergeError instanceof Error ? mergeError.message : "The merge preview could not be generated.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function confirmMerge() {
+    if (!mergeCandidate || !survivorUserId || !mergePreview) return;
+    setSaving(true);
+    setError("");
+    setNotice("");
+    try {
+      const response = await fetch("/api/admin/duplicate-accounts/merge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "merge",
+          firstUserId: mergeCandidate.lowerUser.id,
+          secondUserId: mergeCandidate.higherUser.id,
+          survivorUserId,
+          conflictResolution,
+          confirmationEmail,
+        }),
+      });
+      const result = await response.json() as { success: boolean; message?: string; error?: string };
+      if (!response.ok) throw new Error(result.error ?? "The accounts could not be merged.");
+      setNotice(result.message ?? "Accounts merged.");
+      setMergeCandidate(null);
+      setMergePreview(null);
+      await load(decisionFilter, 1);
+    } catch (mergeError) {
+      setError(mergeError instanceof Error ? mergeError.message : "The accounts could not be merged.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <main className="bg-white p-4 text-[var(--brand-navy)] sm:p-8">
       <PageContainer>
@@ -135,7 +200,7 @@ export default function DuplicateAccountsPage() {
           <Button variant="secondary" onClick={() => { window.location.href = "/admin/dashboard"; }}>Back to Admin Dashboard</Button>
           <Button variant="secondary" disabled={loading} onClick={() => void load(decisionFilter, data?.pagination.page ?? 1)}>Refresh</Button>
         </div>
-        <Alert variant="info" className="mb-6">This facility only records a review decision. It cannot merge, delete or alter accounts, payments, competition entries, predictions or results.</Alert>
+        <Alert variant="info" className="mb-6">Review candidates first. Only pairs marked as the same person can be merged, and every merge requires a preview, a surviving account, a conflict rule and typed email confirmation.</Alert>
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title="Possible Matches" value={data?.totals.all ?? 0} tone="navy" />
           <StatCard title="Awaiting Review" value={data?.totals.unreviewed ?? 0} tone="orange" />
@@ -167,6 +232,12 @@ export default function DuplicateAccountsPage() {
               <div className="mt-5 flex flex-wrap gap-3">
                 <Button disabled={saving} onClick={() => setPending({ candidate, decision: "SAME_PERSON" })}>Mark as Same Person</Button>
                 <Button variant="secondary" disabled={saving} onClick={() => setPending({ candidate, decision: "NOT_DUPLICATE" })}>Mark as Not Duplicates</Button>
+                {candidate.decision === "SAME_PERSON" && candidate.lowerUser.role !== "ADMIN" && candidate.higherUser.role !== "ADMIN" ? (
+                  <>
+                    <Button variant="secondary" disabled={saving} onClick={() => void previewMerge(candidate, candidate.lowerUser.id)}>Merge into account {candidate.lowerUser.id}</Button>
+                    <Button variant="secondary" disabled={saving} onClick={() => void previewMerge(candidate, candidate.higherUser.id)}>Merge into account {candidate.higherUser.id}</Button>
+                  </>
+                ) : null}
               </div>
             </Card>
           ))}
@@ -191,6 +262,38 @@ export default function DuplicateAccountsPage() {
             <div className="mt-5 flex flex-wrap gap-3">
               <Button disabled={saving} onClick={() => void confirmDecision()}>{saving ? "Saving..." : "Confirm Decision"}</Button>
               <Button variant="secondary" disabled={saving} onClick={() => setPending(null)}>Cancel</Button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {mergePreview ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/60 p-4" role="presentation">
+          <section aria-labelledby="merge-confirm-title" aria-modal="true" className="my-auto w-full max-w-2xl rounded-xl bg-white p-6 shadow-2xl" role="dialog">
+            <h2 id="merge-confirm-title" className="text-xl font-bold">Confirm irreversible account merge</h2>
+            <p className="mt-3">Account <strong>{mergePreview.survivor.id}</strong> ({mergePreview.survivor.email}) will survive. Account <strong>{mergePreview.redundant.id}</strong> will be anonymised and its login disabled.</p>
+            <div className="mt-4 grid gap-3 rounded-lg border border-slate-200 p-4 sm:grid-cols-2">
+              <p>Predictions transferred: <strong>{mergePreview.transfers.predictions}</strong></p>
+              <p>Competition entries transferred: <strong>{mergePreview.transfers.competitionEntries}</strong></p>
+              <p>Payments transferred: <strong>{mergePreview.transfers.payments}</strong></p>
+              <p>Submission receipts transferred: <strong>{mergePreview.transfers.submissions}</strong></p>
+              <p>Prediction conflicts: <strong>{mergePreview.conflicts.predictions}</strong></p>
+              <p>Entry conflicts: <strong>{mergePreview.conflicts.competitionEntries}</strong></p>
+              <p>Leaderboard snapshot conflicts: <strong>{mergePreview.conflicts.leaderboardSnapshots}</strong></p>
+              <p>Tournament-winner conflicts: <strong>{mergePreview.conflicts.tournamentWins}</strong></p>
+              <p>Prior confirmation conflicts: <strong>{mergePreview.conflicts.predictionConfirmations}</strong></p>
+            </div>
+            <label className="mt-4 block text-sm font-semibold" htmlFor="merge-conflict-rule">When both accounts have the same record</label>
+            <select id="merge-conflict-rule" className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" value={conflictResolution} onChange={(event) => setConflictResolution(event.target.value as "KEEP_SURVIVOR" | "KEEP_REDUNDANT")}>
+              <option value="KEEP_SURVIVOR">Keep the surviving account&apos;s record</option>
+              <option value="KEEP_REDUNDANT">Keep the redundant account&apos;s record</option>
+            </select>
+            <label className="mt-4 block text-sm font-semibold" htmlFor="merge-confirm-email">Type the surviving email exactly: {mergePreview.survivor.email}</label>
+            <input id="merge-confirm-email" className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" autoComplete="off" value={confirmationEmail} onChange={(event) => setConfirmationEmail(event.target.value)} />
+            <Alert variant="error" className="mt-4">This cannot be undone. The surviving password and verification status are retained; the redundant account is disabled.</Alert>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Button disabled={saving || confirmationEmail.trim().toLowerCase() !== mergePreview.survivor.email.toLowerCase()} onClick={() => void confirmMerge()}>{saving ? "Merging..." : "Merge Accounts"}</Button>
+              <Button variant="secondary" disabled={saving} onClick={() => { setMergeCandidate(null); setMergePreview(null); }}>Cancel</Button>
             </div>
           </section>
         </div>

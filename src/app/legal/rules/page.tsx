@@ -14,7 +14,7 @@ export default function RulesPage() {
         <div className="space-y-6 text-[var(--brand-muted)]">
           <Card title="Prediction Lock">
             <p>
-              All predictions must be submitted before the official kick-off of the tournament. Once the first match has kicked off, all predictions are locked and no further entries or changes can be made.
+              All predictions must be submitted before the competition-wide deadline, one minute before the tournament&apos;s first kick-off. Once that deadline passes, all predictions are locked and no further entries or changes can be made.
             </p>
           </Card>
 
