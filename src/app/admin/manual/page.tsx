@@ -256,6 +256,12 @@ export default function AdministrationManualPage() {
                   reminder emails and manage automatic reminders.
                 </Note>
 
+                <Note title="User Manager">
+                  Search and filter active accounts, verification,
+                  current competition entry and announcement status.
+                  The current version is read-only.
+                </Note>
+
                 <Note title="Audit History">
                   Review result changes, including previous score, new
                   score and the administrator responsible.
@@ -304,6 +310,13 @@ export default function AdministrationManualPage() {
                 using the figure for decisions. Do not manually alter
                 production data merely to make a dashboard number look
                 correct.
+              </p>
+
+              <p className="mt-4 text-[var(--brand-muted)]">
+                Open <strong>User Manager</strong> for the detailed
+                account list. It displays only operational account
+                information and does not expose passwords or provide
+                account-changing actions.
               </p>
             </Card>
           </section>

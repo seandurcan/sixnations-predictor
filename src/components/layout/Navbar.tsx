@@ -39,6 +39,7 @@ const ICONS = {
   predictions: "\u{1F4DD}",
   admin: "\u{1F6E0}\uFE0F",
   adminDashboard: "\u{1F4C8}",
+  users: "\u{1F465}",
   competitions: "\u{1F3C9}",
   audit: "\u{1F4CB}",
   docs: "\u{1F4D6}",
@@ -92,6 +93,11 @@ const adminLinks: NavItem[] = [
     label: "Admin Dashboard",
     href: "/admin/dashboard",
     icon: ICONS.adminDashboard,
+  },
+  {
+    label: "User Manager",
+    href: "/admin/users",
+    icon: ICONS.users,
   },
   {
     label: "Audit",
