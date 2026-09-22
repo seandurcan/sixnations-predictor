@@ -22,6 +22,7 @@ const sections = [
   ["leaderboard", "14. Reading the leaderboard"],
   ["ties", "15. Joint positions and prizes"],
   ["logout", "16. Logout and return later"],
+  ["account", "17. Update your account details"],
 ] as const;
 
 function StepNumber({
@@ -962,6 +963,25 @@ export default function UserManualPage() {
                 use the Login page with the same verified email
                 address and password.
               </p>
+            </Card>
+          </section>
+
+          <section id="account" className="scroll-mt-28">
+            <Card title="17. Update Your Account Details">
+              <div className="space-y-4 text-[var(--brand-muted)]">
+                <p>
+                  Select your name at the top of the site and choose
+                  <strong> My Account</strong>. You can correct your first
+                  name, surname, mobile number or email address.
+                </p>
+                <p>
+                  Changing your email address requires your current
+                  password. The new address must then be verified using
+                  the fresh verification email. Your password, payments,
+                  competition entries, predictions and results are not
+                  changed.
+                </p>
+              </div>
             </Card>
           </section>
         </div>

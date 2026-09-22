@@ -40,6 +40,8 @@ const ICONS = {
   admin: "\u{1F6E0}\uFE0F",
   adminDashboard: "\u{1F4C8}",
   users: "\u{1F465}",
+  account: "\u{1F464}",
+  duplicates: "\u{1F50E}",
   competitions: "\u{1F3C9}",
   audit: "\u{1F4CB}",
   docs: "\u{1F4D6}",
@@ -98,6 +100,11 @@ const adminLinks: NavItem[] = [
     label: "User Manager",
     href: "/admin/users",
     icon: ICONS.users,
+  },
+  {
+    label: "Duplicate Account Review",
+    href: "/admin/duplicate-accounts",
+    icon: ICONS.duplicates,
   },
   {
     label: "Audit",
@@ -271,9 +278,21 @@ export default function NavBar() {
   }, []);
 
   useEffect(() => {
-    setMenuOpen(false);
-    setProfileOpen(false);
-    setAdminOpen(false);
+    function updateDisplayedUser(event: Event) {
+      const updated = (event as CustomEvent<User>).detail;
+      if (updated) setUser((current) => ({ ...current, ...updated }));
+    }
+    window.addEventListener("perfect-xv-user-updated", updateDisplayedUser);
+    return () => window.removeEventListener("perfect-xv-user-updated", updateDisplayedUser);
+  }, []);
+
+  useEffect(() => {
+    const closeTask = window.setTimeout(() => {
+      setMenuOpen(false);
+      setProfileOpen(false);
+      setAdminOpen(false);
+    }, 0);
+    return () => window.clearTimeout(closeTask);
   }, [pathname]);
 
   async function handleLogout() {
@@ -740,6 +759,22 @@ export default function NavBar() {
 
                   <div className="py-2">
                     <Link
+                      href="/account"
+                      role="menuitem"
+                      className={dropdownLinkClasses(
+                        "/account"
+                      )}
+                      onClick={() =>
+                        setProfileOpen(false)
+                      }
+                    >
+                      <span aria-hidden="true">
+                        {ICONS.account}
+                      </span>
+                      <span>My Account</span>
+                    </Link>
+
+                    <Link
                       href="/dashboard"
                       role="menuitem"
                       className={dropdownLinkClasses(
@@ -996,6 +1031,20 @@ export default function NavBar() {
                         {user.role}
                       </p>
                     )}
+
+                    <Link
+                      href="/account"
+                      role="menuitem"
+                      className={mobileLinkClasses(
+                        "/account"
+                      )}
+                      onClick={closeMenus}
+                    >
+                      <span aria-hidden="true">
+                        {ICONS.account}
+                      </span>
+                      <span>My Account</span>
+                    </Link>
 
                     <Link
                       href="/dashboard"

@@ -12,7 +12,7 @@ import { formatIrishDate } from "@/lib/formatIrishDate";
 type Filters = {
   q: string;
   category: "ALL" | "RESULT" | "ACCOUNT";
-  action: "ALL" | "RESULT_CHANGED" | "CORRECT_ACCOUNT" | "RESEND_VERIFICATION" | "SEND_PASSWORD_RESET" | "DELETE_ACCOUNT";
+  action: "ALL" | "RESULT_CHANGED" | "CORRECT_ACCOUNT" | "DUPLICATE_REVIEW" | "RESEND_VERIFICATION" | "SEND_PASSWORD_RESET" | "DELETE_ACCOUNT";
   status: "ALL" | "SUCCEEDED" | "FAILED";
   from: string;
   to: string;
@@ -145,7 +145,7 @@ export default function AuditPage() {
             </label>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <FilterSelect label="Category" value={draftFilters.category} onChange={(value) => setDraftFilters((current) => ({ ...current, category: value as Filters["category"] }))} options={[["ALL", "All"], ["RESULT", "Result changes"], ["ACCOUNT", "Account support"]]} />
-              <FilterSelect label="Action" value={draftFilters.action} onChange={(value) => setDraftFilters((current) => ({ ...current, action: value as Filters["action"] }))} options={[["ALL", "All"], ["RESULT_CHANGED", "Result changed"], ["CORRECT_ACCOUNT", "Account correction"], ["RESEND_VERIFICATION", "Verification email"], ["SEND_PASSWORD_RESET", "Password reset"], ["DELETE_ACCOUNT", "Account deletion"]]} />
+              <FilterSelect label="Action" value={draftFilters.action} onChange={(value) => setDraftFilters((current) => ({ ...current, action: value as Filters["action"] }))} options={[["ALL", "All"], ["RESULT_CHANGED", "Result changed"], ["CORRECT_ACCOUNT", "Account correction"], ["DUPLICATE_REVIEW", "Duplicate review"], ["RESEND_VERIFICATION", "Verification email"], ["SEND_PASSWORD_RESET", "Password reset"], ["DELETE_ACCOUNT", "Account deletion"]]} />
               <FilterSelect label="Status" value={draftFilters.status} onChange={(value) => setDraftFilters((current) => ({ ...current, status: value as Filters["status"] }))} options={[["ALL", "All"], ["SUCCEEDED", "Succeeded"], ["FAILED", "Failed"]]} />
               <label className="block text-sm font-semibold">From<Input className="mt-1" type="date" value={draftFilters.from} onChange={(event) => setDraftFilters((current) => ({ ...current, from: event.target.value }))} /></label>
               <label className="block text-sm font-semibold">To<Input className="mt-1" type="date" value={draftFilters.to} onChange={(event) => setDraftFilters((current) => ({ ...current, to: event.target.value }))} /></label>
@@ -228,6 +228,7 @@ function categoryLabel(category: AuditRecord["category"]) {
 function actionLabel(action: string) {
   if (action === "RESULT_CHANGED") return "Result changed";
   if (action === "CORRECT_ACCOUNT") return "Account corrected";
+  if (action === "DUPLICATE_REVIEW") return "Duplicate review";
   if (action === "RESEND_VERIFICATION") return "Verification email";
   if (action === "SEND_PASSWORD_RESET") return "Password reset email";
   if (action === "DELETE_ACCOUNT") return "Account deleted";

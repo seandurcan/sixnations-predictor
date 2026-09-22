@@ -329,6 +329,20 @@ model AdminUserActionAudit {
   @@index([adminUserId, createdAt])
 }
 
+model DuplicateAccountReview {
+  id           Int      @id @default(autoincrement())
+  lowerUserId  Int
+  higherUserId Int
+  decision     String
+  reviewedById Int
+  reviewedAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([lowerUserId, higherUserId])
+  @@index([decision, reviewedAt])
+  @@index([reviewedById])
+}
+
 model AnnouncementCampaign {
   id                Int                    @id @default(autoincrement())
   subject           String

@@ -163,6 +163,15 @@ export default function AdminDashboardPage() {
             fullWidth
             variant="secondary"
             onClick={() => {
+              window.location.href = "/admin/duplicate-accounts";
+            }}
+          >
+            Duplicate Account Review
+          </Button>
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() => {
               window.location.href = "/admin/unverified-users";
             }}
           >

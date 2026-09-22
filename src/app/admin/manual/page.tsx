@@ -265,6 +265,12 @@ export default function AdministrationManualPage() {
                   after explicit confirmation.
                 </Note>
 
+                <Note title="Duplicate Account Review">
+                  Compare possible duplicate accounts side by side and
+                  record whether they belong to the same person. This
+                  review does not merge or alter either account.
+                </Note>
+
                 <Note title="Audit History">
                   Review result changes, including previous score, new
                   score and the administrator responsible.
@@ -326,6 +332,14 @@ export default function AdministrationManualPage() {
                 Changing an email address requires the current address
                 as confirmation, invalidates existing security links and
                 sends a fresh verification email to the new address.
+              </p>
+
+              <p className="mt-4 text-[var(--brand-muted)]">
+                Open <strong>Duplicate Account Review</strong> to inspect
+                matches suggested by email address, mobile number or
+                name. Review decisions are recorded in Audit History.
+                The facility cannot merge, delete or move any account
+                records.
               </p>
             </Card>
           </section>
@@ -704,6 +718,12 @@ export default function AdministrationManualPage() {
                   results and controlled account-support actions. Each
                   entry shows the date, action, subject, outcome and
                   administrator responsible.
+                </p>
+
+                <p>
+                  Duplicate-account classifications also appear here.
+                  They record only the two account numbers and the
+                  decision; they do not perform a merge.
                 </p>
 
                 <p>
