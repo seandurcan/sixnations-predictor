@@ -163,6 +163,14 @@ export default function AdminUsersPage() {
     setNotice("");
   }
 
+  function openSupportPanel(user: UserRecord) {
+    setSelectedUser(user);
+    setPendingAction(null);
+    setConfirmationEmail("");
+    setError("");
+    setNotice("");
+  }
+
   async function performSupportAction() {
     if (!selectedUser || !pendingAction) return;
 
@@ -270,7 +278,46 @@ export default function AdminUsersPage() {
 
           {data && data.users.length > 0 ? (
             <div className={loading ? "opacity-60" : ""}>
-              <div className="overflow-x-auto">
+              <div className="space-y-4 sm:hidden">
+                {data.users.map((user) => (
+                  <section key={user.id} className="rounded-lg border border-slate-200 p-4">
+                    <h3 className="text-lg font-bold">{user.firstName} {user.lastName}</h3>
+                    <p className="mt-1 break-all text-sm text-[var(--brand-muted)]">{user.email}</p>
+                    <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                      <div>
+                        <dt className="font-semibold">Mobile</dt>
+                        <dd>{user.mobile || "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold">Role</dt>
+                        <dd className="mt-1"><StatusLabel active={user.role === "ADMIN"}>{user.role === "ADMIN" ? "Admin" : "User"}</StatusLabel></dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold">Verification</dt>
+                        <dd className="mt-1"><StatusLabel active={user.emailVerified} warning={!user.emailVerified}>{user.emailVerified ? "Verified" : "Unverified"}</StatusLabel></dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold">Announcements</dt>
+                        <dd className="mt-1"><StatusLabel active={!user.announcementOptOutAt} warning={Boolean(user.announcementOptOutAt)}>{user.announcementOptOutAt ? "Opted out" : "Subscribed"}</StatusLabel></dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold">Current Entry</dt>
+                        <dd>{user.currentEntry?.status === "ENTERED" ? "Entered" : user.currentEntry?.status === "INVITED" ? "Invited" : user.currentEntry?.status === "WITHDRAWN" ? "Withdrawn" : "Not entered"}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold">Registered</dt>
+                        <dd>{formatDate(user.createdAt)}</dd>
+                      </div>
+                    </dl>
+                    {user.currentEntry ? <p className="mt-3 text-xs text-[var(--brand-muted)]">Payment: {user.currentEntry.paymentStatus.toLowerCase()} · Predictions: {user.currentEntry.predictionsSubmitted ? "submitted" : "not submitted"}</p> : null}
+                    <Button className="mt-4 w-full" variant="secondary" onClick={() => openSupportPanel(user)}>
+                      Account Support
+                    </Button>
+                  </section>
+                ))}
+              </div>
+
+              <div className="hidden overflow-x-auto sm:block">
                 <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
                   <thead>
                     <tr className="border-b border-slate-300">
@@ -302,13 +349,7 @@ export default function AdminUsersPage() {
                         <td className="px-3 py-3">
                           <Button
                             variant="secondary"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setPendingAction(null);
-                              setConfirmationEmail("");
-                              setError("");
-                              setNotice("");
-                            }}
+                            onClick={() => openSupportPanel(user)}
                           >
                             Account Support
                           </Button>
