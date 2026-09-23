@@ -143,6 +143,14 @@ export default function AdminDashboardPage() {
           </Button>
           <Button
             fullWidth
+            onClick={() => {
+              window.location.href = "/admin/communications";
+            }}
+          >
+            Communications
+          </Button>
+          <Button
+            fullWidth
             variant="secondary"
             onClick={() => {
               window.location.href = "/admin/audit";
