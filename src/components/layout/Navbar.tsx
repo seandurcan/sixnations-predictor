@@ -42,6 +42,7 @@ const ICONS = {
   users: "\u{1F465}",
   account: "\u{1F464}",
   duplicates: "\u{1F50E}",
+  entrants: "\u{1F3AB}",
   competitions: "\u{1F3C9}",
   audit: "\u{1F4CB}",
   docs: "\u{1F4D6}",
@@ -100,6 +101,11 @@ const adminLinks: NavItem[] = [
     label: "User Manager",
     href: "/admin/users",
     icon: ICONS.users,
+  },
+  {
+    label: "Competition Entrants",
+    href: "/admin/entrants",
+    icon: ICONS.entrants,
   },
   {
     label: "Duplicate Account Review",

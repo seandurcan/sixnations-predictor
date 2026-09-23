@@ -91,8 +91,12 @@ export async function POST(
 
     const users =
       await prisma.user.findMany({
+        where: {
+          deletedAt: null,
+          competitionEntries: { some: { tournamentId: match.tournamentId, status: "ENTERED" } },
+        },
         include: {
-          predictions: true,
+          predictions: { where: { match: { tournamentId: match.tournamentId } } },
         },
       });
 
@@ -135,11 +139,16 @@ export async function POST(
           exactScores,
         },
       });
+      await prisma.competitionEntry.updateMany({
+        where: { userId: user.id, tournamentId: match.tournamentId },
+        data: { totalPoints, cumulativeError, exactScores },
+      });
     }
 
     const latestSnapshot =
       await prisma.leaderboardSnapshot.findFirst(
         {
+          where: { tournamentId: match.tournamentId },
           orderBy: {
             snapshotNumber:
               "desc",
@@ -153,8 +162,12 @@ export async function POST(
 
     const refreshedUsers =
       await prisma.user.findMany({
+        where: {
+          deletedAt: null,
+          competitionEntries: { some: { tournamentId: match.tournamentId, status: "ENTERED" } },
+        },
         include: {
-          predictions: true,
+          predictions: { where: { match: { tournamentId: match.tournamentId } } },
         },
       });
 
@@ -207,6 +220,7 @@ export async function POST(
         ? await prisma.leaderboardSnapshot.findMany(
             {
               where: {
+                tournamentId: match.tournamentId,
                 snapshotNumber:
                   latestSnapshot.snapshotNumber,
               },

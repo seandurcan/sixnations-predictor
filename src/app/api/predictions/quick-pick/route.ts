@@ -10,18 +10,6 @@ export async function POST() {
   try {
     const user = await requireUser();
 
-    if (user.paymentStatus !== "COMPLETED") {
-      return NextResponse.json(
-        {
-          success: false,
-          paymentRequired: true,
-          error:
-            "Competition entry payment is required before making predictions.",
-        },
-        { status: 402 }
-      );
-    }
-
     const now = new Date();
     const tournament = await prisma.tournament.findFirst({
       where: {
@@ -43,6 +31,22 @@ export async function POST() {
       return NextResponse.json(
         { success: false, error: "All tournament predictions are locked." },
         { status: 403 }
+      );
+    }
+
+    const competitionEntry = await prisma.competitionEntry.findUnique({
+      where: { userId_tournamentId: { userId: user.id, tournamentId: tournament.id } },
+    });
+    if (!competitionEntry || competitionEntry.status !== "ENTERED") {
+      return NextResponse.json(
+        { success: false, error: "You are not currently entered in this competition." },
+        { status: 403 }
+      );
+    }
+    if (competitionEntry.paymentStatus !== "COMPLETED") {
+      return NextResponse.json(
+        { success: false, paymentRequired: true, error: "Competition entry payment is required before making predictions." },
+        { status: 402 }
       );
     }
 
@@ -84,6 +88,16 @@ export async function POST() {
           predictionsSubmitted: openMatches.length === tournament.matches.length,
           predictionSubmittedAt:
             openMatches.length === tournament.matches.length && !user.predictionSubmittedAt
+              ? new Date()
+              : undefined,
+        },
+      }),
+      prisma.competitionEntry.update({
+        where: { id: competitionEntry.id },
+        data: {
+          predictionsSubmitted: openMatches.length === tournament.matches.length,
+          predictionSubmittedAt:
+            openMatches.length === tournament.matches.length && !competitionEntry.predictionSubmittedAt
               ? new Date()
               : undefined,
         },

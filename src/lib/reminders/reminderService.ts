@@ -82,7 +82,11 @@ export async function getUsersNeedingPredictionReminder(
 
   const matchIds = activeTournament.matches.map((match) => match.id);
   const users = await prisma.user.findMany({
-    where: { emailVerified: true, deletedAt: null },
+    where: {
+      emailVerified: true,
+      deletedAt: null,
+      competitionEntries: { some: { tournamentId: activeTournament.id, status: "ENTERED" } },
+    },
     include: {
       predictions: {
         where: { matchId: { in: matchIds } },
@@ -108,7 +112,11 @@ export async function getUsersWithOutstandingPredictions(tournamentId: number) {
 
   const matchIds = matches.map((match) => match.id);
   const users = await prisma.user.findMany({
-    where: { emailVerified: true, deletedAt: null },
+    where: {
+      emailVerified: true,
+      deletedAt: null,
+      competitionEntries: { some: { tournamentId, status: "ENTERED" } },
+    },
     include: {
       predictions: {
         where: { matchId: { in: matchIds } },

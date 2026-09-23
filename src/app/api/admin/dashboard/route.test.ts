@@ -166,6 +166,12 @@ describe("GET /api/admin/dashboard", () => {
         },
         user: {
           deletedAt: null,
+          competitionEntries: {
+            some: {
+              tournamentId: 1,
+              status: "ENTERED",
+            },
+          },
         },
       },
       distinct: ["userId"],

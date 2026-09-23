@@ -6,7 +6,7 @@ import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import PasswordInput from "@/components/ui/PasswordInput";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const REGISTRATION_EMAIL_KEY =
   "perfect-xv-registration-email";
@@ -25,6 +25,20 @@ export default function RegisterPage() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [invitationToken, setInvitationToken] = useState("");
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("invitation") ?? "";
+      const invitedEmail = params.get("email")?.trim().toLowerCase() ?? "";
+      setInvitationToken(token);
+      if (token && invitedEmail) {
+        setForm((current) => ({ ...current, email: invitedEmail }));
+      }
+    }, 0);
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   const passwordsMatch = form.password === form.confirmPassword;
 
@@ -110,7 +124,7 @@ export default function RegisterPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, invitationToken }),
       });
 
       const result = await response.json();
@@ -149,6 +163,12 @@ export default function RegisterPage() {
             Passwords must be at least 8 characters and include
             uppercase, lowercase, a number, and a special character.
           </p>
+
+          {invitationToken ? (
+            <p className="rounded-lg border border-lime-300 bg-lime-50 p-3 text-sm font-semibold text-slate-900">
+              Complete registration with the invited email address to link your competition invitation.
+            </p>
+          ) : null}
 
           {error && (
             <Alert

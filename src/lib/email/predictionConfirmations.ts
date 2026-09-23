@@ -44,7 +44,7 @@ export function buildPredictionConfirmationEmail(input: {
 async function confirmationData(userId: number, tournamentId: number) {
   const [user, tournament] = await Promise.all([
     prisma.user.findFirst({
-      where: { id: userId, deletedAt: null },
+      where: { id: userId, deletedAt: null, competitionEntries: { some: { tournamentId, status: "ENTERED" } } },
       select: { id: true, firstName: true, email: true, emailVerified: true },
     }),
     prisma.tournament.findUnique({
@@ -147,6 +147,7 @@ export async function processDuePredictionConfirmations(now = new Date()) {
       where: {
         deletedAt: null,
         emailVerified: true,
+        competitionEntries: { some: { tournamentId: tournament.id, status: "ENTERED" } },
         predictions: { some: { match: { tournamentId: tournament.id } } },
       },
       select: { id: true },

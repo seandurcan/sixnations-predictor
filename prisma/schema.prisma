@@ -111,6 +111,7 @@ model Tournament {
   matches                          Match[]
   submissions                      PredictionSubmission[]
   entries                          CompetitionEntry[]
+  invitations                      CompetitionInvitation[]
   predictionConfirmationDeliveries PredictionConfirmationDelivery[]
 }
 
@@ -127,6 +128,7 @@ model CompetitionEntry {
   totalPoints           Int                    @default(0)
   cumulativeError       Int                    @default(0)
   exactScores           Int                    @default(0)
+  withdrawnFromStatus   CompetitionEntryStatus?
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -135,6 +137,28 @@ model CompetitionEntry {
   @@unique([userId, tournamentId])
   @@index([tournamentId, status])
   @@index([tournamentId, paymentStatus])
+}
+
+model CompetitionInvitation {
+  id             Int        @id @default(autoincrement())
+  tournamentId   Int
+  email          String
+  firstName      String?
+  lastName       String?
+  mobile         String?
+  tokenHash      String     @unique
+  status         String     @default("PENDING")
+  expiresAt      DateTime
+  invitedById    Int
+  acceptedUserId Int?
+  invitedAt      DateTime   @default(now())
+  acceptedAt     DateTime?
+  updatedAt      DateTime   @updatedAt
+  tournament     Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, email])
+  @@index([tournamentId, status])
+  @@index([email, status])
 }
 
 model Match {
@@ -320,7 +344,8 @@ model SystemSetting {
 model AdminUserActionAudit {
   id              Int      @id @default(autoincrement())
   adminUserId     Int
-  targetUserId    Int
+  targetUserId    Int?
+  targetReference String?
   action          String
   status          String
   targetEmailHash String

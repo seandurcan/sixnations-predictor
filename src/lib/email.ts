@@ -450,3 +450,34 @@ export async function sendEmailVerificationEmail(
 
   return result;
 }
+
+export async function sendCompetitionInvitationEmail({
+  email,
+  competitionName,
+  registrationToken,
+}: {
+  email: string;
+  competitionName: string;
+  registrationToken?: string;
+}) {
+  const actionUrl = registrationToken
+    ? `${getAppUrl()}/register?invitation=${encodeURIComponent(registrationToken)}&email=${encodeURIComponent(email)}`
+    : `${getAppUrl()}/login`;
+
+  return sendActionEmail({
+    email,
+    subject: `Invitation to ${competitionName}`,
+    heading: "Perfect XV Invitation",
+    introduction: `You have been invited to take part in ${competitionName}.`,
+    instruction: registrationToken
+      ? "Create your Perfect XV account using the invited email address. Your invitation will be linked automatically."
+      : "Sign in to your existing Perfect XV account to continue your competition entry.",
+    buttonLabel: registrationToken ? "Create Account" : "Sign In",
+    actionUrl,
+    alternativeText: "If the button does not work, copy and paste this link into your browser:",
+    expiryText: registrationToken
+      ? "This registration invitation expires in 14 days."
+      : "Your invitation is recorded against your existing account.",
+    previewText: `You have been invited to ${competitionName}.`,
+  });
+}

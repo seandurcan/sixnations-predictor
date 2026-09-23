@@ -78,6 +78,10 @@ export async function POST(
       Number(
         session.metadata?.userId
       );
+    const metadataTournamentId =
+      Number(
+        session.metadata?.tournamentId
+      );
 
     if (
       !Number.isInteger(
@@ -163,6 +167,33 @@ console.log(
 console.log(
   "Stripe user update completed successfully."
 );
+
+    if (
+      Number.isInteger(metadataTournamentId) &&
+      metadataTournamentId > 0
+    ) {
+      await prisma.competitionEntry.upsert({
+        where: {
+          userId_tournamentId: {
+            userId: user.id,
+            tournamentId: metadataTournamentId,
+          },
+        },
+        update: {
+          status: "ENTERED",
+          paymentStatus: "COMPLETED",
+          paidAt: updatedUser.paidAt,
+          withdrawnFromStatus: null,
+        },
+        create: {
+          userId: user.id,
+          tournamentId: metadataTournamentId,
+          status: "ENTERED",
+          paymentStatus: "COMPLETED",
+          paidAt: updatedUser.paidAt,
+        },
+      });
+    }
 
     const existingPayment =
       await prisma.payment.findFirst({

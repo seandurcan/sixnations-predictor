@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { assignCompetitionRanks } from "@/lib/scoring";
 import { createLeaderboardPdf } from "@/lib/leaderboardPdf";
 import { formatCompetitionTitle } from "@/lib/competitionTitle";
+import { getCurrentTournament } from "@/lib/currentTournament";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,23 +24,25 @@ export async function GET() {
       );
     }
 
-    const [users, latestSnapshot, tournament] = await Promise.all([
+    const tournament = await getCurrentTournament();
+    const [users, latestSnapshot] = await Promise.all([
       prisma.user.findMany({
-        where: { deletedAt: null },
-        include: { predictions: true },
+        where: {
+          deletedAt: null,
+          competitionEntries: { some: { tournamentId: tournament?.id ?? -1, status: "ENTERED" } },
+        },
+        include: { predictions: { where: { match: { tournamentId: tournament?.id ?? -1 } } } },
       }),
       prisma.leaderboardSnapshot.findFirst({
+        where: { tournamentId: tournament?.id ?? -1 },
         orderBy: { snapshotNumber: "desc" },
-      }),
-      prisma.tournament.findUnique({
-        where: { id: 1 },
-        select: { name: true, year: true },
       }),
     ]);
 
     const snapshots = latestSnapshot
       ? await prisma.leaderboardSnapshot.findMany({
           where: {
+            tournamentId: tournament?.id ?? -1,
             snapshotNumber: latestSnapshot.snapshotNumber,
           },
         })

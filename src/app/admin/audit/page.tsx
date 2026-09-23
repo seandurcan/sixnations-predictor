@@ -12,7 +12,7 @@ import { formatIrishDate } from "@/lib/formatIrishDate";
 type Filters = {
   q: string;
   category: "ALL" | "RESULT" | "ACCOUNT";
-  action: "ALL" | "RESULT_CHANGED" | "CORRECT_ACCOUNT" | "DUPLICATE_REVIEW" | "MERGE_ACCOUNTS" | "RESEND_PREDICTION_CONFIRMATION" | "RESEND_VERIFICATION" | "SEND_PASSWORD_RESET" | "DELETE_ACCOUNT";
+  action: "ALL" | "RESULT_CHANGED" | "CORRECT_ACCOUNT" | "DUPLICATE_REVIEW" | "MERGE_ACCOUNTS" | "ADD_ENTRANT" | "INVITE_ENTRANT" | "WITHDRAW_ENTRANT" | "RESTORE_ENTRANT" | "CANCEL_ENTRANT_INVITATION" | "RESEND_ENTRANT_INVITATION" | "RESEND_PREDICTION_CONFIRMATION" | "RESEND_VERIFICATION" | "SEND_PASSWORD_RESET" | "DELETE_ACCOUNT";
   status: "ALL" | "SUCCEEDED" | "FAILED";
   from: string;
   to: string;
@@ -25,7 +25,7 @@ type AuditRecord = {
   status: string;
   createdAt: string;
   admin: { id: number; name: string };
-  target: { id: number; label: string; previous?: string; current?: string };
+  target: { id: number | null; label: string; previous?: string; current?: string };
   detail: string | null;
 };
 
@@ -145,7 +145,7 @@ export default function AuditPage() {
             </label>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <FilterSelect label="Category" value={draftFilters.category} onChange={(value) => setDraftFilters((current) => ({ ...current, category: value as Filters["category"] }))} options={[["ALL", "All"], ["RESULT", "Result changes"], ["ACCOUNT", "Account support"]]} />
-              <FilterSelect label="Action" value={draftFilters.action} onChange={(value) => setDraftFilters((current) => ({ ...current, action: value as Filters["action"] }))} options={[["ALL", "All"], ["RESULT_CHANGED", "Result changed"], ["CORRECT_ACCOUNT", "Account correction"], ["DUPLICATE_REVIEW", "Duplicate review"], ["MERGE_ACCOUNTS", "Account merge"], ["RESEND_PREDICTION_CONFIRMATION", "Prediction confirmation resend"], ["RESEND_VERIFICATION", "Verification email"], ["SEND_PASSWORD_RESET", "Password reset"], ["DELETE_ACCOUNT", "Account deletion"]]} />
+              <FilterSelect label="Action" value={draftFilters.action} onChange={(value) => setDraftFilters((current) => ({ ...current, action: value as Filters["action"] }))} options={[["ALL", "All"], ["RESULT_CHANGED", "Result changed"], ["CORRECT_ACCOUNT", "Account correction"], ["DUPLICATE_REVIEW", "Duplicate review"], ["MERGE_ACCOUNTS", "Account merge"], ["ADD_ENTRANT", "Entrant added"], ["INVITE_ENTRANT", "Entrant invited"], ["WITHDRAW_ENTRANT", "Entrant withdrawn"], ["RESTORE_ENTRANT", "Entrant restored"], ["CANCEL_ENTRANT_INVITATION", "Invitation cancelled"], ["RESEND_ENTRANT_INVITATION", "Invitation resent"], ["RESEND_PREDICTION_CONFIRMATION", "Prediction confirmation resend"], ["RESEND_VERIFICATION", "Verification email"], ["SEND_PASSWORD_RESET", "Password reset"], ["DELETE_ACCOUNT", "Account deletion"]]} />
               <FilterSelect label="Status" value={draftFilters.status} onChange={(value) => setDraftFilters((current) => ({ ...current, status: value as Filters["status"] }))} options={[["ALL", "All"], ["SUCCEEDED", "Succeeded"], ["FAILED", "Failed"]]} />
               <label className="block text-sm font-semibold">From<Input className="mt-1" type="date" value={draftFilters.from} onChange={(event) => setDraftFilters((current) => ({ ...current, from: event.target.value }))} /></label>
               <label className="block text-sm font-semibold">To<Input className="mt-1" type="date" value={draftFilters.to} onChange={(event) => setDraftFilters((current) => ({ ...current, to: event.target.value }))} /></label>
@@ -213,7 +213,7 @@ function AuditCard({ record }: { record: AuditRecord }) {
 }
 
 function Target({ record }: { record: AuditRecord }) {
-  return <div><p className="font-semibold">{record.target.label}</p>{record.target.previous !== undefined ? <p className="mt-1 text-sm text-[var(--brand-muted)]">{record.target.previous} → <span className="font-semibold text-[var(--brand-navy)]">{record.target.current}</span></p> : <p className="mt-1 text-xs text-[var(--brand-muted)]">Account {record.target.id}</p>}</div>;
+  return <div><p className="font-semibold">{record.target.label}</p>{record.target.previous !== undefined ? <p className="mt-1 text-sm text-[var(--brand-muted)]">{record.target.previous} → <span className="font-semibold text-[var(--brand-navy)]">{record.target.current}</span></p> : record.target.id !== null ? <p className="mt-1 text-xs text-[var(--brand-muted)]">Account {record.target.id}</p> : null}</div>;
 }
 
 function Status({ status }: { status: string }) {

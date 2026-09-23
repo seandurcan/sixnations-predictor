@@ -12,6 +12,12 @@ const ACTIONS = [
   "CORRECT_ACCOUNT",
   "DUPLICATE_REVIEW",
   "MERGE_ACCOUNTS",
+  "ADD_ENTRANT",
+  "INVITE_ENTRANT",
+  "WITHDRAW_ENTRANT",
+  "RESTORE_ENTRANT",
+  "CANCEL_ENTRANT_INVITATION",
+  "RESEND_ENTRANT_INVITATION",
   "RESEND_PREDICTION_CONFIRMATION",
   "RESEND_VERIFICATION",
   "SEND_PASSWORD_RESET",
@@ -162,7 +168,9 @@ export async function GET(request: NextRequest) {
 
     const userIds = Array.from(new Set([
       ...scoreAudits.map((audit) => audit.adminUserId),
-      ...accountAudits.flatMap((audit) => [audit.adminUserId, audit.targetUserId]),
+      ...accountAudits.flatMap((audit) => audit.targetUserId === null
+        ? [audit.adminUserId]
+        : [audit.adminUserId, audit.targetUserId]),
     ]));
     const matchIds = Array.from(new Set(scoreAudits.map((audit) => audit.matchId)));
     const metaKeys = scoreAudits.map((audit) => `LIVE_SCORE_AUDIT_${audit.id}`);
@@ -210,10 +218,10 @@ export async function GET(request: NextRequest) {
         };
       }),
       ...accountAudits.map((audit) => {
-        const targetUser = userMap.get(audit.targetUserId);
+        const targetUser = audit.targetUserId === null ? undefined : userMap.get(audit.targetUserId);
         const targetName = targetUser
           ? `${targetUser.firstName} ${targetUser.lastName}`
-          : `Account ${audit.targetUserId}`;
+          : audit.targetReference ?? (audit.targetUserId === null ? "Competition invitation" : `Account ${audit.targetUserId}`);
         return {
           id: `account-${audit.id}`,
           category: "ACCOUNT" as const,

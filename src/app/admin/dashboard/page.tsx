@@ -171,6 +171,15 @@ export default function AdminDashboardPage() {
             fullWidth
             variant="secondary"
             onClick={() => {
+              window.location.href = "/admin/entrants";
+            }}
+          >
+            Competition Entrants
+          </Button>
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() => {
               window.location.href = "/admin/duplicate-accounts";
             }}
           >

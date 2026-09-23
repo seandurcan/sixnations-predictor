@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { requireUser } from "@/lib/auth";
+import { getCurrentTournament } from "@/lib/currentTournament";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 
 function getAppUrl() {
@@ -29,11 +31,29 @@ export async function POST() {
   try {
     const user =
       await requireUser();
+    const tournament = await getCurrentTournament();
+
+    if (!tournament) {
+      return NextResponse.json(
+        { success: false, error: "No competition is currently accepting entries." },
+        { status: 409 }
+      );
+    }
+
+    const competitionEntry = await prisma.competitionEntry.upsert({
+      where: { userId_tournamentId: { userId: user.id, tournamentId: tournament.id } },
+      update: {},
+      create: {
+        userId: user.id,
+        tournamentId: tournament.id,
+        status: "INVITED",
+      },
+    });
 
     const appUrl = getAppUrl();
 
     if (
-      user.paymentStatus ===
+      competitionEntry.paymentStatus ===
       "COMPLETED"
     ) {
       return NextResponse.json({
@@ -58,7 +78,7 @@ export async function POST() {
           {
             quantity: 1,
             price_data: {
-              currency: "eur",
+              currency: tournament.currency.toLowerCase(),
               product_data: {
                 name: "Perfect XV Competition Entry",
                 description:
@@ -66,7 +86,7 @@ export async function POST() {
                 tax_code:
                   "txcd_10000000",
               },
-              unit_amount: 2000,
+              unit_amount: Math.round(Number(tournament.entryFee) * 100),
             },
           },
         ],
@@ -74,6 +94,7 @@ export async function POST() {
         metadata: {
           userId: String(user.id),
           email: user.email,
+          tournamentId: String(tournament.id),
         },
 
         success_url:

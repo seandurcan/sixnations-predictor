@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { sendEmailVerificationEmail } from "@/lib/email";
+import { getCurrentTournament } from "@/lib/currentTournament";
 
 export async function POST(
   request: Request
@@ -10,6 +11,11 @@ export async function POST(
   try {
     const body =
       await request.json();
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const invitationToken = typeof body.invitationToken === "string" ? body.invitationToken.trim() : "";
+    const invitationTokenHash = invitationToken
+      ? crypto.createHash("sha256").update(invitationToken).digest("hex")
+      : null;
 
     if (
       body.password !==
@@ -28,9 +34,9 @@ export async function POST(
     }
 
     const existingUser =
-      await prisma.user.findUnique({
+      await prisma.user.findFirst({
         where: {
-          email: body.email,
+          email: { equals: email, mode: "insensitive" },
         },
       });
 
@@ -56,22 +62,22 @@ export async function POST(
     const userCount =
       await prisma.user.count();
 
-    const user =
-      await prisma.user.create({
-        data: {
-          firstName:
-            body.firstName,
-          lastName:
-            body.lastName,
-          email:
-            body.email,
-          mobile:
-            body.mobile,
-          passwordHash,
-          registrationOrder:
-            userCount + 1,
-        },
-      });
+    const invitation = invitationTokenHash
+      ? await prisma.competitionInvitation.findUnique({ where: { tokenHash: invitationTokenHash } })
+      : null;
+    const currentTournament = invitation ? null : await getCurrentTournament();
+
+    if (invitationTokenHash && (
+      !invitation
+      || invitation.status !== "PENDING"
+      || invitation.expiresAt <= new Date()
+      || invitation.email.toLowerCase() !== email
+    )) {
+      return NextResponse.json(
+        { success: false, error: "This competition invitation is invalid, expired or belongs to another email address." },
+        { status: 400 }
+      );
+    }
 
     const token =
       crypto.randomUUID() +
@@ -83,12 +89,38 @@ export async function POST(
           1000 * 60 * 60
       );
 
-    await prisma.emailVerification.create({
-      data: {
-        userId: user.id,
-        token,
-        expiresAt,
-      },
+    const user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          firstName:
+            body.firstName,
+          lastName:
+            body.lastName,
+          email,
+          mobile:
+            body.mobile,
+          passwordHash,
+          registrationOrder:
+            userCount + 1,
+        },
+      });
+      await tx.emailVerification.create({ data: { userId: created.id, token, expiresAt } });
+      if (invitation) {
+        await tx.competitionEntry.upsert({
+          where: { userId_tournamentId: { userId: created.id, tournamentId: invitation.tournamentId } },
+          update: { status: "INVITED" },
+          create: { userId: created.id, tournamentId: invitation.tournamentId, status: "INVITED" },
+        });
+        await tx.competitionInvitation.update({
+          where: { id: invitation.id },
+          data: { status: "ACCEPTED", acceptedUserId: created.id, acceptedAt: new Date() },
+        });
+      } else if (currentTournament) {
+        await tx.competitionEntry.create({
+          data: { userId: created.id, tournamentId: currentTournament.id, status: "INVITED" },
+        });
+      }
+      return created;
     });
 
     after(async () => {

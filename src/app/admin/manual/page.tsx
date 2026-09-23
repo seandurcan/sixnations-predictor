@@ -29,6 +29,7 @@ const sections = [
   ["troubleshooting", "18. Troubleshooting checklist"],
   ["eventday", "19. Match-day administration"],
   ["support", "20. Supporting entrants"],
+  ["entrants", "21. Competition Entrant Management"],
 ] as const;
 
 function SectionLink({
@@ -905,6 +906,44 @@ export default function AdministrationManualPage() {
                   <Link href="/user-manual">
                     <Button variant="secondary">
                       Open User Manual
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </Card>
+          </section>
+
+          <section id="entrants" className="scroll-mt-28">
+            <Card title="21. Competition Entrant Management">
+              <div className="space-y-4 text-[var(--brand-muted)]">
+                <p>
+                  Competition Entrants manages participation separately
+                  for each annual competition. Select the competition
+                  before taking any action.
+                </p>
+
+                <Checklist
+                  items={[
+                    "Add Existing Account enters a registered user immediately.",
+                    "Send Invitation emails an existing user or creates a 14-day registration invitation for a new user.",
+                    "Withdraw removes the participant from the active entrant list without deleting their account, payment details, predictions or competition history.",
+                    "Restore returns a withdrawn participant to their previous invited or entered status.",
+                    "Use the filters to review verification, payment and prediction progress.",
+                    "Confirm the selected competition, participant and requested action before accepting the confirmation prompt.",
+                    "Review entrant-management actions in Audit History.",
+                  ]}
+                />
+
+                <Note title="No prediction or payment editing">
+                  Entrant Manager reports payment and prediction status,
+                  but it does not alter payment records or edit a user&apos;s
+                  predictions.
+                </Note>
+
+                <div className="mt-4">
+                  <Link href="/admin/entrants">
+                    <Button variant="secondary">
+                      Open Competition Entrants
                     </Button>
                   </Link>
                 </div>

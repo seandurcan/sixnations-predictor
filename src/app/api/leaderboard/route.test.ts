@@ -18,8 +18,11 @@ vi.mock("@/lib/prisma", () => ({
     },
   },
 }));
+vi.mock("@/lib/currentTournament", () => ({ getCurrentTournament: vi.fn() }));
+vi.mock("@/lib/liveScoring", () => ({ syncLiveScores: vi.fn().mockResolvedValue({ providerQueries: 0 }) }));
 
 import { prisma } from "@/lib/prisma";
+import { getCurrentTournament } from "@/lib/currentTournament";
 
 function request() {
   return new Request(
@@ -58,6 +61,7 @@ describe(
       vi.mocked(
         prisma.leaderboardSnapshot.findFirst
       ).mockResolvedValue(null);
+      vi.mocked(getCurrentTournament).mockResolvedValue({ id: 7 } as never);
     });
 
     it("uses correct wins before perfect scores and prediction delta", async () => {
@@ -176,6 +180,17 @@ describe(
             entry.rank
         )
       ).toEqual([1, 1]);
+    });
+
+    it("loads only entered participants for the selected competition", async () => {
+      vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+
+      await GET(request());
+
+      expect(prisma.user.findMany).toHaveBeenCalledWith({
+        where: { deletedAt: null, competitionEntries: { some: { tournamentId: 7, status: "ENTERED" } } },
+        include: { predictions: { where: { match: { tournamentId: 7 } } } },
+      });
     });
   }
 );

@@ -184,6 +184,13 @@ export default function UserManualPage() {
                 is not the final step. You must verify your email
                 address before using the account normally.
               </div>
+
+              <p className="mt-4 text-sm text-[var(--brand-muted)]">
+                If an administrator sent you a competition invitation,
+                open its <strong>Create Account</strong> link and register
+                with the invited email address. Perfect XV will attach the
+                invitation to your new account automatically.
+              </p>
             </Card>
           </section>
 

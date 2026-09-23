@@ -41,6 +41,7 @@ export async function GET() {
         },
         user: {
           deletedAt: null,
+          competitionEntries: { some: { tournamentId: tournament.id, status: "ENTERED" } },
         },
       },
       distinct: ["userId"],
@@ -109,7 +110,7 @@ export async function GET() {
     );
 
     const currentLeader = await prisma.user.findFirst({
-      where: { deletedAt: null },
+      where: { deletedAt: null, competitionEntries: { some: { tournamentId: tournament.id, status: "ENTERED" } } },
       orderBy: [
         { totalPoints: "desc" },
         { cumulativeError: "asc" },
@@ -117,7 +118,7 @@ export async function GET() {
     });
 
     const leaderboard = await prisma.user.findMany({
-      where: { deletedAt: null },
+      where: { deletedAt: null, competitionEntries: { some: { tournamentId: tournament.id, status: "ENTERED" } } },
       take: 10,
       orderBy: [
         { totalPoints: "desc" },

@@ -19,6 +19,8 @@ vi.mock("@/lib/prisma", () => ({
     },
     tournament: { findUnique: vi.fn() },
     user: { update: vi.fn() },
+    competitionEntry: { findUnique: vi.fn(), update: vi.fn() },
+    $transaction: vi.fn(async (operations: Promise<unknown>[]) => Promise.all(operations)),
   },
 }));
 
@@ -74,6 +76,8 @@ describe("POST /api/predictions", () => {
     vi.mocked(prisma.tournament.findUnique).mockResolvedValue({ matches: [{ id: 101 }] } as never);
     vi.mocked(prisma.prediction.count).mockResolvedValue(1);
     vi.mocked(prisma.user.update).mockResolvedValue(mockUser as never);
+    vi.mocked(prisma.competitionEntry.findUnique).mockResolvedValue({ id: 50, status: "ENTERED", paymentStatus: "COMPLETED", predictionSubmittedAt: null } as never);
+    vi.mocked(prisma.competitionEntry.update).mockResolvedValue({ id: 50 } as never);
   });
 
   afterEach(() => {
@@ -150,6 +154,17 @@ describe("POST /api/predictions", () => {
       error: "Match not found",
     });
 
+    expect(prisma.prediction.upsert).not.toHaveBeenCalled();
+  });
+
+  it("rejects a withdrawn participant without changing their predictions", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(mockUser as any);
+    vi.mocked(prisma.match.findUnique).mockResolvedValueOnce(futureMatch as any);
+    vi.mocked(prisma.competitionEntry.findUnique).mockResolvedValueOnce({ id: 50, status: "WITHDRAWN" } as never);
+
+    const response = await POST(createPredictionRequest({ matchId: 101, homeScore: 24, awayScore: 18 }));
+
+    expect(response.status).toBe(403);
     expect(prisma.prediction.upsert).not.toHaveBeenCalled();
   });
 

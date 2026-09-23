@@ -9,23 +9,6 @@ export async function POST(
     const user =
       await requireUser();
 
-    if (
-      user.paymentStatus !==
-      "COMPLETED"
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          paymentRequired: true,
-          error:
-            "Competition entry payment is required before making predictions.",
-        },
-        {
-          status: 402,
-        }
-      );
-    }
-
     const body =
       await request.json();
 
@@ -53,6 +36,29 @@ export async function POST(
         {
           status: 404,
         }
+      );
+    }
+
+    const competitionEntry = await prisma.competitionEntry.findUnique({
+      where: {
+        userId_tournamentId: {
+          userId: user.id,
+          tournamentId: match.tournamentId,
+        },
+      },
+    });
+
+    if (!competitionEntry || competitionEntry.status !== "ENTERED") {
+      return NextResponse.json(
+        { success: false, error: "You are not currently entered in this competition." },
+        { status: 403 }
+      );
+    }
+
+    if (competitionEntry.paymentStatus !== "COMPLETED") {
+      return NextResponse.json(
+        { success: false, paymentRequired: true, error: "Competition entry payment is required before making predictions." },
+        { status: 402 }
       );
     }
 
@@ -122,14 +128,17 @@ export async function POST(
       const completedEntry =
         predictionCount === tournament.matches.length;
 
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          predictionsSubmitted: completedEntry,
-          predictionSubmittedAt:
-            completedEntry && !user.predictionSubmittedAt ? new Date() : undefined,
-        },
-      });
+      const submittedAt = completedEntry && !user.predictionSubmittedAt ? new Date() : undefined;
+      await prisma.$transaction([
+        prisma.user.update({
+          where: { id: user.id },
+          data: { predictionsSubmitted: completedEntry, predictionSubmittedAt: submittedAt },
+        }),
+        prisma.competitionEntry.update({
+          where: { id: competitionEntry.id },
+          data: { predictionsSubmitted: completedEntry, predictionSubmittedAt: submittedAt },
+        }),
+      ]);
     }
 
     return NextResponse.json({
