@@ -28,6 +28,7 @@ type Match = {
   id: number;
   completed: boolean;
   kickoffTime: string;
+  predictionLockAt?: string | null;
   round?: number;
   homeTeam: Team;
   awayTeam: Team;
@@ -213,17 +214,14 @@ export default function PredictionsPage() {
       return true;
     }
 
-    const tournamentKickoff =
-      match.tournament?.predictionLockAt ?? match.tournament?.firstKickoff;
+    const deadline =
+      match.predictionLockAt ??
+      match.tournament?.predictionLockAt ??
+      match.tournament?.firstKickoff;
 
-    if (!tournamentKickoff) {
-      return false;
-    }
+    if (!deadline) return false;
 
-    return (
-      new Date(tournamentKickoff).getTime() <=
-      new Date().getTime()
-    );
+    return new Date(deadline).getTime() <= new Date().getTime();
   }
 
   function getMatchStatus(match: Match) {
@@ -380,7 +378,7 @@ export default function PredictionsPage() {
               </p>
 
               <p className="text-[var(--brand-muted)]">
-                A &euro;20 competition entry payment is required before you can enter or edit predictions.
+                A Stripe Test Mode checkout is required before you can enter or edit predictions for this competition. No real payment is taken.
               </p>
 
               <p className="font-semibold text-[var(--brand-navy)]">
@@ -390,7 +388,7 @@ export default function PredictionsPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
                   onClick={() => {
-                    window.location.href = "/payment-required";
+                    window.location.href = `/payment-required?tournamentId=${selectedCompetitionId ?? ""}`;
                   }}
                 >
                   Continue to Payment
@@ -431,20 +429,13 @@ export default function PredictionsPage() {
           (match) => match.id === currentMatchId
         );
 
-  const tournamentFirstKickoff =
-    matches.find(
-      (match) =>
-        match.tournament?.predictionLockAt || match.tournament?.firstKickoff
-    )?.tournament?.predictionLockAt ?? matches.find((match) => match.tournament?.firstKickoff)?.tournament?.firstKickoff ??
-    matches[0]?.kickoffTime;
+  const nextPredictionDeadline =
+    currentMatch?.predictionLockAt ??
+    matches.find((match) => !isMatchLocked(match))?.predictionLockAt ??
+    null;
 
   const tournamentPredictionsLocked =
-    tournamentFirstKickoff
-      ? new Date(
-          tournamentFirstKickoff
-        ).getTime() <=
-        new Date().getTime()
-      : false;
+    matches.length > 0 && matches.every((match) => isMatchLocked(match));
 
   if (
     currentMatchId !== null &&
@@ -612,11 +603,11 @@ export default function PredictionsPage() {
           </div>
 
           <div className="space-y-6">
-            {!fixtureLocked && tournamentFirstKickoff && (
+            {!fixtureLocked && nextPredictionDeadline && (
               <Card>
                 <CountdownTimer
-                  targetDate={tournamentFirstKickoff}
-                  label="Time until all predictions lock"
+                  targetDate={nextPredictionDeadline}
+                  label="Time until this prediction locks"
                 />
               </Card>
             )}
