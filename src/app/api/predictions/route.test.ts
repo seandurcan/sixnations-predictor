@@ -190,7 +190,7 @@ describe("POST /api/predictions", () => {
     expect(body).toEqual({
       success: false,
       error:
-        "All predictions are locked because the prediction deadline has passed",
+        "This prediction is locked because the fixture deadline has passed",
     });
 
     expect(prisma.prediction.upsert).not.toHaveBeenCalled();
@@ -201,6 +201,7 @@ describe("POST /api/predictions", () => {
     vi.mocked(prisma.match.findUnique).mockResolvedValueOnce({
       ...futureMatch,
       tournament: {
+        name: "Six Nations Championship",
         firstKickoff: new Date(Date.now() + 30_000),
         predictionLockAt: new Date(Date.now() - 30_000),
       },
