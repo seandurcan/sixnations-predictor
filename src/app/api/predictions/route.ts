@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { fixturePredictionLockAt } from "@/lib/predictionLocking";
 
 export async function POST(
   request: Request
@@ -20,6 +21,7 @@ export async function POST(
         include: {
           tournament: {
             select: {
+              name: true,
               firstKickoff: true,
               predictionLockAt: true,
             },
@@ -62,25 +64,26 @@ export async function POST(
       );
     }
 
-    if (!match.tournament.firstKickoff || !match.tournament.predictionLockAt) {
+    const predictionLockAt = fixturePredictionLockAt({
+      competitionName: match.tournament.name,
+      tournamentPredictionLockAt: match.tournament.predictionLockAt,
+      kickoffTime: match.kickoffTime,
+    });
+    if (!predictionLockAt) {
       return NextResponse.json(
-        { success: false, error: "This competition is not open for predictions." },
+        { success: false, error: "This fixture is not open for predictions." },
         { status: 409 }
       );
     }
 
     const now = new Date();
 
-    if (
-      new Date(
-        match.tournament.predictionLockAt
-      ) <= now
-    ) {
+    if (predictionLockAt <= now) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "All predictions are locked because the prediction deadline has passed",
+            "This prediction is locked because the fixture deadline has passed",
         },
         {
           status: 403,
