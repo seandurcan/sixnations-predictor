@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { enrichMatchesWithLiveScoreInfo, syncLiveScores } from "@/lib/liveScoring";
 import { getTournamentByIdOrCurrent } from "@/lib/currentTournament";
+import { fixturePredictionLockAt } from "@/lib/predictionLocking";
 
 export const dynamic = "force-dynamic";
 
@@ -35,8 +36,16 @@ export async function GET(request: Request) {
     },
   });
 
+  const enriched = await enrichMatchesWithLiveScoreInfo(matches);
   return NextResponse.json(
-    await enrichMatchesWithLiveScoreInfo(matches),
+    enriched.map((match) => ({
+      ...match,
+      predictionLockAt: fixturePredictionLockAt({
+        competitionName: match.tournament.name,
+        tournamentPredictionLockAt: match.tournament.predictionLockAt,
+        kickoffTime: match.kickoffTime,
+      })?.toISOString() ?? null,
+    })),
     { headers: { "Cache-Control": "no-store" } }
   );
 }
