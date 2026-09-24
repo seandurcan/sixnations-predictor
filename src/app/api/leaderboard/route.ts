@@ -17,7 +17,10 @@ export async function GET(request: Request) {
   const users = tournament
     ? await prisma.user.findMany({
         where: { deletedAt: null, competitionEntries: { some: { tournamentId: tournament.id, status: "ENTERED" } } },
-        include: { predictions: { where: { match: { tournamentId: tournament.id } } } },
+        include: {
+          predictions: { where: { match: { tournamentId: tournament.id } } },
+          competitionEntries: { where: { tournamentId: tournament.id }, take: 1 },
+        },
       })
     : [];
 
@@ -39,9 +42,9 @@ export async function GET(request: Request) {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
-        totalPoints: user.totalPoints,
-        exactScores: user.exactScores,
-        cumulativeError: user.cumulativeError,
+        totalPoints: user.competitionEntries[0]?.totalPoints ?? 0,
+        exactScores: user.competitionEntries[0]?.exactScores ?? 0,
+        cumulativeError: user.competitionEntries[0]?.cumulativeError ?? 0,
         differenceScore: user.predictions.reduce(
           (total, prediction) => total + prediction.differenceScore,
           0
