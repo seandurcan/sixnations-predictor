@@ -17,6 +17,19 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ success: false, error: "Authentication required." }, { status: 401 });
   }
+  const podiumRecords = await prisma.tournamentWinner.findMany({
+    where: { userId: user.id, rank: { lte: 3 } },
+    orderBy: [{ createdAt: "desc" }, { rank: "asc" }],
+  });
+  const tournamentIds = Array.from(new Set(podiumRecords.map((record) => record.tournamentId)));
+  const tournaments = tournamentIds.length > 0
+    ? await prisma.tournament.findMany({
+        where: { id: { in: tournamentIds } },
+        select: { id: true, name: true, year: true, status: true },
+      })
+    : [];
+  const tournamentById = new Map(tournaments.map((tournament) => [tournament.id, tournament]));
+
   return NextResponse.json({
     success: true,
     user: {
@@ -27,6 +40,20 @@ export async function GET() {
       mobile: user.mobile,
       emailVerified: user.emailVerified,
     },
+    achievements: podiumRecords
+      .map((record) => {
+        const tournament = tournamentById.get(record.tournamentId);
+        return tournament ? {
+          id: record.id,
+          tournamentId: record.tournamentId,
+          tournamentName: tournament.name,
+          tournamentYear: tournament.year,
+          rank: record.rank,
+          finalPoints: record.finalPoints,
+          awardedAt: record.createdAt.toISOString(),
+        } : null;
+      })
+      .filter(Boolean),
   }, { headers: { "Cache-Control": "no-store" } });
 }
 
