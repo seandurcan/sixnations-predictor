@@ -18,11 +18,11 @@ vi.mock("@/lib/prisma", () => ({
     },
   },
 }));
-vi.mock("@/lib/currentTournament", () => ({ getTournamentByIdOrCurrent: vi.fn() }));
+vi.mock("@/lib/currentTournament", () => ({ getViewableTournamentByIdOrCurrent: vi.fn() }));
 vi.mock("@/lib/liveScoring", () => ({ syncLiveScores: vi.fn().mockResolvedValue({ providerQueries: 0 }) }));
 
 import { prisma } from "@/lib/prisma";
-import { getTournamentByIdOrCurrent } from "@/lib/currentTournament";
+import { getViewableTournamentByIdOrCurrent } from "@/lib/currentTournament";
 
 function request() {
   return new Request(
@@ -64,7 +64,7 @@ describe(
       vi.mocked(
         prisma.leaderboardSnapshot.findFirst
       ).mockResolvedValue(null);
-      vi.mocked(getTournamentByIdOrCurrent).mockResolvedValue({ id: 7 } as never);
+      vi.mocked(getViewableTournamentByIdOrCurrent).mockResolvedValue({ id: 7 } as never);
     });
 
     it("uses correct wins before perfect scores and prediction delta", async () => {
