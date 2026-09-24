@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { prisma } from "@/lib/prisma";
-import { discoverSixNationsFixtures } from "@/lib/fixtureDiscovery";
+import { discoverCompetitionFixtures } from "@/lib/fixtureDiscovery";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const preview = await discoverSixNationsFixtures(competition.year, apiKey);
+    const preview = await discoverCompetitionFixtures(competition.name, competition.year, apiKey);
     return NextResponse.json({
       success: true,
       competition: { id: competition.id, name: competition.name, year: competition.year },
