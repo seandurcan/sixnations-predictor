@@ -113,8 +113,6 @@ model Tournament {
   entries                          CompetitionEntry[]
   invitations                      CompetitionInvitation[]
   predictionConfirmationDeliveries PredictionConfirmationDelivery[]
-
-  @@unique([name, year])
 }
 
 model CompetitionEntry {
