@@ -21,8 +21,7 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 vi.mock("@/lib/currentTournament", () => ({
-  requireCurrentTournament: async () => ({ id: 1 }),
-  getCurrentTournament: async () => ({ id: 1 }),
+  requireCurrentViewableTournament: async () => ({ id: 1 }),
 }));
 
 vi.mock("@/lib/liveScoring", () => ({
