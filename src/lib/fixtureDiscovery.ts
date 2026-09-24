@@ -148,7 +148,7 @@ async function providerGet<T>(path: string, apiKey: string): Promise<T[]> {
 
 export function validateFixturePreview(
   fixtures: FixturePreview[],
-  competitionName: string
+  competitionName = "Six Nations Championship"
 ) {
   const warnings: string[] = [];
   const sixNations = isSixNationsCompetition(competitionName);
