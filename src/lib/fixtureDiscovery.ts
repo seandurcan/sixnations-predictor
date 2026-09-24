@@ -1,4 +1,4 @@
-const SIX_NATIONS_TEAMS = [
+export const SIX_NATIONS_TEAMS = [
   "England",
   "France",
   "Ireland",
@@ -6,8 +6,6 @@ const SIX_NATIONS_TEAMS = [
   "Scotland",
   "Wales",
 ] as const;
-
-type CanonicalTeam = (typeof SIX_NATIONS_TEAMS)[number];
 
 type ApiLeague = {
   id?: number;
@@ -39,8 +37,8 @@ export type FixturePreview = {
   providerGameId: number | null;
   round: number | null;
   kickoffTime: string | null;
-  homeTeam: CanonicalTeam | null;
-  awayTeam: CanonicalTeam | null;
+  homeTeam: string | null;
+  awayTeam: string | null;
   providerHomeTeam: string;
   providerAwayTeam: string;
   venue: string | null;
@@ -52,37 +50,55 @@ export type FixturePreviewResult = {
   provider: "API-Sports";
   providerLeague: { id: number; name: string };
   fixtures: FixturePreview[];
+  participantTeams: string[];
   warnings: string[];
   valid: boolean;
   expectedFixtureCount: number;
   discoveredFixtureCount: number;
+  competitionKind: "SIX_NATIONS" | "LEAGUE";
 };
 
-function normalise(value: unknown) {
+export function normaliseCompetitionName(value: unknown) {
   return String(value ?? "")
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[^a-z0-9]/g, "");
 }
 
-function canonicalTeam(value: unknown): CanonicalTeam | null {
-  const candidate = normalise(value);
-  return SIX_NATIONS_TEAMS.find((team) => normalise(team) === candidate) ?? null;
+export function isSixNationsCompetition(name: string) {
+  return normaliseCompetitionName(name).includes("sixnations");
+}
+
+export function isCrossYearCompetition(name: string) {
+  const normalised = normaliseCompetitionName(name);
+  return normalised.includes("unitedrugbychampionship");
+}
+
+export function providerCompetitionSearchName(name: string) {
+  if (isSixNationsCompetition(name)) return "Six Nations";
+  return name.trim();
+}
+
+function canonicalSixNationsTeam(value: unknown) {
+  const candidate = normaliseCompetitionName(value);
+  return SIX_NATIONS_TEAMS.find(
+    (team) => normaliseCompetitionName(team) === candidate
+  ) ?? null;
 }
 
 function teamName(value: unknown) {
-  if (typeof value === "string") return value;
+  if (typeof value === "string") return value.trim();
   if (value && typeof value === "object" && "name" in value) {
-    return String((value as { name?: unknown }).name ?? "");
+    return String((value as { name?: unknown }).name ?? "").trim();
   }
   return "";
 }
 
 function textValue(value: unknown) {
-  if (typeof value === "string") return value || null;
+  if (typeof value === "string") return value.trim() || null;
   if (value && typeof value === "object" && "name" in value) {
     const name = (value as { name?: unknown }).name;
-    return typeof name === "string" && name ? name : null;
+    return typeof name === "string" && name.trim() ? name.trim() : null;
   }
   return null;
 }
@@ -130,55 +146,94 @@ async function providerGet<T>(path: string, apiKey: string): Promise<T[]> {
   return payload.response;
 }
 
-export function validateFixturePreview(fixtures: FixturePreview[]) {
+export function validateFixturePreview(
+  fixtures: FixturePreview[],
+  competitionName: string
+) {
   const warnings: string[] = [];
-  const recognised = fixtures.filter((fixture) => fixture.homeTeam && fixture.awayTeam);
-  const unknownTeams = fixtures.filter((fixture) => !fixture.homeTeam || !fixture.awayTeam);
-  if (unknownTeams.length > 0) {
-    warnings.push(`${unknownTeams.length} fixture(s) contain an unrecognised team.`);
+  const sixNations = isSixNationsCompetition(competitionName);
+
+  const missingTeams = fixtures.filter(
+    (fixture) => !fixture.homeTeam || !fixture.awayTeam
+  ).length;
+  if (missingTeams > 0) {
+    warnings.push(`${missingTeams} fixture(s) have a missing team.`);
   }
-  if (fixtures.length !== 15) {
+
+  if (sixNations && fixtures.length !== 15) {
     warnings.push(`Expected 15 fixtures but found ${fixtures.length}.`);
   }
-  const pairKeys = recognised.map((fixture) =>
-    [fixture.homeTeam, fixture.awayTeam].sort().join("|")
-  );
-  if (new Set(pairKeys).size !== pairKeys.length) {
-    warnings.push("One or more team pairings are duplicated.");
+  if (!sixNations && fixtures.length === 0) {
+    warnings.push("No fixtures were returned.");
   }
-  for (const team of SIX_NATIONS_TEAMS) {
-    const appearances = recognised.filter(
-      (fixture) => fixture.homeTeam === team || fixture.awayTeam === team
-    ).length;
-    if (appearances !== 5) {
-      warnings.push(`${team} appears in ${appearances} fixtures; expected 5.`);
+
+  const pairKeys = fixtures
+    .filter((fixture) => fixture.homeTeam && fixture.awayTeam)
+    .map((fixture) =>
+      sixNations
+        ? [fixture.homeTeam, fixture.awayTeam].sort().join("|")
+        : `${fixture.homeTeam}|${fixture.awayTeam}|${fixture.kickoffTime ?? ""}`
+    );
+  if (new Set(pairKeys).size !== pairKeys.length) {
+    warnings.push("One or more fixture records are duplicated.");
+  }
+
+  if (sixNations) {
+    for (const team of SIX_NATIONS_TEAMS) {
+      const appearances = fixtures.filter(
+        (fixture) => fixture.homeTeam === team || fixture.awayTeam === team
+      ).length;
+      if (appearances !== 5) {
+        warnings.push(`${team} appears in ${appearances} fixtures; expected 5.`);
+      }
     }
   }
+
   const missingKickoffs = fixtures.filter((fixture) => !fixture.kickoffTime).length;
-  if (missingKickoffs > 0) warnings.push(`${missingKickoffs} fixture(s) have no verified kickoff time.`);
+  if (missingKickoffs > 0) {
+    warnings.push(`${missingKickoffs} fixture(s) have no verified kickoff time.`);
+  }
   const missingVenues = fixtures.filter((fixture) => !fixture.venue).length;
-  if (missingVenues > 0) warnings.push(`${missingVenues} fixture(s) have no stadium supplied.`);
+  if (missingVenues > 0) {
+    warnings.push(`${missingVenues} fixture(s) have no stadium supplied.`);
+  }
 
   return { warnings, valid: warnings.length === 0 };
 }
 
-export async function discoverSixNationsFixtures(
+export async function discoverCompetitionFixtures(
+  competitionName: string,
   year: number,
   apiKey: string
 ): Promise<FixturePreviewResult> {
-  const leagues = await providerGet<ApiLeague>("leagues?search=Six%20Nations", apiKey);
-  const candidates = leagues.filter((league) =>
-    normalise(league.name).includes("sixnations") && seasonAvailable(league, year)
+  const searchName = providerCompetitionSearchName(competitionName);
+  const leagues = await providerGet<ApiLeague>(
+    `leagues?search=${encodeURIComponent(searchName)}`,
+    apiKey
   );
-  const league = candidates.find((item) => normalise(item.name) === "sixnations") ?? candidates[0];
+  const target = normaliseCompetitionName(searchName);
+  const candidates = leagues.filter(
+    (league) =>
+      normaliseCompetitionName(league.name).includes(target) &&
+      seasonAvailable(league, year)
+  );
+  const league =
+    candidates.find(
+      (item) => normaliseCompetitionName(item.name) === target
+    ) ?? candidates[0];
+
   if (!league?.id || !league.name) {
-    throw new Error(`API-Sports has no Six Nations competition available for ${year}.`);
+    throw new Error(
+      `API-Sports has no ${searchName} competition available for season ${year}.`
+    );
   }
 
   const games = await providerGet<ApiGame>(
     `games?league=${league.id}&season=${year}`,
     apiKey
   );
+  const sixNations = isSixNationsCompetition(competitionName);
+
   const fixtures = games
     .map((game): FixturePreview => {
       const providerHomeTeam = teamName(game.teams?.home ?? game.home);
@@ -188,12 +243,17 @@ export async function discoverSixNationsFixtures(
         (typeof game.venue === "object" ? game.venue.city ?? null : null) ??
         game.city ??
         null;
+
       return {
         providerGameId: Number.isInteger(game.id) ? game.id! : null,
         round: roundNumber(game.round ?? game.week),
         kickoffTime: kickoffIso(game),
-        homeTeam: canonicalTeam(providerHomeTeam),
-        awayTeam: canonicalTeam(providerAwayTeam),
+        homeTeam: sixNations
+          ? canonicalSixNationsTeam(providerHomeTeam)
+          : providerHomeTeam || null,
+        awayTeam: sixNations
+          ? canonicalSixNationsTeam(providerAwayTeam)
+          : providerAwayTeam || null,
         providerHomeTeam,
         providerAwayTeam,
         venue,
@@ -204,14 +264,29 @@ export async function discoverSixNationsFixtures(
     .filter((fixture) => fixture.homeTeam || fixture.awayTeam)
     .sort((a, b) => String(a.kickoffTime).localeCompare(String(b.kickoffTime)));
 
-  const validation = validateFixturePreview(fixtures);
+  const participantTeams = Array.from(
+    new Set(
+      fixtures
+        .flatMap((fixture) => [fixture.homeTeam, fixture.awayTeam])
+        .filter((team): team is string => Boolean(team))
+    )
+  ).sort((a, b) => a.localeCompare(b));
+
+  const validation = validateFixturePreview(fixtures, competitionName);
   return {
     provider: "API-Sports",
     providerLeague: { id: league.id, name: league.name },
     fixtures,
+    participantTeams,
     warnings: validation.warnings,
     valid: validation.valid,
-    expectedFixtureCount: 15,
+    expectedFixtureCount: sixNations ? 15 : fixtures.length,
     discoveredFixtureCount: fixtures.length,
+    competitionKind: sixNations ? "SIX_NATIONS" : "LEAGUE",
   };
+}
+
+// Backwards-compatible export for existing tests/imports.
+export async function discoverSixNationsFixtures(year: number, apiKey: string) {
+  return discoverCompetitionFixtures("Six Nations Championship", year, apiKey);
 }
