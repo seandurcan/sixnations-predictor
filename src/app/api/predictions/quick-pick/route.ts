@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { fixturePredictionIsLocked } from "@/lib/predictionLocking";
 
 function randomScore() {
   return Math.floor(Math.random() * 41);
@@ -18,24 +19,16 @@ export async function POST(request: Request) {
         ...(Number.isInteger(requestedTournamentId) && requestedTournamentId > 0
           ? { id: requestedTournamentId }
           : {}),
-        status: { in: ["OPEN", "LOCKED"] },
-        predictionLockAt: { gt: now },
+        status: { in: ["OPEN", "LOCKED", "IN_PROGRESS"] },
       },
       orderBy: { firstKickoff: "asc" },
       include: { matches: { orderBy: { kickoffTime: "asc" } } },
     });
 
-    if (!tournament || !tournament.firstKickoff || !tournament.predictionLockAt || tournament.matches.length === 0) {
+    if (!tournament || tournament.matches.length === 0) {
       return NextResponse.json(
         { success: false, error: "No open tournament is available for Quick Pick." },
         { status: 409 }
-      );
-    }
-
-    if (tournament.predictionLockAt <= now) {
-      return NextResponse.json(
-        { success: false, error: "All tournament predictions are locked." },
-        { status: 403 }
       );
     }
 
@@ -56,12 +49,18 @@ export async function POST(request: Request) {
     }
 
     const openMatches = tournament.matches.filter(
-      (match) => !match.completed
+      (match) =>
+        !match.completed &&
+        !fixturePredictionIsLocked({
+          competitionName: tournament.name,
+          tournamentPredictionLockAt: tournament.predictionLockAt,
+          kickoffTime: match.kickoffTime,
+        }, now)
     );
 
     if (openMatches.length === 0) {
       return NextResponse.json(
-        { success: false, error: "All tournament predictions are locked." },
+        { success: false, error: "No open fixtures are available for Quick Pick." },
         { status: 403 }
       );
     }
