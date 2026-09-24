@@ -50,12 +50,12 @@ export type FixturePreviewResult = {
   provider: "API-Sports";
   providerLeague: { id: number; name: string };
   fixtures: FixturePreview[];
-  participantTeams: string[];
+  participantTeams?: string[];
   warnings: string[];
   valid: boolean;
   expectedFixtureCount: number;
   discoveredFixtureCount: number;
-  competitionKind: "SIX_NATIONS" | "LEAGUE";
+  competitionKind?: "SIX_NATIONS" | "LEAGUE";
 };
 
 export function normaliseCompetitionName(value: unknown) {
