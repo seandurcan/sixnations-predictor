@@ -206,7 +206,7 @@ export async function PATCH(request: NextRequest) {
               }),
             },
           });
-          return { status: "READY", previousTournamentId: null };
+          return { status: "READY", previousDefaultTournamentId: null };
         }
 
         if (competition.status !== "READY") {
