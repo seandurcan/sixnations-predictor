@@ -18,11 +18,11 @@ vi.mock("@/lib/prisma", () => ({
     },
   },
 }));
-vi.mock("@/lib/currentTournament", () => ({ getCurrentTournament: vi.fn() }));
+vi.mock("@/lib/currentTournament", () => ({ getTournamentByIdOrCurrent: vi.fn() }));
 vi.mock("@/lib/liveScoring", () => ({ syncLiveScores: vi.fn().mockResolvedValue({ providerQueries: 0 }) }));
 
 import { prisma } from "@/lib/prisma";
-import { getCurrentTournament } from "@/lib/currentTournament";
+import { getTournamentByIdOrCurrent } from "@/lib/currentTournament";
 
 function request() {
   return new Request(
@@ -30,27 +30,30 @@ function request() {
   );
 }
 
-const user = (
-  id: number,
-  overrides: any = {}
-) => ({
-  id,
-  firstName: `Player${id}`,
-  lastName: "Test",
-  totalPoints: 10,
-  exactScores: 1,
-  cumulativeError: 20,
-  registrationOrder: id,
-  predictionSubmittedAt: null,
-  predictions: [
-    {
-      differenceScore: 0,
-      correctMargin: true,
-      correctResult: true,
-    },
-  ],
-  ...overrides,
-});
+const user = (id: number, overrides: any = {}) => {
+  const totalPoints = overrides.totalPoints ?? 10;
+  const exactScores = overrides.exactScores ?? 1;
+  const cumulativeError = overrides.cumulativeError ?? 20;
+  return {
+    id,
+    firstName: `Player${id}`,
+    lastName: "Test",
+    totalPoints,
+    exactScores,
+    cumulativeError,
+    competitionEntries: [{ totalPoints, exactScores, cumulativeError }],
+    registrationOrder: id,
+    predictionSubmittedAt: null,
+    predictions: [
+      {
+        differenceScore: 0,
+        correctMargin: true,
+        correctResult: true,
+      },
+    ],
+    ...overrides,
+  };
+};
 
 describe(
   "GET /api/leaderboard",
@@ -61,7 +64,7 @@ describe(
       vi.mocked(
         prisma.leaderboardSnapshot.findFirst
       ).mockResolvedValue(null);
-      vi.mocked(getCurrentTournament).mockResolvedValue({ id: 7 } as never);
+      vi.mocked(getTournamentByIdOrCurrent).mockResolvedValue({ id: 7 } as never);
     });
 
     it("uses correct wins before perfect scores and prediction delta", async () => {
@@ -189,7 +192,10 @@ describe(
 
       expect(prisma.user.findMany).toHaveBeenCalledWith({
         where: { deletedAt: null, competitionEntries: { some: { tournamentId: 7, status: "ENTERED" } } },
-        include: { predictions: { where: { match: { tournamentId: 7 } } } },
+        include: {
+          predictions: { where: { match: { tournamentId: 7 } } },
+          competitionEntries: { where: { tournamentId: 7 }, take: 1 },
+        },
       });
     });
   }
