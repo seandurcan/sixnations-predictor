@@ -138,12 +138,11 @@ export default function LeaderboardPage() {
       setError(null);
 
       try {
-        if (!selectedCompetitionId) {
-          setLeaderboard([]);
-          return;
-        }
+        const tournamentQuery = selectedCompetitionId
+          ? `&tournamentId=${selectedCompetitionId}`
+          : "";
         const response = await fetch(
-          `/api/leaderboard?page=${page}&pageSize=${PAGE_SIZE}&tournamentId=${selectedCompetitionId}`,
+          `/api/leaderboard?page=${page}&pageSize=${PAGE_SIZE}${tournamentQuery}`,
           {
             signal: controller.signal,
             cache: "no-store",
