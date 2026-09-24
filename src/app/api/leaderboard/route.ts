@@ -2,15 +2,18 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { assignCompetitionRanks } from "@/lib/scoring";
 import { syncLiveScores } from "@/lib/liveScoring";
-import { getCurrentTournament } from "@/lib/currentTournament";
+import { getTournamentByIdOrCurrent } from "@/lib/currentTournament";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   await syncLiveScores();
-  const tournament = await getCurrentTournament();
-
   const { searchParams } = new URL(request.url);
+  const requestedId = Number(searchParams.get("tournamentId"));
+  const tournament = await getTournamentByIdOrCurrent(
+    Number.isInteger(requestedId) && requestedId > 0 ? requestedId : null
+  );
+
   const page = Number(searchParams.get("page") ?? "1");
   const pageSize = Number(searchParams.get("pageSize") ?? "10");
 
