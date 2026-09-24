@@ -175,7 +175,7 @@ export function validateFixturePreview(
         : `${fixture.homeTeam}|${fixture.awayTeam}|${fixture.kickoffTime ?? ""}`
     );
   if (new Set(pairKeys).size !== pairKeys.length) {
-    warnings.push("One or more fixture records are duplicated.");
+    warnings.push(sixNations ? "One or more team pairings are duplicated." : "One or more fixture records are duplicated.");
   }
 
   if (sixNations) {
