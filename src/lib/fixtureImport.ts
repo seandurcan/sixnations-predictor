@@ -63,7 +63,7 @@ export function prepareCompetitionFixtureImport(
   if (sixNations && fixtures.length !== 15) {
     return {
       fixtures: [],
-      errors: [`Exactly 15 fixtures are required for the Six Nations; received ${fixtures.length}.`],
+      errors: [`Exactly 15 fixtures are required; received ${fixtures.length}.`],
     };
   }
 
@@ -133,7 +133,7 @@ export function prepareCompetitionFixtureImport(
       [fixture.homeTeam, fixture.awayTeam].sort().join("|")
     );
     if (new Set(pairings).size !== pairings.length) {
-      errors.push("Each Six Nations pair of teams must meet exactly once.");
+      errors.push("Each pair of teams must meet exactly once; duplicate pairings were found.");
     }
     for (const team of SIX_NATIONS_TEAM_NAMES) {
       const appearances = recognised.filter(
