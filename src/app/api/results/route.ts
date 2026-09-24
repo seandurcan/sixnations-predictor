@@ -5,6 +5,7 @@ import {
   calculateMatchScore,
 } from "@/lib/scoring";
 import { generateCompletedRoundStory } from "@/lib/competitionStories";
+import { advanceKnockoutWinner } from "@/lib/knockoutBracket";
 
 export async function POST(
   request: Request
@@ -59,6 +60,15 @@ export async function POST(
           completed: true,
         },
       });
+
+    if (body.homeScore !== body.awayScore) {
+      const winnerTeamId = body.homeScore > body.awayScore
+        ? match.homeTeamId
+        : match.awayTeamId;
+      await advanceKnockoutWinner(match.tournamentId, match.id, winnerTeamId).catch(
+        (bracketError) => console.error("Knockout progression failed", bracketError)
+      );
+    }
 
     const predictions =
       await prisma.prediction.findMany({
