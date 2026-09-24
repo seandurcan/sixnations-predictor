@@ -142,11 +142,6 @@ export default function CompetitionsPage() {
   const currentCompetition = competitions.find(
     (competition) => competition.id === currentTournamentId
   );
-  const currentCompetitionIsActive = Boolean(
-    currentCompetition &&
-    !["COMPLETED", "ARCHIVED", "CANCELLED"].includes(currentCompetition.status)
-  );
-
   useEffect(() => { void loadCompetitions(); }, []);
 
   async function loadCompetitions() {
@@ -228,9 +223,9 @@ export default function CompetitionsPage() {
         "This will not make it current or affect any users."
       )
       : window.confirm(
-        `Activate ${title} as the current competition?\n\n` +
-        `${currentCompetition ? `${formatCompetitionTitle(currentCompetition.name, currentCompetition.year)} will become historical. ` : ""}` +
-        "All existing accounts and previous competition records will be preserved. Annual entries and predictions will not be copied."
+        `Activate ${title}?\n\n` +
+        `${currentCompetition ? `${formatCompetitionTitle(currentCompetition.name, currentCompetition.year)} will remain active if it is still in progress. ` : ""}` +
+        "The newly activated competition will become the default selection. Existing accounts, competitions and records are preserved."
       );
     if (!confirmed) return;
 
@@ -384,16 +379,11 @@ export default function CompetitionsPage() {
                           <>
                             <Button
                               type="button"
-                              disabled={updatingId !== null || currentCompetitionIsActive}
+                              disabled={updatingId !== null}
                               onClick={() => void updateCompetitionLifecycle(competition, "activate")}
                             >
                               {updatingId === competition.id ? "Activating..." : "Activate Competition"}
                             </Button>
-                            {currentCompetitionIsActive && (
-                              <p className="max-w-64 text-right text-xs text-[var(--brand-muted)]">
-                                Activation becomes available after the current competition is completed.
-                              </p>
-                            )}
                           </>
                         )}
                       </div>
