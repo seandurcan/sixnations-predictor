@@ -206,17 +206,21 @@ describe("AdminPage", () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  it("redirects to login when auth API throws", async () => {
+  it("shows a load error when the auth API is unavailable", async () => {
     vi.mocked(global.fetch).mockRejectedValueOnce(
       new Error("Auth API unavailable")
     );
 
     render(<AdminPage />);
 
-    await waitFor(() => {
-      expect(window.location.href).toBe("/login");
-    });
+    expect(
+      await screen.findByText("Unable to Load Admin Results")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Auth API unavailable")
+    ).toBeInTheDocument();
 
+    expect(window.location.href).toBe("");
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
