@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { requireUser } from "@/lib/auth";
-import { getCurrentTournament } from "@/lib/currentTournament";
+import { getTournamentByIdOrCurrent } from "@/lib/currentTournament";
+import { formatCompetitionTitle } from "@/lib/competitionTitle";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 
@@ -27,11 +28,17 @@ function getAppUrl() {
   }
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const user =
       await requireUser();
-    const tournament = await getCurrentTournament();
+    const body = await request.json().catch(() => ({}));
+    const requestedTournamentId = Number(body.tournamentId);
+    const tournament = await getTournamentByIdOrCurrent(
+      Number.isInteger(requestedTournamentId) && requestedTournamentId > 0
+        ? requestedTournamentId
+        : null
+    );
 
     if (!tournament) {
       return NextResponse.json(
@@ -80,9 +87,9 @@ export async function POST() {
             price_data: {
               currency: tournament.currency.toLowerCase(),
               product_data: {
-                name: "Perfect XV Competition Entry",
+                name: `Perfect XV — ${formatCompetitionTitle(tournament.name, tournament.year)}`,
                 description:
-                  "Six Nations Predictor Entry Fee",
+                  "Perfect XV test competition entry",
                 tax_code:
                   "txcd_10000000",
               },
@@ -98,10 +105,10 @@ export async function POST() {
         },
 
         success_url:
-          `${appUrl}/payment-success`,
+          `${appUrl}/payment-success?tournamentId=${tournament.id}`,
 
         cancel_url:
-          `${appUrl}/payment-required`,
+          `${appUrl}/payment-required?tournamentId=${tournament.id}`,
       });
 
     return NextResponse.json({
