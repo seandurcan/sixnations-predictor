@@ -1,16 +1,15 @@
-export const SIX_NATIONS_TEAM_NAMES = [
-  "England",
-  "France",
-  "Ireland",
-  "Italy",
-  "Scotland",
-  "Wales",
-] as const;
+import {
+  isCrossYearCompetition,
+  isSixNationsCompetition,
+  SIX_NATIONS_TEAMS,
+} from "@/lib/fixtureDiscovery";
 
+export const SIX_NATIONS_TEAM_NAMES = SIX_NATIONS_TEAMS;
 export type SixNationsTeamName = (typeof SIX_NATIONS_TEAM_NAMES)[number];
 
 export type FixtureImportInput = {
   providerGameId?: number | null;
+  round?: number | null;
   kickoffTime?: string | null;
   homeTeam?: string | null;
   awayTeam?: string | null;
@@ -22,8 +21,8 @@ export type FixtureImportInput = {
 export type PreparedFixture = {
   providerGameId: number | null;
   kickoffTime: Date;
-  homeTeam: SixNationsTeamName;
-  awayTeam: SixNationsTeamName;
+  homeTeam: string;
+  awayTeam: string;
   venue: string;
   city: string | null;
   country: string | null;
@@ -38,28 +37,45 @@ function cleanOptionalText(value: unknown, maximumLength: number) {
   return cleaned.slice(0, maximumLength);
 }
 
-function canonicalTeam(value: unknown): SixNationsTeamName | null {
+function cleanTeam(value: unknown) {
   if (typeof value !== "string") return null;
-  return SIX_NATIONS_TEAM_NAMES.find((team) => team === value) ?? null;
+  const cleaned = value.trim();
+  return cleaned ? cleaned.slice(0, 120) : null;
 }
 
-export function prepareFixtureImport(
+function yearAllowed(kickoffTime: Date, competitionYear: number, competitionName: string) {
+  const kickoffYear = kickoffTime.getUTCFullYear();
+  return isCrossYearCompetition(competitionName)
+    ? kickoffYear === competitionYear || kickoffYear === competitionYear + 1
+    : kickoffYear === competitionYear;
+}
+
+export function prepareCompetitionFixtureImport(
   fixtures: FixtureImportInput[],
-  competitionYear: number
+  competition: { year: number; name: string }
 ): { fixtures: PreparedFixture[]; errors: string[] } {
   const errors: string[] = [];
-  if (!Array.isArray(fixtures) || fixtures.length !== 15) {
+  const sixNations = isSixNationsCompetition(competition.name);
+
+  if (!Array.isArray(fixtures) || fixtures.length === 0) {
+    return { fixtures: [], errors: ["At least one fixture is required."] };
+  }
+  if (sixNations && fixtures.length !== 15) {
     return {
       fixtures: [],
-      errors: [`Exactly 15 fixtures are required; received ${Array.isArray(fixtures) ? fixtures.length : 0}.`],
+      errors: [`Exactly 15 fixtures are required for the Six Nations; received ${fixtures.length}.`],
     };
   }
 
   const parsed = fixtures.map((fixture, index) => {
-    const homeTeam = canonicalTeam(fixture.homeTeam);
-    const awayTeam = canonicalTeam(fixture.awayTeam);
+    const homeTeam = cleanTeam(fixture.homeTeam);
+    const awayTeam = cleanTeam(fixture.awayTeam);
     const kickoffTime = new Date(String(fixture.kickoffTime ?? ""));
     const venue = cleanOptionalText(fixture.venue, 160);
+    const suppliedRound =
+      Number.isInteger(fixture.round) && Number(fixture.round) > 0
+        ? Number(fixture.round)
+        : null;
 
     if (!homeTeam) errors.push(`Fixture ${index + 1} has an invalid home team.`);
     if (!awayTeam) errors.push(`Fixture ${index + 1} has an invalid away team.`);
@@ -68,8 +84,11 @@ export function prepareFixtureImport(
     }
     if (Number.isNaN(kickoffTime.getTime())) {
       errors.push(`Fixture ${index + 1} needs a valid kickoff time.`);
-    } else if (kickoffTime.getUTCFullYear() !== competitionYear) {
-      errors.push(`Fixture ${index + 1} kickoff must be in ${competitionYear}.`);
+    } else if (!yearAllowed(kickoffTime, competition.year, competition.name)) {
+      const expected = isCrossYearCompetition(competition.name)
+        ? `${competition.year} or ${competition.year + 1}`
+        : String(competition.year);
+      errors.push(`Fixture ${index + 1} kickoff must be in ${expected}.`);
     }
     if (!venue) errors.push(`Fixture ${index + 1} needs a stadium.`);
 
@@ -78,6 +97,7 @@ export function prepareFixtureImport(
         Number.isInteger(fixture.providerGameId) && Number(fixture.providerGameId) > 0
           ? Number(fixture.providerGameId)
           : null,
+      suppliedRound,
       kickoffTime,
       homeTeam,
       awayTeam,
@@ -91,26 +111,37 @@ export function prepareFixtureImport(
 
   const recognised = parsed as Array<{
     providerGameId: number | null;
+    suppliedRound: number | null;
     kickoffTime: Date;
-    homeTeam: SixNationsTeamName;
-    awayTeam: SixNationsTeamName;
+    homeTeam: string;
+    awayTeam: string;
     venue: string;
     city: string | null;
     country: string | null;
   }>;
-  const pairings = recognised.map((fixture) =>
-    [fixture.homeTeam, fixture.awayTeam].sort().join("|")
+
+  const exactKeys = recognised.map(
+    (fixture) =>
+      `${fixture.homeTeam}|${fixture.awayTeam}|${fixture.kickoffTime.toISOString()}`
   );
-  if (new Set(pairings).size !== pairings.length) {
-    errors.push("Each pair of teams must meet exactly once; duplicate pairings were found.");
+  if (new Set(exactKeys).size !== exactKeys.length) {
+    errors.push("Duplicate fixture records were found.");
   }
 
-  for (const team of SIX_NATIONS_TEAM_NAMES) {
-    const appearances = recognised.filter(
-      (fixture) => fixture.homeTeam === team || fixture.awayTeam === team
-    ).length;
-    if (appearances !== 5) {
-      errors.push(`${team} must appear in exactly 5 fixtures; found ${appearances}.`);
+  if (sixNations) {
+    const pairings = recognised.map((fixture) =>
+      [fixture.homeTeam, fixture.awayTeam].sort().join("|")
+    );
+    if (new Set(pairings).size !== pairings.length) {
+      errors.push("Each Six Nations pair of teams must meet exactly once.");
+    }
+    for (const team of SIX_NATIONS_TEAM_NAMES) {
+      const appearances = recognised.filter(
+        (fixture) => fixture.homeTeam === team || fixture.awayTeam === team
+      ).length;
+      if (appearances !== 5) {
+        errors.push(`${team} must appear in exactly 5 fixtures; found ${appearances}.`);
+      }
     }
   }
 
@@ -119,13 +150,40 @@ export function prepareFixtureImport(
   const ordered = [...recognised].sort(
     (a, b) => a.kickoffTime.getTime() - b.kickoffTime.getTime()
   );
+
+  let inferredRound = 1;
+  let previousDate = "";
   return {
     errors: [],
-    fixtures: ordered.map((fixture, index) => ({
-      ...fixture,
-      matchNumber: index + 1,
-      round: Math.floor(index / 3) + 1,
-    })),
+    fixtures: ordered.map((fixture, index) => {
+      const dateKey = fixture.kickoffTime.toISOString().slice(0, 10);
+      if (!sixNations && index > 0 && dateKey !== previousDate && fixture.suppliedRound === null) {
+        inferredRound += 1;
+      }
+      previousDate = dateKey;
+
+      return {
+        providerGameId: fixture.providerGameId,
+        kickoffTime: fixture.kickoffTime,
+        homeTeam: fixture.homeTeam,
+        awayTeam: fixture.awayTeam,
+        venue: fixture.venue,
+        city: fixture.city,
+        country: fixture.country,
+        matchNumber: index + 1,
+        round: fixture.suppliedRound ?? (sixNations ? Math.floor(index / 3) + 1 : inferredRound),
+      };
+    }),
   };
 }
 
+// Backwards-compatible Six Nations helper used by existing tests.
+export function prepareFixtureImport(
+  fixtures: FixtureImportInput[],
+  competitionYear: number
+) {
+  return prepareCompetitionFixtureImport(fixtures, {
+    year: competitionYear,
+    name: "Six Nations Championship",
+  });
+}
