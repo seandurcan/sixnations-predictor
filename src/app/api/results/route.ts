@@ -97,6 +97,7 @@ export async function POST(
         },
         include: {
           predictions: { where: { match: { tournamentId: match.tournamentId } } },
+          competitionEntries: { where: { tournamentId: match.tournamentId }, take: 1 },
         },
       });
 
@@ -200,11 +201,11 @@ export async function POST(
           return {
             id: user.id,
             totalPoints:
-              user.totalPoints,
+              user.competitionEntries[0]?.totalPoints ?? 0,
             exactScores:
-              user.exactScores,
+              user.competitionEntries[0]?.exactScores ?? 0,
             cumulativeError:
-              user.cumulativeError,
+              user.competitionEntries[0]?.cumulativeError ?? 0,
             differenceScore,
             correctMargins: user.predictions.filter((prediction) => prediction.correctMargin).length,
             correctResults: user.predictions.filter((prediction) => prediction.correctResult).length,
@@ -286,14 +287,27 @@ export async function POST(
     }
 
     if (tournamentComplete) {
-      await prisma.tournament.update({
-        where: {
-          id: match.tournamentId,
-        },
-        data: {
-          status:
-            "COMPLETED",
-        },
+      await prisma.$transaction(async (tx) => {
+        await tx.tournament.update({
+          where: { id: match.tournamentId },
+          data: { status: "COMPLETED" },
+        });
+
+        await tx.tournamentWinner.deleteMany({
+          where: { tournamentId: match.tournamentId },
+        });
+
+        const podium = rankings.filter((entry) => entry.rank <= 3);
+        if (podium.length > 0) {
+          await tx.tournamentWinner.createMany({
+            data: podium.map((entry) => ({
+              tournamentId: match.tournamentId,
+              userId: entry.id,
+              finalPoints: entry.totalPoints,
+              rank: entry.rank,
+            })),
+          });
+        }
       });
     }
 
