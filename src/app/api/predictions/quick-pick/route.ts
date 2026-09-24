@@ -6,13 +6,18 @@ function randomScore() {
   return Math.floor(Math.random() * 41);
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const user = await requireUser();
 
+    const body = await request.json().catch(() => ({}));
+    const requestedTournamentId = Number(body.tournamentId);
     const now = new Date();
     const tournament = await prisma.tournament.findFirst({
       where: {
+        ...(Number.isInteger(requestedTournamentId) && requestedTournamentId > 0
+          ? { id: requestedTournamentId }
+          : {}),
         status: { in: ["OPEN", "LOCKED"] },
         predictionLockAt: { gt: now },
       },
