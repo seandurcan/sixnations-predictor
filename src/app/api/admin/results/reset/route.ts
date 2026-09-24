@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
-import { requireCurrentTournament } from "@/lib/currentTournament";
+import { requireCurrentViewableTournament } from "@/lib/currentTournament";
 
 export async function POST() {
   try {
     await requireAdmin();
 
-    const tournament = await requireCurrentTournament();
+    const tournament = await requireCurrentViewableTournament();
 
     const matches =
       await prisma.match.findMany({
