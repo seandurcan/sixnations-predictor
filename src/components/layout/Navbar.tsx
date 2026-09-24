@@ -35,6 +35,7 @@ const QR_WINDOW_SIZE = Math.round(QR_DISPLAY_SIZE * 1.1);
 const ICONS = {
   home: "\u{1F3E0}",
   leaderboard: "\u{1F3C6}",
+  news: "\u{1F4F0}",
   dashboard: "\u{1F4CA}",
   predictions: "\u{1F4DD}",
   admin: "\u{1F6E0}\uFE0F",
@@ -65,6 +66,11 @@ const publicLinks: NavItem[] = [
     label: "Leaderboard",
     href: "/leaderboard",
     icon: ICONS.leaderboard,
+  },
+  {
+    label: "News",
+    href: "/news",
+    icon: ICONS.news,
   },
 ];
 
