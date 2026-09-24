@@ -1,7 +1,7 @@
 import { prepareCompetitionFixtureImport } from "@/lib/fixtureImport";
 
 export type CompetitionReadinessInput = {
-  name: string;
+  name?: string;
   year: number;
   firstKickoff: Date | null;
   predictionLockAt: Date | null;
@@ -30,7 +30,7 @@ export function validateCompetitionReadiness(
       city: match.city,
       country: match.country,
     })),
-    { year: competition.year, name: competition.name }
+    { year: competition.year, name: competition.name ?? "Six Nations Championship" }
   );
   const errors = [...prepared.errors];
 
