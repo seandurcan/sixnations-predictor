@@ -102,8 +102,12 @@ export default function AdminPage() {
         }
       );
 
-      window.location.href =
-        "/login";
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to load Admin Results."
+      );
+      setLoading(false);
     }
   }
 
@@ -128,8 +132,15 @@ export default function AdminPage() {
       return;
     }
 
-    const data =
-      await response.json();
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data?.error ?? "Unable to load matches.");
+    }
+
+    if (!Array.isArray(data)) {
+      throw new Error("Admin matches returned an unexpected response.");
+    }
 
     const sortedData =
       [...data].sort(
