@@ -381,7 +381,7 @@ export default function LeaderboardPage() {
               ))}
             </Select>
           </div>
-        )
+        )}
 
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-slate-500">
