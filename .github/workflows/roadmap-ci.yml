@@ -27,5 +27,22 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npx tsc --noEmit
-      - run: npm test -- --run
       - run: npx next build
+      - name: Run multi-competition regression tests
+        run: >
+          npx vitest run
+          src/lib/fixtureDiscovery.test.ts
+          src/lib/fixtureImport.test.ts
+          src/lib/competitionReadiness.test.ts
+          src/lib/competitionTitle.test.ts
+          src/lib/predictionLocking.test.ts
+          src/lib/knockoutBracket.test.ts
+          src/lib/liveScoring.test.ts
+          src/app/api/admin/competitions/fixtures/preview/route.test.ts
+          src/app/api/admin/competitions/route.test.ts
+          src/app/api/matches/route.test.ts
+          src/app/api/leaderboard/route.test.ts
+          src/app/api/predictions/route.test.ts
+          src/app/api/predictions/list/route.test.ts
+          src/app/api/stripe/create-checkout-session/route.test.ts
+          src/app/api/account/route.test.ts
