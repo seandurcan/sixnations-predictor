@@ -412,6 +412,21 @@ export default function AdminPage() {
   }
 
   if (!authorised) {
+    if (errorMessage) {
+      return (
+        <main className="bg-white text-[var(--brand-navy)]">
+          <PageContainer>
+            <PageHeader
+              title="Admin Results Entry"
+              subtitle="Result management is temporarily unavailable"
+            />
+            <Alert variant="error" title="Unable to Load Admin Results">
+              {errorMessage}
+            </Alert>
+          </PageContainer>
+        </main>
+      );
+    }
     return null;
   }
 
