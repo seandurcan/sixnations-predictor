@@ -28,7 +28,7 @@ function getAppUrl() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request = new Request("http://localhost/api/stripe/create-checkout-session", { method: "POST" })) {
   try {
     const user =
       await requireUser();
