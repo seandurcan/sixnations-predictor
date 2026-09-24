@@ -2,10 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { prisma } from "@/lib/prisma";
 import {
-  prepareFixtureImport,
-  SIX_NATIONS_TEAM_NAMES,
+  prepareCompetitionFixtureImport,
   type FixtureImportInput,
 } from "@/lib/fixtureImport";
+
+function baseShortCode(name: string) {
+  const letters = name.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return (letters.slice(0, 5) || "TEAM").padEnd(3, "X");
+}
+
+function nextShortCode(name: string, used: Set<string>) {
+  const base = baseShortCode(name);
+  if (!used.has(base)) {
+    used.add(base);
+    return base;
+  }
+  for (let suffix = 2; suffix < 1000; suffix += 1) {
+    const candidate = `${base.slice(0, 4)}${suffix}`;
+    if (!used.has(candidate)) {
+      used.add(candidate);
+      return candidate;
+    }
+  }
+  throw new Error(`Unable to create a unique short code for ${name}.`);
+}
 
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request);
@@ -48,7 +68,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const prepared = prepareFixtureImport(submittedFixtures, competition.year);
+  const prepared = prepareCompetitionFixtureImport(submittedFixtures, competition);
   if (prepared.errors.length > 0) {
     return NextResponse.json(
       { success: false, error: "Fixture validation failed.", errors: prepared.errors },
@@ -56,17 +76,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const teams = await prisma.team.findMany({
-    where: { name: { in: [...SIX_NATIONS_TEAM_NAMES] } },
-    select: { id: true, name: true },
-  });
-  if (teams.length !== SIX_NATIONS_TEAM_NAMES.length) {
-    return NextResponse.json(
-      { success: false, error: "The permanent Six Nations team set is incomplete." },
-      { status: 409 }
-    );
-  }
-  const teamIds = new Map(teams.map((team) => [team.name, team.id]));
+  const participantNames = Array.from(
+    new Set(
+      prepared.fixtures.flatMap((fixture) => [fixture.homeTeam, fixture.awayTeam])
+    )
+  );
   const firstKickoff = prepared.fixtures[0].kickoffTime;
   const predictionLockAt = new Date(firstKickoff.getTime() - 60_000);
   const approvedAt = new Date();
@@ -84,6 +98,27 @@ export async function POST(request: NextRequest) {
         }
         if (current._count.matches !== 0) {
           throw new Error("Fixtures have already been imported for this competition.");
+        }
+
+        const existingTeams = await tx.team.findMany({
+          select: { id: true, name: true, shortCode: true },
+        });
+        const teamIds = new Map(existingTeams.map((team) => [team.name, team.id]));
+        const usedCodes = new Set(existingTeams.map((team) => team.shortCode));
+
+        for (const teamName of participantNames) {
+          if (teamIds.has(teamName)) continue;
+          const created = await tx.team.create({
+            data: {
+              name: teamName,
+              shortCode: nextShortCode(teamName, usedCodes),
+              country: "TBC",
+              flagSvg: "",
+              primaryColor: "#1f2937",
+            },
+            select: { id: true, name: true },
+          });
+          teamIds.set(created.name, created.id);
         }
 
         await tx.match.createMany({
@@ -114,6 +149,8 @@ export async function POST(request: NextRequest) {
           update: {
             value: JSON.stringify({
               tournamentId,
+              competitionName: competition.name,
+              season: competition.year,
               approvedByUserId: adminUserId,
               approvedAt: approvedAt.toISOString(),
               fixtureCount: prepared.fixtures.length,
@@ -124,6 +161,8 @@ export async function POST(request: NextRequest) {
             key: `FIXTURE_IMPORT_AUDIT_${tournamentId}`,
             value: JSON.stringify({
               tournamentId,
+              competitionName: competition.name,
+              season: competition.year,
               approvedByUserId: adminUserId,
               approvedAt: approvedAt.toISOString(),
               fixtureCount: prepared.fixtures.length,
