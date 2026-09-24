@@ -1,6 +1,7 @@
-import { prepareFixtureImport } from "@/lib/fixtureImport";
+import { prepareCompetitionFixtureImport } from "@/lib/fixtureImport";
 
 export type CompetitionReadinessInput = {
+  name: string;
   year: number;
   firstKickoff: Date | null;
   predictionLockAt: Date | null;
@@ -19,8 +20,9 @@ export type CompetitionReadinessInput = {
 export function validateCompetitionReadiness(
   competition: CompetitionReadinessInput
 ) {
-  const prepared = prepareFixtureImport(
+  const prepared = prepareCompetitionFixtureImport(
     competition.matches.map((match) => ({
+      round: match.round,
       kickoffTime: match.kickoffTime.toISOString(),
       homeTeam: match.homeTeam.name,
       awayTeam: match.awayTeam.name,
@@ -28,7 +30,7 @@ export function validateCompetitionReadiness(
       city: match.city,
       country: match.country,
     })),
-    competition.year
+    { year: competition.year, name: competition.name }
   );
   const errors = [...prepared.errors];
 
@@ -38,16 +40,13 @@ export function validateCompetitionReadiness(
     );
     orderedMatches.forEach((match, index) => {
       const expectedMatchNumber = index + 1;
-      const expectedRound = Math.floor(index / 3) + 1;
       if (match.matchNumber !== expectedMatchNumber) {
         errors.push(
           `Fixture ${expectedMatchNumber} has match number ${match.matchNumber}; expected ${expectedMatchNumber}.`
         );
       }
-      if (match.round !== expectedRound) {
-        errors.push(
-          `Fixture ${expectedMatchNumber} is in round ${match.round}; expected round ${expectedRound}.`
-        );
+      if (!Number.isInteger(match.round) || match.round <= 0) {
+        errors.push(`Fixture ${expectedMatchNumber} needs a valid round number.`);
       }
     });
 
