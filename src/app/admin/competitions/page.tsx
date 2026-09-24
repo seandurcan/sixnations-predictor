@@ -46,6 +46,8 @@ type FixturePreview = {
   valid: boolean;
   expectedFixtureCount: number;
   discoveredFixtureCount: number;
+  participantTeams: string[];
+  competitionKind: "SIX_NATIONS" | "LEAGUE";
 };
 
 function formatKickoff(value: string | null) {
@@ -63,23 +65,52 @@ function dateTimeInputValue(value: string | null) {
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 16);
 }
 
-function validateEditableFixtures(fixtures: PreviewFixture[], competitionYear: number) {
+function isSixNations(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "").includes("sixnations");
+}
+
+function isCrossYear(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "").includes("unitedrugbychampionship");
+}
+
+function validateEditableFixtures(
+  fixtures: PreviewFixture[],
+  competitionYear: number,
+  competitionName: string
+) {
   const warnings: string[] = [];
-  if (fixtures.length !== 15) warnings.push(`Exactly 15 fixtures are required; currently ${fixtures.length}.`);
+  const sixNations = isSixNations(competitionName);
+  if (fixtures.length === 0) warnings.push("At least one fixture is required.");
+  if (sixNations && fixtures.length !== 15) {
+    warnings.push(`Exactly 15 fixtures are required for the Six Nations; currently ${fixtures.length}.`);
+  }
   fixtures.forEach((fixture, index) => {
     if (!fixture.homeTeam || !fixture.awayTeam) warnings.push(`Fixture ${index + 1} needs both teams.`);
     if (fixture.homeTeam && fixture.homeTeam === fixture.awayTeam) warnings.push(`Fixture ${index + 1} has the same team twice.`);
     const kickoff = new Date(String(fixture.kickoffTime ?? ""));
-    if (Number.isNaN(kickoff.getTime())) warnings.push(`Fixture ${index + 1} needs a kickoff time.`);
-    else if (kickoff.getUTCFullYear() !== competitionYear) warnings.push(`Fixture ${index + 1} kickoff must be in ${competitionYear}.`);
+    if (Number.isNaN(kickoff.getTime())) {
+      warnings.push(`Fixture ${index + 1} needs a kickoff time.`);
+    } else {
+      const kickoffYear = kickoff.getUTCFullYear();
+      const validYear = isCrossYear(competitionName)
+        ? kickoffYear === competitionYear || kickoffYear === competitionYear + 1
+        : kickoffYear === competitionYear;
+      if (!validYear) {
+        warnings.push(
+          `Fixture ${index + 1} kickoff is outside the competition season.`
+        );
+      }
+    }
     if (!fixture.venue?.trim()) warnings.push(`Fixture ${index + 1} needs a stadium.`);
   });
-  const complete = fixtures.filter((fixture) => fixture.homeTeam && fixture.awayTeam);
-  const pairings = complete.map((fixture) => [fixture.homeTeam, fixture.awayTeam].sort().join("|"));
-  if (new Set(pairings).size !== pairings.length) warnings.push("Duplicate team pairings must be corrected.");
-  for (const team of ["England", "France", "Ireland", "Italy", "Scotland", "Wales"]) {
-    const count = complete.filter((fixture) => fixture.homeTeam === team || fixture.awayTeam === team).length;
-    if (count !== 5) warnings.push(`${team} appears in ${count} fixtures; expected 5.`);
+  if (sixNations) {
+    const complete = fixtures.filter((fixture) => fixture.homeTeam && fixture.awayTeam);
+    const pairings = complete.map((fixture) => [fixture.homeTeam, fixture.awayTeam].sort().join("|"));
+    if (new Set(pairings).size !== pairings.length) warnings.push("Duplicate Six Nations team pairings must be corrected.");
+    for (const team of ["England", "France", "Ireland", "Italy", "Scotland", "Wales"]) {
+      const count = complete.filter((fixture) => fixture.homeTeam === team || fixture.awayTeam === team).length;
+      if (count !== 5) warnings.push(`${team} appears in ${count} fixtures; expected 5.`);
+    }
   }
   return [...new Set(warnings)];
 }
@@ -104,7 +135,7 @@ export default function CompetitionsPage() {
 
   const fixtureWarnings = useMemo(
     () => previewCompetition && fixturePreview
-      ? validateEditableFixtures(fixturePreview.fixtures, previewCompetition.year)
+      ? validateEditableFixtures(fixturePreview.fixtures, previewCompetition.year, previewCompetition.name)
       : [],
     [fixturePreview, previewCompetition]
   );
@@ -236,7 +267,7 @@ export default function CompetitionsPage() {
   }
 
   function addFixture() {
-    setFixturePreview((current) => !current || current.fixtures.length >= 15 ? current : {
+    setFixturePreview((current) => !current ? current : {
       ...current,
       fixtures: [...current.fixtures, {
         providerGameId: null,
@@ -267,10 +298,10 @@ export default function CompetitionsPage() {
     );
     const firstKickoff = formatKickoff(ordered[0]?.kickoffTime ?? null);
     const confirmed = window.confirm(
-      `Approve and import 15 fixtures for ${formatCompetitionTitle(previewCompetition.name, previewCompetition.year)}?\n\n` +
+      `Approve and import ${fixturePreview.fixtures.length} fixtures for ${formatCompetitionTitle(previewCompetition.name, previewCompetition.year)}?\n\n` +
       `First kickoff: ${firstKickoff}\n` +
       "Prediction locking: one minute before first kickoff\n\n" +
-      "All 15 fixtures will be saved together. The competition will remain a draft."
+      "All reviewed fixtures will be saved together. The competition will remain a draft."
     );
     if (!confirmed) return;
 
@@ -304,7 +335,7 @@ export default function CompetitionsPage() {
   return (
     <main className="bg-white text-[var(--brand-navy)]">
       <PageContainer>
-        <PageHeader title="Competition Manager" subtitle="Prepare future annual championships without changing the current competition" />
+        <PageHeader title="Competition Manager" subtitle="Prepare rugby competitions and seasons without changing live competition data" />
 
         {error && <div className="mb-5"><Alert variant="error">{error}</Alert></div>}
         {success && <div className="mb-5"><Alert variant="success">{success}</Alert></div>}
@@ -339,7 +370,7 @@ export default function CompetitionsPage() {
                             {discoveringId === competition.id ? "Finding..." : "Find Fixture Preview"}
                           </Button>
                         )}
-                        {competition.status === "DRAFT" && competition._count.matches === 15 && (
+                        {competition.status === "DRAFT" && competition._count.matches > 0 && (
                           <Button
                             type="button"
                             variant="secondary"
@@ -380,16 +411,16 @@ export default function CompetitionsPage() {
                 <label className="block text-sm font-semibold">Competition name<Input className="mt-1" value={name} maxLength={120} onChange={(event) => setName(event.target.value)} required /></label>
                 <p className="text-sm text-[var(--brand-muted)]">Enter the competition name without a year. The year is added automatically wherever the full title is needed.</p>
                 <label className="block text-sm font-semibold">Entry fee (€)<Input className="mt-1" type="number" min="0" max="10000" step="0.01" value={entryFee} onChange={(event) => setEntryFee(event.target.value)} required /></label>
-                <Button fullWidth disabled={saving || !teamSetComplete} type="submit">{saving ? "Creating..." : "Create Safe Draft"}</Button>
+                <Button fullWidth disabled={saving} type="submit">{saving ? "Creating..." : "Create Safe Draft"}</Button>
               </form>
               <p className="mt-4 text-sm text-[var(--brand-muted)]">This creates no fixtures, results, predictions, payments or copied entrants. Existing accounts remain unchanged.</p>
             </Card>
 
-            <Card title="Permanent Participant Teams">
+            <Card title="Six Nations Master Teams">
               <div className="flex flex-wrap gap-2">
                 {teams.map((team) => <span key={team.id} className="rounded-full border border-[var(--brand-border)] px-3 py-1 text-sm font-semibold">{team.name} ({team.shortCode})</span>)}
               </div>
-              {!teamSetComplete && <p className="mt-3 text-sm font-semibold text-red-700">The six-team master set is incomplete. Draft creation is disabled.</p>}
+              {!teamSetComplete && <p className="mt-3 text-sm font-semibold text-red-700">The Six Nations master team set is incomplete. Six Nations drafts cannot be created until it is restored.</p>}
             </Card>
           </div>
         </div>
@@ -431,13 +462,13 @@ export default function CompetitionsPage() {
                       <label className="text-sm font-semibold">Home team
                         <select className="mt-1 w-full rounded-lg border border-[var(--brand-border)] bg-white px-3 py-2" value={fixture.homeTeam ?? ""} onChange={(event) => updateFixture(index, "homeTeam", event.target.value || null)}>
                           <option value="">Select team</option>
-                          {teams.map((team) => <option key={team.id} value={team.name}>{team.name}</option>)}
+                          {Array.from(new Set([...(fixturePreview?.participantTeams ?? []), ...teams.map((team) => team.name)])).sort().map((teamName) => <option key={teamName} value={teamName}>{teamName}</option>)}
                         </select>
                       </label>
                       <label className="text-sm font-semibold">Away team
                         <select className="mt-1 w-full rounded-lg border border-[var(--brand-border)] bg-white px-3 py-2" value={fixture.awayTeam ?? ""} onChange={(event) => updateFixture(index, "awayTeam", event.target.value || null)}>
                           <option value="">Select team</option>
-                          {teams.map((team) => <option key={team.id} value={team.name}>{team.name}</option>)}
+                          {Array.from(new Set([...(fixturePreview?.participantTeams ?? []), ...teams.map((team) => team.name)])).sort().map((teamName) => <option key={teamName} value={teamName}>{teamName}</option>)}
                         </select>
                       </label>
                       <label className="text-sm font-semibold">Kickoff (Ireland)
@@ -457,12 +488,12 @@ export default function CompetitionsPage() {
                 ))}
               </div>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                <Button type="button" variant="secondary" disabled={fixturePreview.fixtures.length >= 15} onClick={addFixture}>Add Missing Fixture</Button>
+                <Button type="button" variant="secondary" onClick={addFixture}>Add Missing Fixture</Button>
                 <Button type="button" disabled={importing || fixtureWarnings.length > 0} onClick={() => void approveAndImportFixtures()}>
-                  {importing ? "Importing..." : "Approve and Import 15 Fixtures"}
+                  {importing ? "Importing..." : `Approve and Import ${fixturePreview.fixtures.length} Fixtures`}
                 </Button>
               </div>
-              <p className="mt-3 text-sm text-[var(--brand-muted)]">Match numbers and five rounds are assigned automatically in kickoff order. Import is all-or-nothing and the competition remains a draft.</p>
+              <p className="mt-3 text-sm text-[var(--brand-muted)]">Match numbers are assigned in kickoff order. Provider round numbers are retained where available. Import is all-or-nothing and the competition remains a draft.</p>
             </Card>
           </div>
         )}
