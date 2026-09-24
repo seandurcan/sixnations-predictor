@@ -35,6 +35,8 @@ export async function GET() {
       name: tournament.name,
       year: tournament.year,
       status: tournament.status,
+      entryFee: Number(tournament.entryFee),
+      currency: tournament.currency,
       firstKickoff: tournament.firstKickoff?.toISOString() ?? null,
       predictionLockAt: tournament.predictionLockAt?.toISOString() ?? null,
       entry: entryByTournament.get(tournament.id) ?? null,
