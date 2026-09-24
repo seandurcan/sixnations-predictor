@@ -7,6 +7,7 @@ import {
   getCurrentTournament,
 } from "@/lib/currentTournament";
 import { validateCompetitionReadiness } from "@/lib/competitionReadiness";
+import { isSixNationsCompetition } from "@/lib/fixtureDiscovery";
 
 const PERMANENT_TEAMS = [
   "England",
@@ -88,14 +89,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const teamCount = await prisma.team.count({
-      where: { name: { in: [...PERMANENT_TEAMS] } },
-    });
-    if (teamCount !== PERMANENT_TEAMS.length) {
-      return NextResponse.json(
-        { success: false, error: "The permanent Six Nations team set is incomplete." },
-        { status: 409 }
-      );
+    if (isSixNationsCompetition(name)) {
+      const teamCount = await prisma.team.count({
+        where: { name: { in: [...PERMANENT_TEAMS] } },
+      });
+      if (teamCount !== PERMANENT_TEAMS.length) {
+        return NextResponse.json(
+          { success: false, error: "The permanent Six Nations team set is incomplete." },
+          { status: 409 }
+        );
+      }
     }
 
     const competition = await prisma.tournament.create({
@@ -116,7 +119,7 @@ export async function POST(request: NextRequest) {
       error.code === "P2002"
     ) {
       return NextResponse.json(
-        { success: false, error: "A competition already exists for that year." },
+        { success: false, error: "That competition already exists for that season." },
         { status: 409 }
       );
     }
