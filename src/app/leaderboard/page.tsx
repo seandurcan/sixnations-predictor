@@ -5,6 +5,8 @@ import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
 import PageContainer from "@/components/layout/PageContainer";
 import Select from "@/components/ui/Select";
+import { formatCompetitionTitle } from "@/lib/competitionTitle";
+import { useActiveCompetitions } from "@/hooks/useActiveCompetitions";
 import {
   useEffect,
   useMemo,
@@ -105,6 +107,7 @@ function getSortIndicator(
 }
 
 export default function LeaderboardPage() {
+  const { competitions, selectedCompetitionId, setSelectedCompetitionId, loadingCompetitions } = useActiveCompetitions();
   const [leaderboard, setLeaderboard] =
     useState<LeaderboardEntry[]>([]);
 
@@ -135,8 +138,12 @@ export default function LeaderboardPage() {
       setError(null);
 
       try {
+        if (!selectedCompetitionId) {
+          setLeaderboard([]);
+          return;
+        }
         const response = await fetch(
-          `/api/leaderboard?page=${page}&pageSize=${PAGE_SIZE}`,
+          `/api/leaderboard?page=${page}&pageSize=${PAGE_SIZE}&tournamentId=${selectedCompetitionId}`,
           {
             signal: controller.signal,
             cache: "no-store",
@@ -224,7 +231,13 @@ export default function LeaderboardPage() {
       window.clearInterval(interval);
       controller.abort();
     };
-  }, [page]);
+  }, [page, selectedCompetitionId]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCompetitionId]);
+
+  const selectedCompetition = competitions.find((competition) => competition.id === selectedCompetitionId);
 
   const sortedLeaderboard =
     useMemo(() => {
@@ -356,8 +369,19 @@ export default function LeaderboardPage() {
       <PageContainer>
         <PageHeader
           title="Leaderboard"
-          subtitle="Current tournament standings"
+          subtitle={selectedCompetition ? `${formatCompetitionTitle(selectedCompetition.name, selectedCompetition.year)} standings` : "Current tournament standings"}
         />
+
+        {competitions.length > 1 && (
+          <div className="mb-6 max-w-md">
+            <label htmlFor="competition-select" className="font-semibold text-slate-700">Competition</label>
+            <Select id="competition-select" className="mt-1" value={selectedCompetitionId ?? ""} onChange={(event) => setSelectedCompetitionId(Number(event.target.value))}>
+              {competitions.map((competition) => (
+                <option key={competition.id} value={competition.id}>{formatCompetitionTitle(competition.name, competition.year)}</option>
+              ))}
+            </Select>
+          </div>
+        )
 
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-slate-500">
@@ -422,7 +446,7 @@ export default function LeaderboardPage() {
             </div>
           </div>
 
-          {loading && (
+          {(loading || loadingCompetitions) && (
             <div
               className="py-12 text-center text-slate-500"
               role="status"
