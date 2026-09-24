@@ -76,7 +76,7 @@ describe("PATCH competition lifecycle", () => {
     vi.mocked(prisma.systemSetting.upsert).mockResolvedValue({} as never);
   });
 
-  it("validates a complete draft and marks it ready without changing the current competition", async () => {
+  it("validates a complete Six Nations draft and marks it ready", async () => {
     vi.mocked(prisma.tournament.findUnique).mockResolvedValueOnce(
       competition("DRAFT") as never
     );
@@ -90,12 +90,9 @@ describe("PATCH competition lifecycle", () => {
       where: { id: 8 },
       data: { status: "READY" },
     });
-    expect(prisma.systemSetting.upsert).not.toHaveBeenCalledWith(
-      expect.objectContaining({ where: { key: "CURRENT_TOURNAMENT_ID" } })
-    );
   });
 
-  it("does not mark an incomplete draft ready", async () => {
+  it("does not mark an incomplete Six Nations draft ready", async () => {
     const incomplete = competition("DRAFT");
     incomplete.matches.pop();
     vi.mocked(prisma.tournament.findUnique).mockResolvedValueOnce(incomplete as never);
@@ -106,7 +103,7 @@ describe("PATCH competition lifecycle", () => {
     expect(prisma.tournament.update).not.toHaveBeenCalled();
   });
 
-  it("blocks activation while the current competition is still active", async () => {
+  it("allows another competition to activate while the previous default remains active", async () => {
     vi.mocked(prisma.tournament.findUnique)
       .mockResolvedValueOnce(competition("READY") as never)
       .mockResolvedValueOnce({ id: 1, year: 2027, status: "OPEN" } as never);
@@ -118,12 +115,17 @@ describe("PATCH competition lifecycle", () => {
     const response = (await PATCH(request("activate") as never))!;
     const body = await response.json();
 
-    expect(response.status).toBe(409);
-    expect(body.error).toContain("must be completed");
-    expect(prisma.tournament.update).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(body.currentTournamentId).toBe(8);
+    expect(body.previousDefaultTournamentId).toBe(1);
+    expect(prisma.tournament.update).toHaveBeenCalledTimes(1);
+    expect(prisma.tournament.update).toHaveBeenCalledWith({
+      where: { id: 8 },
+      data: { status: "OPEN" },
+    });
   });
 
-  it("archives a completed current competition and activates the ready competition", async () => {
+  it("does not archive a completed previous default when another competition activates", async () => {
     vi.mocked(prisma.tournament.findUnique)
       .mockResolvedValueOnce(competition("READY") as never)
       .mockResolvedValueOnce({ id: 1, year: 2027, status: "COMPLETED" } as never);
@@ -137,14 +139,7 @@ describe("PATCH competition lifecycle", () => {
 
     expect(response.status).toBe(200);
     expect(body.currentTournamentId).toBe(8);
-    expect(prisma.tournament.update).toHaveBeenNthCalledWith(1, {
-      where: { id: 1 },
-      data: { status: "ARCHIVED" },
-    });
-    expect(prisma.tournament.update).toHaveBeenNthCalledWith(2, {
-      where: { id: 8 },
-      data: { status: "OPEN" },
-    });
+    expect(prisma.tournament.update).toHaveBeenCalledTimes(1);
     expect(prisma.systemSetting.upsert).toHaveBeenCalledWith({
       where: { key: "CURRENT_TOURNAMENT_ID" },
       update: { value: "8" },
