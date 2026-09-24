@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 
+// Only recover the known multi-competition migration if Prisma recorded it as failed.
 const MIGRATION = "20260924140500_allow_multiple_competitions_per_year";
 
 function run(args) {
