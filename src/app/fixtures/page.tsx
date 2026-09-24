@@ -3,7 +3,10 @@
 import PageContainer from "@/components/layout/PageContainer";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
+import Select from "@/components/ui/Select";
 import { formatIrishDate } from "@/lib/formatIrishDate";
+import { formatCompetitionTitle } from "@/lib/competitionTitle";
+import { useActiveCompetitions } from "@/hooks/useActiveCompetitions";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Team = { name: string; shortCode: string };
@@ -25,13 +28,15 @@ type Fixture = {
 };
 
 export default function FixturesPage() {
+  const { competitions, selectedCompetitionId, setSelectedCompetitionId, loadingCompetitions } = useActiveCompetitions();
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const loadFixtures = useCallback(async () => {
+    if (!selectedCompetitionId) return;
     try {
-      const response = await fetch("/api/matches", { cache: "no-store" });
+      const response = await fetch(`/api/matches?tournamentId=${selectedCompetitionId}`, { cache: "no-store" });
       if (!response.ok) throw new Error("Unable to load fixtures.");
       const data = (await response.json()) as Fixture[];
       setFixtures([...data].sort((a,b) => a.matchNumber - b.matchNumber));
@@ -41,13 +46,15 @@ export default function FixturesPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedCompetitionId]);
 
   useEffect(() => {
+    if (!selectedCompetitionId) return;
+    setLoading(true);
     void loadFixtures();
     const timer = window.setInterval(() => void loadFixtures(), 30_000);
     return () => window.clearInterval(timer);
-  }, [loadFixtures]);
+  }, [loadFixtures, selectedCompetitionId]);
 
   const fixturesByWeek = useMemo(
     () => fixtures.reduce<Record<number, Fixture[]>>((weeks, fixture) => {
@@ -58,16 +65,30 @@ export default function FixturesPage() {
     [fixtures]
   );
 
+  const selectedCompetition = competitions.find((competition) => competition.id === selectedCompetitionId);
+
   return (
     <main className="bg-white py-8 text-[var(--brand-navy)]">
       <PageContainer>
         <PageHeader
           title="Fixtures"
-          subtitle="Six Nations Championship 2027"
+          subtitle={selectedCompetition ? formatCompetitionTitle(selectedCompetition.name, selectedCompetition.year) : "Active competition fixtures"}
           className="mb-6"
         />
 
-        {loading && <Card>Loading fixtures...</Card>}
+        {competitions.length > 1 && (
+          <div className="mb-6 max-w-md">
+            <label className="block text-sm font-semibold">Competition
+              <Select className="mt-1" value={selectedCompetitionId ?? ""} onChange={(event) => setSelectedCompetitionId(Number(event.target.value))}>
+                {competitions.map((competition) => (
+                  <option key={competition.id} value={competition.id}>{formatCompetitionTitle(competition.name, competition.year)}</option>
+                ))}
+              </Select>
+            </label>
+          </div>
+        )}
+
+        {(loading || loadingCompetitions) && <Card>Loading fixtures...</Card>}
         {!loading && error && (
           <Card className="border-red-300 bg-red-50 text-red-700">{error}</Card>
         )}
