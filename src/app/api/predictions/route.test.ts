@@ -42,14 +42,14 @@ const futureMatch = {
   id: 101,
   tournamentId: 1,
   kickoffTime: "2099-01-29T14:15:00.000Z",
-  tournament: { firstKickoff: new Date("2099-01-29T14:15:00.000Z"), predictionLockAt: new Date("2099-01-29T14:14:00.000Z") },
+  tournament: { name: "Six Nations Championship", firstKickoff: new Date("2099-01-29T14:15:00.000Z"), predictionLockAt: new Date("2099-01-29T14:14:00.000Z") },
 };
 
 const pastMatch = {
   id: 102,
   tournamentId: 1,
   kickoffTime: "2020-01-29T14:15:00.000Z",
-  tournament: { firstKickoff: new Date("2020-01-29T14:15:00.000Z"), predictionLockAt: new Date("2020-01-29T14:14:00.000Z") },
+  tournament: { name: "Six Nations Championship", firstKickoff: new Date("2020-01-29T14:15:00.000Z"), predictionLockAt: new Date("2020-01-29T14:14:00.000Z") },
 };
 
 const mockPrediction = {
