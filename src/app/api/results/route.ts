@@ -169,6 +169,7 @@ export async function POST(
         },
         include: {
           predictions: { where: { match: { tournamentId: match.tournamentId } } },
+          competitionEntries: { where: { tournamentId: match.tournamentId }, take: 1 },
         },
       });
 
