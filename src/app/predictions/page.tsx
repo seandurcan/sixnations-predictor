@@ -8,6 +8,9 @@ import Input from "@/components/ui/Input";
 import PageHeader from "@/components/ui/PageHeader";
 import PageContainer from "@/components/layout/PageContainer";
 import StatusBadge from "@/components/ui/StatusBadge";
+import Select from "@/components/ui/Select";
+import { formatCompetitionTitle } from "@/lib/competitionTitle";
+import { useActiveCompetitions } from "@/hooks/useActiveCompetitions";
 import {
   formatIrishDate,
   formatIsoDate,
@@ -18,7 +21,7 @@ import {
   useState,
 } from "react";
 
-type PredictionUser = { firstName?: string; paymentStatus?: string };
+type PredictionUser = { firstName?: string };
 type Team = { name?: string; shortCode?: string };
 type TournamentTiming = { firstKickoff?: string | null; predictionLockAt?: string | null };
 type Match = {
@@ -39,6 +42,7 @@ type SavedPrediction = {
 };
 
 export default function PredictionsPage() {
+  const { competitions, selectedCompetitionId, setSelectedCompetitionId, loadingCompetitions } = useActiveCompetitions();
   const [user, setUser] = useState<PredictionUser | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [savedPredictions, setSavedPredictions] = useState<SavedPrediction[]>([]);
@@ -59,10 +63,18 @@ export default function PredictionsPage() {
   const saveButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    initialisePage();
-  }, []);
+    if (!loadingCompetitions && selectedCompetitionId) {
+      void initialisePage();
+    }
+  }, [loadingCompetitions, selectedCompetitionId]);
 
   async function initialisePage() {
+    if (!selectedCompetitionId) return;
+    setLoading(true);
+    setPaymentRequired(false);
+    setMatches([]);
+    setSavedPredictions([]);
+    setCurrentMatchId(null);
     try {
       const meResponse = await fetch("/api/auth/me");
 
@@ -80,16 +92,20 @@ export default function PredictionsPage() {
 
       setUser(me.user);
 
+      const selectedCompetition = competitions.find(
+        (competition) => competition.id === selectedCompetitionId
+      );
       if (
-        me.user?.paymentStatus !==
-        "COMPLETED"
+        !selectedCompetition?.entry ||
+        selectedCompetition.entry.status !== "ENTERED" ||
+        selectedCompetition.entry.paymentStatus !== "COMPLETED"
       ) {
         setPaymentRequired(true);
         setLoading(false);
         return;
       }
 
-      const matchesResponse = await fetch("/api/matches");
+      const matchesResponse = await fetch(`/api/matches?tournamentId=${selectedCompetitionId}`);
       const matchesData = await matchesResponse.json() as Match[];
 
       const sortedMatches = [...matchesData].sort(
@@ -97,7 +113,7 @@ export default function PredictionsPage() {
           new Date(a.kickoffTime).getTime() - new Date(b.kickoffTime).getTime()
       );
 
-      const predictionsResponse = await fetch("/api/predictions/list");
+      const predictionsResponse = await fetch(`/api/predictions/list?tournamentId=${selectedCompetitionId}`);
       const predictionsData = await predictionsResponse.json() as SavedPrediction[];
 
       setMatches(sortedMatches);
@@ -130,7 +146,7 @@ export default function PredictionsPage() {
   }
 
   async function refreshPredictions() {
-    const response = await fetch("/api/predictions/list");
+    const response = await fetch(`/api/predictions/list?tournamentId=${selectedCompetitionId}`);
     const data = await response.json() as SavedPrediction[];
     setSavedPredictions(data);
     return data;
@@ -143,6 +159,8 @@ export default function PredictionsPage() {
       setSuccessMessage("");
       const response = await fetch("/api/predictions/quick-pick", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tournamentId: selectedCompetitionId }),
       });
       const result = await response.json();
 
@@ -312,17 +330,31 @@ export default function PredictionsPage() {
     }
   }
 
-  if (loading) {
+  const selectedCompetition = competitions.find((competition) => competition.id === selectedCompetitionId);
+  const competitionPicker = competitions.length > 1 ? (
+    <div className="mb-6 text-left">
+      <label className="block text-sm font-semibold">Competition
+        <Select className="mt-1" value={selectedCompetitionId ?? ""} onChange={(event) => setSelectedCompetitionId(Number(event.target.value))}>
+          {competitions.map((competition) => (
+            <option key={competition.id} value={competition.id}>{formatCompetitionTitle(competition.name, competition.year)}</option>
+          ))}
+        </Select>
+      </label>
+    </div>
+  ) : null;
+
+  if (loading || loadingCompetitions) {
     return (
       <main className="bg-white p-8 text-[var(--brand-navy)]">
         <div className="text-center">
           <PageHeader
             title="Predictions"
-            subtitle={`Welcome ${user?.firstName ?? "Player"}`}
+            subtitle={selectedCompetition ? `${formatCompetitionTitle(selectedCompetition.name, selectedCompetition.year)} · ${user?.firstName ?? "Player"}` : `Welcome ${user?.firstName ?? "Player"}`}
           />
         </div>
 
         <PageContainer>
+          {competitionPicker}
           <Card>Loading predictions...</Card>
         </PageContainer>
       </main>
@@ -340,6 +372,7 @@ export default function PredictionsPage() {
             />
           </div>
 
+          {competitionPicker}
           <Card title="Competition Entry Required">
             <div className="space-y-5">
               <p className="text-lg text-[var(--brand-muted)]">
@@ -447,6 +480,8 @@ export default function PredictionsPage() {
             subtitle={`Welcome ${user?.firstName ?? "Player"}`}
           />
         </div>
+
+        {competitionPicker}
 
         {successMessage && (
           <Alert variant="success" title="Prediction Saved" className="mb-4">
