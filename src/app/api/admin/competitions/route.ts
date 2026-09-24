@@ -101,6 +101,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const existingCompetition = await prisma.tournament.findFirst({
+      where: {
+        year,
+        name: { equals: name, mode: "insensitive" },
+      },
+      select: { id: true },
+    });
+    if (existingCompetition) {
+      return NextResponse.json(
+        { success: false, error: "That competition already exists for that season." },
+        { status: 409 }
+      );
+    }
+
     const competition = await prisma.tournament.create({
       data: {
         year,
