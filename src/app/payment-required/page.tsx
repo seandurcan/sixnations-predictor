@@ -1,15 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { formatCompetitionTitle } from "@/lib/competitionTitle";
 
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
 
+type Competition = {
+  id: number;
+  name: string;
+  year: number;
+  entryFee: number;
+  currency: string;
+};
+
 export default function PaymentRequiredPage() {
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
+  const [competition, setCompetition] = useState<Competition | null>(null);
+
+  useEffect(() => {
+    const requestedId = Number(new URLSearchParams(window.location.search).get("tournamentId"));
+    void fetch("/api/competitions", { cache: "no-store" })
+      .then(async (response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (!data) return;
+        const selectedId =
+          Number.isInteger(requestedId) && requestedId > 0
+            ? requestedId
+            : data.currentTournamentId;
+        setCompetition(
+          data.competitions?.find((item: Competition) => item.id === selectedId) ?? null
+        );
+      });
+  }, []);
 
   async function copyStripeTestDetails() {
     try {
@@ -44,6 +69,8 @@ Eircode: F91 W1D9`
           "/api/stripe/create-checkout-session",
           {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tournamentId: competition?.id ?? null }),
           }
         );
 
@@ -80,7 +107,9 @@ Eircode: F91 W1D9`
     <main className="mx-auto max-w-4xl p-6 text-[var(--brand-navy)]">
       <PageHeader
         title="Competition Entry Required"
-        subtitle="Complete your entry before making predictions."
+        subtitle={competition
+          ? formatCompetitionTitle(competition.name, competition.year)
+          : "Complete your entry before making predictions."}
       />
 
       <Alert
@@ -95,13 +124,12 @@ Eircode: F91 W1D9`
         <div className="space-y-6">
           <div>
             <h2 className="text-2xl font-black">
-              Perfect XV Entry
+              {competition ? formatCompetitionTitle(competition.name, competition.year) : "Perfect XV Entry"}
             </h2>
 
             <p className="mt-2 text-[var(--brand-muted)]">
-              To unlock predictions,
-              complete the Stripe test
-              payment below.
+              To unlock predictions for this competition, complete the Stripe test
+              checkout below. No real payment is taken.
             </p>
           </div>
 
@@ -165,11 +193,10 @@ Eircode: F91 W1D9`
 
           <div className="rounded-lg bg-[var(--brand-soft-lime)] p-4">
             <p className="font-semibold">
-              After a successful test
-              payment your account will
-              be marked as paid and
-              predictions will become
-              available automatically.
+              {competition
+                ? `Test entry value: ${competition.currency} ${competition.entryFee.toFixed(2)}. `
+                : ""}
+              After a successful test checkout, only this competition entry is marked as paid and its predictions become available automatically.
             </p>
           </div>
         </div>
