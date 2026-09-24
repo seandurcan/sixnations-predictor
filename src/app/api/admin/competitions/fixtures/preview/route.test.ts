@@ -11,12 +11,12 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 vi.mock("@/lib/fixtureDiscovery", () => ({
-  discoverSixNationsFixtures: vi.fn(),
+  discoverCompetitionFixtures: vi.fn(),
 }));
 
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { prisma } from "@/lib/prisma";
-import { discoverSixNationsFixtures } from "@/lib/fixtureDiscovery";
+import { discoverCompetitionFixtures } from "@/lib/fixtureDiscovery";
 import { POST } from "./route";
 
 function request(tournamentId: number) {
@@ -46,7 +46,7 @@ describe("POST fixture discovery preview", () => {
       status: "DRAFT",
       _count: { matches: 0 },
     } as never);
-    vi.mocked(discoverSixNationsFixtures).mockResolvedValue({
+    vi.mocked(discoverCompetitionFixtures).mockResolvedValue({
       provider: "API-Sports",
       providerLeague: { id: 12, name: "Six Nations" },
       fixtures: [],
@@ -61,7 +61,7 @@ describe("POST fixture discovery preview", () => {
 
     expect(response.status).toBe(200);
     expect(body.persisted).toBe(false);
-    expect(discoverSixNationsFixtures).toHaveBeenCalledWith(2028, "test-key");
+    expect(discoverCompetitionFixtures).toHaveBeenCalledWith("2028 Six Nations Championship", 2028, "test-key");
   });
 
   it("rejects a non-draft competition before provider discovery", async () => {
@@ -74,7 +74,7 @@ describe("POST fixture discovery preview", () => {
     const response = (await POST(request(1) as never))!;
 
     expect(response.status).toBe(409);
-    expect(discoverSixNationsFixtures).not.toHaveBeenCalled();
+    expect(discoverCompetitionFixtures).not.toHaveBeenCalled();
   });
 
   it("does not preview over fixtures already stored in a draft", async () => {
@@ -89,6 +89,6 @@ describe("POST fixture discovery preview", () => {
 
     expect(response.status).toBe(409);
     expect(body.error).toContain("already contains fixtures");
-    expect(discoverSixNationsFixtures).not.toHaveBeenCalled();
+    expect(discoverCompetitionFixtures).not.toHaveBeenCalled();
   });
 });
