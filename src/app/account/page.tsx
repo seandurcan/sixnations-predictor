@@ -7,6 +7,7 @@ import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import PageContainer from "@/components/layout/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
+import { formatCompetitionTitle } from "@/lib/competitionTitle";
 
 type Account = {
   id: number;
@@ -116,7 +117,7 @@ export default function AccountPage() {
                 {achievements.map((achievement) => (
                   <div key={achievement.id} className="flex items-center justify-between gap-4 rounded-lg border border-[var(--brand-border)] p-4">
                     <div>
-                      <p className="font-bold">{achievement.tournamentYear} {achievement.tournamentName}</p>
+                      <p className="font-bold">{formatCompetitionTitle(achievement.tournamentName, achievement.tournamentYear)}</p>
                       <p className="text-sm text-[var(--brand-muted)]">{achievement.finalPoints} points</p>
                     </div>
                     <div className="text-right">
