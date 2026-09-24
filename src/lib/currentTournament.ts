@@ -100,3 +100,9 @@ export async function requireCurrentTournament() {
   if (!tournament) throw new Error("No current competition is configured");
   return tournament;
 }
+
+export async function requireCurrentViewableTournament() {
+  const tournament = await getCurrentViewableTournament();
+  if (!tournament) throw new Error("No viewable competition is configured");
+  return tournament;
+}
