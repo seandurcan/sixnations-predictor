@@ -87,17 +87,21 @@ async function main() {
     },
   });
 
-  const tournament = await prisma.tournament.upsert({
-    where: { name_year: { name: "Six Nations Championship", year: 2027 } },
-    update: {},
-    create: {
-      year: 2027,
-      name: "Six Nations Championship",
-      status: "OPEN",
-      firstKickoff: new Date("2027-02-05T20:10:00Z"),
-      predictionLockAt: new Date("2027-02-05T20:10:00Z"),
-    },
+  let tournament = await prisma.tournament.findFirst({
+    where: { year: 2027, name: "Six Nations Championship" },
   });
+
+  if (!tournament) {
+    tournament = await prisma.tournament.create({
+      data: {
+        year: 2027,
+        name: "Six Nations Championship",
+        status: "OPEN",
+        firstKickoff: new Date("2027-02-05T20:10:00Z"),
+        predictionLockAt: new Date("2027-02-05T20:10:00Z"),
+      },
+    });
+  }
 
   await prisma.match.createMany({
     skipDuplicates: true,
