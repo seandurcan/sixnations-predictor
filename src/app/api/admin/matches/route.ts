@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { enrichMatchesWithLiveScoreInfo, syncLiveScores } from "@/lib/liveScoring";
-import { requireCurrentTournament } from "@/lib/currentTournament";
+import { requireCurrentViewableTournament } from "@/lib/currentTournament";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
     await requireAdmin();
-    const tournament = await requireCurrentTournament();
+    const tournament = await requireCurrentViewableTournament();
     await syncLiveScores();
 
     const matches = await prisma.match.findMany({
