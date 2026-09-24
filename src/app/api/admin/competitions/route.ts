@@ -226,26 +226,8 @@ export async function PATCH(request: NextRequest) {
             orderBy: [{ firstKickoff: "asc" }, { id: "asc" }],
           });
         }
-        if (
-          previousCompetition &&
-          previousCompetition.id !== tournamentId &&
-          !["COMPLETED", "ARCHIVED", "CANCELLED"].includes(previousCompetition.status)
-        ) {
-          throw new Error(
-            `The current ${previousCompetition.year} competition must be completed before it can be replaced.`
-          );
-        }
-
-        if (
-          previousCompetition &&
-          previousCompetition.id !== tournamentId &&
-          previousCompetition.status === "COMPLETED"
-        ) {
-          await tx.tournament.update({
-            where: { id: previousCompetition.id },
-            data: { status: "ARCHIVED" },
-          });
-        }
+        // Multiple competitions may be active at the same time.
+        // CURRENT_TOURNAMENT_ID is now only the default competition shown first.
         await tx.tournament.update({
           where: { id: tournamentId },
           data: { status: "OPEN" },
@@ -260,7 +242,7 @@ export async function PATCH(request: NextRequest) {
           update: {
             value: JSON.stringify({
               tournamentId,
-              previousTournamentId: previousCompetition?.id ?? null,
+              previousDefaultTournamentId: previousCompetition?.id ?? null,
               activatedByUserId: adminUserId,
               activatedAt: new Date().toISOString(),
             }),
@@ -269,7 +251,7 @@ export async function PATCH(request: NextRequest) {
             key: `COMPETITION_ACTIVATION_AUDIT_${tournamentId}`,
             value: JSON.stringify({
               tournamentId,
-              previousTournamentId: previousCompetition?.id ?? null,
+              previousDefaultTournamentId: previousCompetition?.id ?? null,
               activatedByUserId: adminUserId,
               activatedAt: new Date().toISOString(),
             }),
@@ -278,7 +260,7 @@ export async function PATCH(request: NextRequest) {
 
         return {
           status: "OPEN",
-          previousTournamentId: previousCompetition?.id ?? null,
+          previousDefaultTournamentId: previousCompetition?.id ?? null,
         };
       },
       { isolationLevel: "Serializable", maxWait: 10_000, timeout: 30_000 }
@@ -288,7 +270,7 @@ export async function PATCH(request: NextRequest) {
       success: true,
       currentTournamentId: action === "activate" ? tournamentId : undefined,
       competitionStatus: result.status,
-      previousTournamentId: result.previousTournamentId,
+      previousDefaultTournamentId: result.previousDefaultTournamentId,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Competition update failed.";
