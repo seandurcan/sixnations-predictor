@@ -4,6 +4,7 @@ import {
   assignCompetitionRanks,
   calculateMatchScore,
 } from "@/lib/scoring";
+import { generateCompletedRoundStory } from "@/lib/competitionStories";
 
 export async function POST(
   request: Request
@@ -286,6 +287,10 @@ export async function POST(
         }
       );
     }
+
+    await generateCompletedRoundStory(match.tournamentId, match.round).catch((storyError) => {
+      console.error("Competition story generation failed", storyError);
+    });
 
     if (tournamentComplete) {
       await prisma.$transaction(async (tx) => {
