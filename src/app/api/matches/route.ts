@@ -6,7 +6,7 @@ import { fixturePredictionLockAt } from "@/lib/predictionLocking";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
+export async function GET(request: Request = new Request("http://localhost/api/matches")) {
   await syncLiveScores();
   const { searchParams } = new URL(request.url);
   const requestedId = Number(searchParams.get("tournamentId"));
