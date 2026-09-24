@@ -259,9 +259,9 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
       const rankings = assignCompetitionRanks(
         users.map((user) => ({
           id: user.id,
-          totalPoints: user.totalPoints,
-          exactScores: user.exactScores,
-          cumulativeError: user.cumulativeError,
+          totalPoints: user.competitionEntries[0]?.totalPoints ?? 0,
+          exactScores: user.competitionEntries[0]?.exactScores ?? 0,
+          cumulativeError: user.competitionEntries[0]?.cumulativeError ?? 0,
           differenceScore: user.predictions.reduce((total, p) => total + p.differenceScore, 0),
           correctMargins: user.predictions.filter((p) => p.correctMargin).length,
           correctResults: user.predictions.filter((p) => p.correctResult).length,
