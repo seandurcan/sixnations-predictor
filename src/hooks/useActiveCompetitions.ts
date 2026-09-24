@@ -7,6 +7,8 @@ export type ActiveCompetition = {
   name: string;
   year: number;
   status: string;
+  entryFee: number;
+  currency: string;
   firstKickoff: string | null;
   predictionLockAt: string | null;
   entry: {
