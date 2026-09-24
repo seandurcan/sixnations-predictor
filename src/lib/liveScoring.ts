@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { assignCompetitionRanks, calculateMatchScore } from "@/lib/scoring";
 import type { Prisma } from "@prisma/client";
-import { getCurrentTournament } from "@/lib/currentTournament";
+import { getActiveTournaments } from "@/lib/currentTournament";
+import { generateCompletedRoundStory } from "@/lib/competitionStories";
+import { advanceKnockoutWinner } from "@/lib/knockoutBracket";
 
 export const POLL_INTERVAL_MS = 30 * 1000;
 // Match records have no expected-end field. Allow two hours from kickoff,
@@ -73,7 +75,7 @@ function parseMeta(value: string | null | undefined) {
 export async function applyMatchScore(args: ApplyScoreArgs) {
   // Serialize provider writes with manual corrections. A request already in
   // flight cannot overwrite an Admin save made while it fetched the score.
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(82315, ${args.matchId}::integer)`;
     const current = await tx.match.findUnique({ where: { id: args.matchId } });
     if (!current) throw new Error("Match not found");
@@ -87,6 +89,20 @@ export async function applyMatchScore(args: ApplyScoreArgs) {
     }
     return applyMatchScoreInTransaction(args, tx);
   }, { maxWait: 10000, timeout: 30000 });
+
+  if (!result.skipped && args.completed) {
+    if (args.homeScore !== args.awayScore) {
+      const winnerTeamId = args.homeScore > args.awayScore
+        ? result.match.homeTeamId
+        : result.match.awayTeamId;
+      await advanceKnockoutWinner(result.match.tournamentId, result.match.id, winnerTeamId)
+        .catch((error) => console.error("Knockout progression failed", error));
+    }
+    await generateCompletedRoundStory(result.match.tournamentId, result.match.round)
+      .catch((error) => console.error("Competition story generation failed", error));
+  }
+
+  return result;
 }
 
 async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma.TransactionClient) {
@@ -147,7 +163,10 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
 
     const users = await prisma.user.findMany({
       where: { deletedAt: null, competitionEntries: { some: { tournamentId: match.tournamentId, status: "ENTERED" } } },
-      include: { predictions: { where: { match: { tournamentId: match.tournamentId } } } },
+      include: {
+        predictions: { where: { match: { tournamentId: match.tournamentId } } },
+        competitionEntries: { where: { tournamentId: match.tournamentId }, take: 1 },
+      },
     });
     for (const user of users) {
       const totalPoints = user.predictions.reduce((total, p) => total + p.pointsAwarded, 0);
@@ -171,14 +190,17 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
 
     const refreshedUsers = await prisma.user.findMany({
       where: { deletedAt: null, competitionEntries: { some: { tournamentId: match.tournamentId, status: "ENTERED" } } },
-      include: { predictions: { where: { match: { tournamentId: match.tournamentId } } } },
+      include: {
+        predictions: { where: { match: { tournamentId: match.tournamentId } } },
+        competitionEntries: { where: { tournamentId: match.tournamentId }, take: 1 },
+      },
     });
     const rankings = assignCompetitionRanks(
       refreshedUsers.map((user) => ({
         id: user.id,
-        totalPoints: user.totalPoints,
-        exactScores: user.exactScores,
-        cumulativeError: user.cumulativeError,
+        totalPoints: user.competitionEntries[0]?.totalPoints ?? 0,
+        exactScores: user.competitionEntries[0]?.exactScores ?? 0,
+        cumulativeError: user.competitionEntries[0]?.cumulativeError ?? 0,
         differenceScore: user.predictions.reduce((total, p) => total + p.differenceScore, 0),
         correctMargins: user.predictions.filter((p) => p.correctMargin).length,
         correctResults: user.predictions.filter((p) => p.correctResult).length,
@@ -229,7 +251,10 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
 
       const users = await prisma.user.findMany({
         where: { deletedAt: null, competitionEntries: { some: { tournamentId: match.tournamentId, status: "ENTERED" } } },
-        include: { predictions: { where: { match: { tournamentId: match.tournamentId } } } },
+        include: {
+        predictions: { where: { match: { tournamentId: match.tournamentId } } },
+        competitionEntries: { where: { tournamentId: match.tournamentId }, take: 1 },
+      },
       });
       const rankings = assignCompetitionRanks(
         users.map((user) => ({
@@ -243,15 +268,15 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
         }))
       );
 
-      const jointWinners = rankings.filter((entrant) => entrant.rank === 1);
+      const podium = rankings.filter((entrant) => entrant.rank <= 3);
       await prisma.tournamentWinner.deleteMany({ where: { tournamentId: match.tournamentId } });
-      if (jointWinners.length > 0) {
+      if (podium.length > 0) {
         await prisma.tournamentWinner.createMany({
-          data: jointWinners.map((winner) => ({
+          data: podium.map((entrant) => ({
             tournamentId: match.tournamentId,
-            userId: winner.id,
-            finalPoints: winner.totalPoints,
-            rank: 1,
+            userId: entrant.id,
+            finalPoints: entrant.totalPoints,
+            rank: entrant.rank,
           })),
         });
       }
@@ -316,15 +341,15 @@ export async function enrichMatchesWithLiveScoreInfo<T extends { id: number }>(m
 
 export async function syncLiveScores() {
   const now = Date.now();
-  const currentTournament = await getCurrentTournament();
+  const activeTournaments = await getActiveTournaments();
 
-  if (!currentTournament) {
+  if (activeTournaments.length === 0) {
     return { checked: true, activeMatches: 0, providerQueries: 0, updates: 0 };
   }
 
   const candidates = await prisma.match.findMany({
     where: {
-      tournamentId: currentTournament.id,
+      tournamentId: { in: activeTournaments.map((tournament) => tournament.id) },
       kickoffTime: { lte: new Date(now), gte: new Date(now - MATCH_WINDOW_MS) },
     },
     include: { homeTeam: true, awayTeam: true },
