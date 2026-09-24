@@ -96,7 +96,7 @@ model Team {
 
 model Tournament {
   id                               Int                              @id @default(autoincrement())
-  year                             Int                              @unique
+  year                             Int
   name                             String
   status                           TournamentStatus
   firstKickoff                     DateTime?
@@ -113,6 +113,8 @@ model Tournament {
   entries                          CompetitionEntry[]
   invitations                      CompetitionInvitation[]
   predictionConfirmationDeliveries PredictionConfirmationDelivery[]
+
+  @@unique([name, year])
 }
 
 model CompetitionEntry {
