@@ -13,6 +13,8 @@ vi.mock("@/lib/email", () => ({ sendEmailVerificationEmail: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     user: { findFirst: vi.fn() },
+    tournamentWinner: { findMany: vi.fn() },
+    tournament: { findMany: vi.fn() },
     emailVerification: { delete: vi.fn() },
     $transaction: vi.fn(),
   },
@@ -48,6 +50,8 @@ describe("self-service account details", () => {
     vi.mocked(getCurrentUser).mockResolvedValue(currentUser as never);
     vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
     vi.mocked(prisma.user.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.tournamentWinner.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.tournament.findMany).mockResolvedValue([]);
     vi.mocked(prisma.emailVerification.delete).mockResolvedValue({} as never);
     vi.mocked(sendEmailVerificationEmail).mockResolvedValue({} as never);
     vi.mocked(prisma.$transaction).mockImplementation(async (callback) => callback(tx as never));
