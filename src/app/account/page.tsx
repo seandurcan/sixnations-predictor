@@ -17,9 +17,20 @@ type Account = {
   emailVerified: boolean;
 };
 
+type Achievement = {
+  id: number;
+  tournamentId: number;
+  tournamentName: string;
+  tournamentYear: number;
+  rank: number;
+  finalPoints: number;
+  awardedAt: string;
+};
+
 type AccountResponse = {
   success: boolean;
   user?: Account;
+  achievements?: Achievement[];
   message?: string;
   warning?: string;
   error?: string;
@@ -28,6 +39,7 @@ type AccountResponse = {
 export default function AccountPage() {
   const [original, setOriginal] = useState<Account | null>(null);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", mobile: "", currentPassword: "" });
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -41,6 +53,7 @@ export default function AccountPage() {
         if (response.status === 401) { window.location.href = "/login"; return; }
         if (!response.ok || !result.user) throw new Error(result.error ?? "Unable to load your account details.");
         setOriginal(result.user);
+        setAchievements(result.achievements ?? []);
         setForm({
           firstName: result.user.firstName,
           lastName: result.user.lastName,
@@ -92,7 +105,30 @@ export default function AccountPage() {
     <main className="bg-white p-4 text-[var(--brand-navy)] sm:p-8">
       <PageContainer>
         <PageHeader title="My Account" subtitle="Keep your contact details accurate" />
-        <div className="mx-auto max-w-2xl">
+        <div className="mx-auto max-w-2xl space-y-6">
+          <Card title="Competition History">
+            {loading ? <p>Loading your competition history...</p> : null}
+            {!loading && achievements.length === 0 ? (
+              <p className="text-sm text-[var(--brand-muted)]">Top-three tournament finishes will appear here permanently after competitions are completed.</p>
+            ) : null}
+            {!loading && achievements.length > 0 ? (
+              <div className="space-y-3">
+                {achievements.map((achievement) => (
+                  <div key={achievement.id} className="flex items-center justify-between gap-4 rounded-lg border border-[var(--brand-border)] p-4">
+                    <div>
+                      <p className="font-bold">{achievement.tournamentYear} {achievement.tournamentName}</p>
+                      <p className="text-sm text-[var(--brand-muted)]">{achievement.finalPoints} points</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-black">{achievement.rank === 1 ? "★ Gold" : achievement.rank === 2 ? "★ Silver" : "★ Bronze"}</p>
+                      <p className="text-sm font-semibold">{achievement.rank === 1 ? "1st Place" : achievement.rank === 2 ? "2nd Place" : "3rd Place"}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </Card>
+
           <Card title="Account Details">
             {loading ? <p>Loading your account details...</p> : null}
             {message ? <Alert variant="success" className="mb-4">{message}</Alert> : null}
