@@ -88,7 +88,7 @@ async function main() {
   });
 
   const tournament = await prisma.tournament.upsert({
-    where: { year: 2027 },
+    where: { name_year: { name: "Six Nations Championship", year: 2027 } },
     update: {},
     create: {
       year: 2027,
