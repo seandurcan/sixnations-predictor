@@ -235,10 +235,28 @@ export async function discoverCompetitionFixtures(
     );
   }
 
-  const games = await providerGet<ApiGame>(
-    `games?league=${league.id}&season=${year}`,
-    apiKey
+  const crossYear = isCrossYearCompetition(competitionName);
+  const providerSeasonCandidates = crossYear ? [year, year + 1] : [year];
+  const gameBatches = await Promise.all(
+    providerSeasonCandidates.map((season) =>
+      providerGet<ApiGame>(`games?league=${league.id}&season=${season}`, apiKey)
+    )
   );
+  const games = Array.from(
+    new Map(
+      gameBatches
+        .flat()
+        .map((game) => [game.id ?? `${game.date}-${teamName(game.teams?.home ?? game.home)}-${teamName(game.teams?.away ?? game.away)}`, game] as const)
+    ).values()
+  ).filter((game) => {
+    if (!crossYear || !game.date) return true;
+    const kickoff = new Date(game.date);
+    if (Number.isNaN(kickoff.getTime())) return true;
+    const seasonStart = Date.UTC(year, 6, 1);
+    const seasonEnd = Date.UTC(year + 1, 6, 1);
+    return kickoff.getTime() >= seasonStart && kickoff.getTime() < seasonEnd;
+  });
+
   const sixNations = isSixNationsCompetition(competitionName);
 
   const fixtures = games
