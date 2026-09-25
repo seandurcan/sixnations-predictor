@@ -242,10 +242,18 @@ export async function discoverCompetitionFixtures(
       providerGet<ApiGame>(`games?league=${league.id}&season=${season}`, apiKey)
     )
   );
+  let providerGames = gameBatches.flat();
+
+  // Some API-Sports rugby competitions use a provider-specific season label.
+  // If both likely season values return nothing for a cross-year competition,
+  // fetch the league schedule without a season filter and constrain it by date below.
+  if (crossYear && providerGames.length === 0) {
+    providerGames = await providerGet<ApiGame>(`games?league=${league.id}`, apiKey);
+  }
+
   const games = Array.from(
     new Map(
-      gameBatches
-        .flat()
+      providerGames
         .map((game) => [game.id ?? `${game.date}-${teamName(game.teams?.home ?? game.home)}-${teamName(game.teams?.away ?? game.away)}`, game] as const)
     ).values()
   ).filter((game) => {
