@@ -40,7 +40,7 @@ type PreviewFixture = {
 
 type FixturePreview = {
   provider: string;
-  providerLeague: { id: number; name: string };
+  providerLeague: { id: number; name: string; seasons?: number[] };
   fixtures: PreviewFixture[];
   warnings: string[];
   valid: boolean;
@@ -431,7 +431,11 @@ export default function CompetitionsPage() {
                     {fixturePreview.discoveredFixtureCount} of {fixturePreview.expectedFixtureCount} fixtures found through {fixturePreview.provider}
                   </p>
                   <p className="text-sm text-[var(--brand-muted)]">
-                    Provider competition: {fixturePreview.providerLeague.name}. Review and correct every field before approval.
+                    Provider competition: {fixturePreview.providerLeague.name}
+                    {fixturePreview.providerLeague.id ? ` (ID ${fixturePreview.providerLeague.id})` : ""}
+                    {fixturePreview.providerLeague.seasons?.length
+                      ? ` · seasons: ${fixturePreview.providerLeague.seasons.join(", ")}`
+                      : ""}. Review and correct every field before approval.
                   </p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-sm font-bold ${fixtureWarnings.length === 0 ? "bg-lime-100 text-lime-900" : "bg-amber-100 text-amber-900"}`}>
