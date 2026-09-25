@@ -1,5 +1,10 @@
 import { spawnSync } from "node:child_process";
 
+if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production") {
+  console.log(`Skipping database migrations for Vercel ${process.env.VERCEL_ENV} deployment.`);
+  process.exit(0);
+}
+
 // Only recover the known multi-competition migration if Prisma recorded it as failed.
 const MIGRATION = "20260924140500_allow_multiple_competitions_per_year";
 
