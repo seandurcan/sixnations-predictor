@@ -1,7 +1,12 @@
 import { spawnSync } from "node:child_process";
 
-if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production") {
-  console.log(`Skipping database migrations for Vercel ${process.env.VERCEL_ENV} deployment.`);
+if (
+  (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production") ||
+  process.env.VERCEL_GIT_COMMIT_REF === "staging"
+) {
+  console.log(
+    `Skipping database migrations for Vercel deployment environment=${process.env.VERCEL_ENV ?? "unknown"} branch=${process.env.VERCEL_GIT_COMMIT_REF ?? "unknown"}.`
+  );
   process.exit(0);
 }
 
