@@ -48,7 +48,7 @@ export type FixturePreview = {
 
 export type FixturePreviewResult = {
   provider: "API-Sports";
-  providerLeague: { id: number; name: string };
+  providerLeague: { id: number; name: string; seasons?: number[] };
   fixtures: FixturePreview[];
   participantTeams?: string[];
   warnings: string[];
@@ -308,7 +308,19 @@ export async function discoverCompetitionFixtures(
   const validation = validateFixturePreview(fixtures, competitionName);
   return {
     provider: "API-Sports",
-    providerLeague: { id: league.id, name: league.name },
+    providerLeague: {
+      id: league.id,
+      name: league.name,
+      seasons: Array.isArray(league.seasons)
+        ? league.seasons
+            .map((season) =>
+              typeof season === "number"
+                ? season
+                : season.season ?? season.year ?? null
+            )
+            .filter((season): season is number => Number.isInteger(season))
+        : [],
+    },
     fixtures,
     participantTeams,
     warnings: validation.warnings,
