@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -132,6 +132,7 @@ export default function CompetitionsPage() {
   const [fixturePreview, setFixturePreview] = useState<FixturePreview | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const previewRef = useRef<HTMLDivElement | null>(null);
 
   const fixtureWarnings = useMemo(
     () => previewCompetition && fixturePreview
@@ -143,6 +144,12 @@ export default function CompetitionsPage() {
     (competition) => competition.id === currentTournamentId
   );
   useEffect(() => { void loadCompetitions(); }, []);
+
+  useEffect(() => {
+    if (fixturePreview && previewCompetition) {
+      previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [fixturePreview, previewCompetition]);
 
   async function loadCompetitions() {
     setLoading(true);
@@ -416,7 +423,7 @@ export default function CompetitionsPage() {
         </div>
 
         {fixturePreview && previewCompetition && (
-          <div className="mt-6">
+          <div ref={previewRef} className="mt-6 scroll-mt-6">
             <Card title={`Fixture Preview — ${formatCompetitionTitle(previewCompetition.name, previewCompetition.year)}`}>
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
