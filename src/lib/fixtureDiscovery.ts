@@ -75,7 +75,14 @@ export function isCrossYearCompetition(name: string) {
 }
 
 export function providerCompetitionSearchName(name: string) {
+  const normalised = normaliseCompetitionName(name);
   if (isSixNationsCompetition(name)) return "Six Nations";
+  if (normalised.includes("unitedrugbychampionship")) {
+    return "United Rugby Championship";
+  }
+  if (normalised.includes("rugbyworldcup")) {
+    return "World Cup";
+  }
   return name.trim();
 }
 
