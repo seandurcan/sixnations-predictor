@@ -113,7 +113,7 @@ export default function UserManualPage() {
             <p className="font-bold">The short version</p>
             <p className="mt-1 text-[var(--brand-muted)]">
               Register → verify your email → log in → browse
-              Perfect XV → pay the &euro;20 competition entry fee
+              Perfect XV → review the entry total, including VAT, and pay
               when you are ready to make predictions → predict
               all 15 matches → check or edit any prediction before
               one minute before the first match kicks off → receive your locked-prediction email → follow
@@ -430,9 +430,13 @@ export default function UserManualPage() {
                 </Instruction>
 
                 <Instruction number={3} title="Pay the competition entry fee">
-                  The full competition entry fee is
-                  <strong> &euro;20</strong>. You must complete this
-                  payment before you can enter or edit predictions.
+                  Review the total shown at checkout before paying.
+                  During staging testing, a &euro;20 entry displayed
+                  &euro;4.60 VAT, giving a total of &euro;24.60.
+                  Whether the advertised &euro;20 should include VAT
+                  or have VAT added remains open for tester feedback.
+                  You must complete payment before you can enter or
+                  edit predictions. See the comparison in section 15.
                 </Instruction>
 
                 <Instruction number={4} title="Continue to Payment">
@@ -451,7 +455,7 @@ export default function UserManualPage() {
 
               <div className="mt-5 rounded-lg bg-[var(--brand-soft-lime)] p-4">
                 <strong>Important:</strong> Browsing the site does not
-                require payment, but a confirmed <strong>&euro;20</strong>
+                require payment, but a confirmed
                 competition entry payment is required before any
                 predictions can be entered or changed.
               </div>
@@ -964,6 +968,99 @@ export default function UserManualPage() {
                 third-place prizes are pooled and divided equally
                 between the joint winners.
               </p>
+
+              <div className="mt-5 rounded-lg border border-[var(--brand-border)] p-4">
+                <h3 className="font-bold">Entry pricing and prize fund — tester feedback</h3>
+                <p className="mt-2 text-[var(--brand-muted)]">
+                  The entry price is under review: &euro;20 including VAT,
+                  or &euro;20 plus VAT (&euro;24.60 in total). The tester
+                  survey will ask which option entrants prefer, taking
+                  account of both the entry cost and the resulting prizes.
+                  These are proposals, not confirmed prize amounts.
+                </p>
+                <p className="mt-2 text-[var(--brand-muted)]">
+                  The illustration below assumes 30 paying entrants and
+                  VAT at 23%. VAT is removed first, then a 10% fee is
+                  deducted from the revenue excluding VAT. The remaining
+                  90% forms the prize fund, split 3:2:1 between first,
+                  second and third place, before any joint-position sharing.
+                  No additional deductions are included.
+                </p>
+                <div className="mt-4 overflow-x-auto">
+                  <table className="w-full border-collapse text-left text-sm">
+                    <caption className="mb-2 text-left font-semibold">
+                      Illustrative prize comparison for 30 entrants
+                    </caption>
+                    <thead>
+                      <tr className="border-b border-[var(--brand-border)]">
+                        <th scope="col" className="p-2">Item</th>
+                        <th scope="col" className="p-2">&euro;20 including VAT</th>
+                        <th scope="col" className="p-2">&euro;20 plus VAT</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-[var(--brand-border)]">
+                        <th scope="row" className="p-2 font-medium">Each entrant pays</th>
+                        <td className="p-2">&euro;20.00</td>
+                        <td className="p-2">&euro;24.60</td>
+                      </tr>
+                      <tr className="border-b border-[var(--brand-border)]">
+                        <th scope="row" className="p-2 font-medium">Total collected (30 entrants)</th>
+                        <td className="p-2">&euro;600.00</td>
+                        <td className="p-2">&euro;738.00</td>
+                      </tr>
+                      <tr className="border-b border-[var(--brand-border)]">
+                        <th scope="row" className="p-2 font-medium">VAT at 23%</th>
+                        <td className="p-2">&euro;112.20</td>
+                        <td className="p-2">&euro;138.00</td>
+                      </tr>
+                      <tr className="border-b border-[var(--brand-border)]">
+                        <th scope="row" className="p-2 font-medium">Revenue after VAT is removed</th>
+                        <td className="p-2">&euro;487.80</td>
+                        <td className="p-2">&euro;600.00</td>
+                      </tr>
+                      <tr className="border-b border-[var(--brand-border)]">
+                        <th scope="row" className="p-2 font-medium">10% fee on revenue excluding VAT</th>
+                        <td className="p-2">&euro;48.78</td>
+                        <td className="p-2">&euro;60.00</td>
+                      </tr>
+                      <tr className="border-b border-[var(--brand-border)]">
+                        <th scope="row" className="p-2 font-medium">Prize fund after VAT and fee</th>
+                        <td className="p-2">&euro;439.02</td>
+                        <td className="p-2">&euro;540.00</td>
+                      </tr>
+                      <tr className="border-b border-[var(--brand-border)]">
+                        <th scope="row" className="p-2 font-medium">1st place (3/6 of prize fund)</th>
+                        <td className="p-2">&euro;219.51</td>
+                        <td className="p-2">&euro;270.00</td>
+                      </tr>
+                      <tr className="border-b border-[var(--brand-border)]">
+                        <th scope="row" className="p-2 font-medium">2nd place (2/6 of prize fund)</th>
+                        <td className="p-2">&euro;146.34</td>
+                        <td className="p-2">&euro;180.00</td>
+                      </tr>
+                      <tr className="border-b border-[var(--brand-border)]">
+                        <th scope="row" className="p-2 font-medium">3rd place (1/6 of prize fund)</th>
+                        <td className="p-2">&euro;73.17</td>
+                        <td className="p-2">&euro;90.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="mt-3 text-sm text-[var(--brand-muted)]">
+                  VAT is calculated from the total collected by dividing
+                  by 1.23 to find revenue excluding VAT. Amounts are rounded
+                  to cents at each displayed stage. The 23% rate is an
+                  assumption for this comparison, not confirmation of the
+                  applicable tax treatment.
+                </p>
+                <p className="mt-3 text-[var(--brand-muted)]">
+                  <strong>Planned survey question:</strong> For 30 entrants,
+                  would you prefer to pay &euro;20 including VAT, with a
+                  &euro;439.02 prize fund, or &euro;24.60 including VAT,
+                  with a &euro;540.00 prize fund? Please explain your choice.
+                </p>
+              </div>
             </Card>
           </section>
 
