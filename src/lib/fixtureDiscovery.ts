@@ -72,7 +72,10 @@ export function isSixNationsCompetition(name: string) {
 
 export function isCrossYearCompetition(name: string) {
   const normalised = normaliseCompetitionName(name);
-  return normalised.includes("unitedrugbychampionship");
+  return (
+    normalised.includes("unitedrugbychampionship") ||
+    normalised.includes("challengecup")
+  );
 }
 
 export function providerCompetitionSearchName(name: string) {
