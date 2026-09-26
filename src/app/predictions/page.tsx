@@ -147,17 +147,24 @@ export default function PredictionsPage() {
           new Date(selectedCompetition.predictionLockAt).getTime() <= Date.now()
         );
 
-      if (lockedOrStarted) {
-        setResultsMode(true);
-        const resultsResponse = await fetch(
-          `/api/predictions/results?tournamentId=${selectedCompetitionId}`,
-          { cache: "no-store" }
-        );
-        const resultsData = await resultsResponse.json();
+      const resultsResponse = await fetch(
+        `/api/predictions/results?tournamentId=${selectedCompetitionId}`,
+        { cache: "no-store" }
+      );
+      const resultsData = await resultsResponse.json();
+
+      if (resultsResponse.ok) {
+        setPersonalResults(resultsData);
+      }
+
+      if (
+        lockedOrStarted ||
+        (resultsResponse.ok && Array.isArray(resultsData.matches) && resultsData.matches.length > 0)
+      ) {
         if (!resultsResponse.ok) {
           throw new Error(resultsData.error ?? "Unable to load completed match results.");
         }
-        setPersonalResults(resultsData);
+        setResultsMode(true);
         setLoading(false);
         return;
       }
