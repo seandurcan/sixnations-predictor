@@ -72,7 +72,13 @@ function isSixNations(name: string) {
 }
 
 function isCrossYear(name: string) {
-  return name.toLowerCase().replace(/[^a-z0-9]/g, "").includes("unitedrugbychampionship");
+  const key = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return key.includes("unitedrugbychampionship") || key.includes("challengecup");
+}
+
+function supportsOnlineFixtureSearch(name: string) {
+  const key = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return key.includes("unitedrugbychampionship") || key.includes("challengecup");
 }
 
 function fixtureValidationWarnings(
@@ -547,14 +553,16 @@ export default function CompetitionsPage() {
                             >
                               {discoveringId === competition.id ? "Finding..." : "Find Fixture Preview"}
                             </Button>
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              disabled={discoveringId !== null || officialFindingId !== null || updatingId !== null || manualImportingId !== null}
-                              onClick={() => void findOfficialFixtures(competition)}
-                            >
-                              {officialFindingId === competition.id ? "Finding fixtures..." : "Find Fixtures Online"}
-                            </Button>
+                            {supportsOnlineFixtureSearch(competition.name) && (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                disabled={discoveringId !== null || officialFindingId !== null || updatingId !== null || manualImportingId !== null}
+                                onClick={() => void findOfficialFixtures(competition)}
+                              >
+                                {officialFindingId === competition.id ? "Finding fixtures..." : "Find Fixtures Online"}
+                              </Button>
+                            )}
                             <Button
                               type="button"
                               variant="secondary"
