@@ -526,7 +526,7 @@ export default function PredictionsPage() {
                         </div>
                       </div>
 
-                      <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                         <div className="rounded-lg bg-slate-50 p-3">
                           <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
                             Your Prediction
@@ -540,37 +540,40 @@ export default function PredictionsPage() {
 
                         <div className="rounded-lg bg-slate-50 p-3">
                           <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
-                            Correct Result
+                            Correct Result Points
                           </p>
-                          <p className="mt-1 font-bold">
-                            {prediction ? (prediction.correctResult ? "Yes" : "No") : "—"}
-                          </p>
-                        </div>
-
-                        <div className="rounded-lg bg-slate-50 p-3">
-                          <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
-                            Exact Score
-                          </p>
-                          <p className="mt-1 font-bold">
-                            {prediction ? (prediction.exactScore ? "Yes" : "No") : "—"}
+                          <p className="mt-1 text-xl font-bold">
+                            {prediction ? (prediction.correctResult ? 1 : 0) : "—"}
                           </p>
                         </div>
 
                         <div className="rounded-lg bg-slate-50 p-3">
                           <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
-                            Correct Margin
+                            Correct Margin Points
                           </p>
-                          <p className="mt-1 font-bold">
-                            {prediction ? (prediction.correctMargin ? "Yes" : "No") : "—"}
+                          <p className="mt-1 text-xl font-bold">
+                            {prediction ? (prediction.correctMargin ? 2 : 0) : "—"}
+                          </p>
+                        </div>
+
+                        <div className="rounded-lg bg-slate-50 p-3">
+                          <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
+                            Exact Score Points
+                          </p>
+                          <p className="mt-1 text-xl font-bold">
+                            {prediction ? (prediction.exactScore ? 3 : 0) : "—"}
+                          </p>
+                        </div>
+
+                        <div className="rounded-lg bg-slate-50 p-3">
+                          <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
+                            Prediction Delta
+                          </p>
+                          <p className="mt-1 text-xl font-bold">
+                            {prediction ? prediction.errorValue : "—"}
                           </p>
                         </div>
                       </div>
-
-                      {prediction && (
-                        <div className="mt-3 text-sm text-[var(--brand-muted)]">
-                          Score error: {prediction.errorValue}
-                        </div>
-                      )}
                     </div>
                   );
                 })}
