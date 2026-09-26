@@ -233,7 +233,7 @@ export default function CompetitionsPage() {
     ];
     const example = [
       "1",
-      competition.year.toString(),
+      `${competition.year}-09-01`,
       "19:35",
       "Home Team",
       "Away Team",
