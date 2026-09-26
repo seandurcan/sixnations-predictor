@@ -521,43 +521,6 @@ export default function PredictionsPage() {
 
         <div className="grid gap-6 lg:grid-cols-2 items-start">
           <div className="space-y-6">
-            <Card title="Fixtures">
-              <div className="max-h-[720px] space-y-2 overflow-y-auto">
-                {matches.map((match) => {
-                  const active = match.id === currentMatchId;
-
-                  return (
-                    <button
-                      key={match.id}
-                      type="button"
-                      onClick={() => selectMatch(match.id)}
-                      className={`w-full rounded-lg border p-3 text-left transition-colors ${
-                        active
-                          ? "border-[var(--brand-blue)] bg-[var(--brand-soft-blue)]"
-                          : "border-[var(--brand-border)] hover:bg-[var(--brand-soft-lime)]"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold">
-                          {match.homeTeam.shortCode} v {match.awayTeam.shortCode}
-                        </span>
-
-                        <StatusBadge
-                          status={getMatchStatus(match)}
-                        />
-                      </div>
-
-                      {match.kickoffTime && (
-                        <p className="mt-1 text-sm text-[var(--brand-muted)]">
-                          {formatIrishDate(match.kickoffTime)}
-                        </p>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </Card>
-
             <Card title="Your Predictions">
               <div className="max-h-[720px] space-y-2 overflow-y-auto">
                 {savedPredictions.length === 0 ? (
