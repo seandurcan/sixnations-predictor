@@ -47,7 +47,7 @@ export type FixturePreview = {
 };
 
 export type FixturePreviewResult = {
-  provider: "API-Sports";
+  provider: "API-Sports" | "Official / Online";
   providerLeague: { id: number; name: string; seasons?: number[] };
   fixtures: FixturePreview[];
   participantTeams?: string[];
