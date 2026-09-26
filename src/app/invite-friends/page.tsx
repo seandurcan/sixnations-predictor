@@ -61,17 +61,20 @@ export default function InviteFriendsPage() {
   const [shareMessage, setShareMessage] = useState("");
 
   useEffect(() => {
-    void fetch("/api/auth/me", { cache: "no-store" })
-      .then(async (response) => {
+    async function checkAuthentication() {
+      try {
+        const response = await fetch("/api/auth/me", { cache: "no-store" });
         if (!response.ok) {
           window.location.href = "/login?returnTo=/invite-friends";
           return;
         }
         setLoadingAuth(false);
-      })
-      .catch(() => {
+      } catch {
         window.location.href = "/login?returnTo=/invite-friends";
-      });
+      }
+    }
+
+    void checkAuthentication();
   }, []);
 
   const canAddMore = rows.length < 10;
@@ -80,9 +83,11 @@ export default function InviteFriendsPage() {
       rows.length > 0 &&
       rows.every(
         (row) =>
-          row.firstName.trim() &&
-          row.lastName.trim() &&
-          row.email.trim()
+          Boolean(
+            row.firstName.trim() &&
+            row.lastName.trim() &&
+            row.email.trim()
+          )
       ),
     [rows]
   );
@@ -143,18 +148,28 @@ export default function InviteFriendsPage() {
     };
 
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
+      const browserNavigator = window.navigator as Navigator & {
+        share?: (data: ShareData) => Promise<void>;
+      };
+
+      if (typeof browserNavigator.share === "function") {
+        await browserNavigator.share(shareData);
         setShareMessage("Share options opened.");
         return;
       }
 
-      await navigator.clipboard.writeText("https://perfect-xv.org");
-      setShareMessage("Perfect XV link copied.");
-    } catch (shareError) {
-      if ((shareError as Error)?.name !== "AbortError") {
-        setShareMessage("Unable to open sharing. You can use https://perfect-xv.org");
+      if (browserNavigator.clipboard) {
+        await browserNavigator.clipboard.writeText("https://perfect-xv.org");
+        setShareMessage("Perfect XV link copied.");
+        return;
       }
+
+      setShareMessage("Share this address: https://perfect-xv.org");
+    } catch (shareError) {
+      if (shareError instanceof Error && shareError.name === "AbortError") {
+        return;
+      }
+      setShareMessage("Unable to open sharing. You can use https://perfect-xv.org");
     }
   }
 
