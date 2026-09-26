@@ -43,6 +43,13 @@ export async function POST(request: NextRequest) {
   const submittedFixtures = Array.isArray(body.fixtures)
     ? (body.fixtures as FixtureImportInput[])
     : [];
+  const requestedSource = String(body.source ?? "API_SPORTS");
+  const auditSource =
+    requestedSource === "MANUAL_FILE"
+      ? "Manual CSV/Excel upload"
+      : requestedSource === "MANUAL_ADMIN"
+        ? "Manual admin entry"
+        : "API-Sports/Admin review";
 
   if (!Number.isInteger(tournamentId) || tournamentId <= 0) {
     return NextResponse.json(
@@ -154,7 +161,7 @@ export async function POST(request: NextRequest) {
               approvedByUserId: adminUserId,
               approvedAt: approvedAt.toISOString(),
               fixtureCount: prepared.fixtures.length,
-              source: "API-Sports/Admin review",
+              source: auditSource,
             }),
           },
           create: {
@@ -166,7 +173,7 @@ export async function POST(request: NextRequest) {
               approvedByUserId: adminUserId,
               approvedAt: approvedAt.toISOString(),
               fixtureCount: prepared.fixtures.length,
-              source: "API-Sports/Admin review",
+              source: auditSource,
             }),
           },
         });
