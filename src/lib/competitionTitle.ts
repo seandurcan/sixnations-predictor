@@ -4,7 +4,10 @@ function normalise(value: string) {
 
 export function competitionSeasonLabel(name: string, year: number) {
   const key = normalise(name);
-  if (key.includes("unitedrugbychampionship")) {
+  if (
+    key.includes("unitedrugbychampionship") ||
+    key.includes("challengecup")
+  ) {
     return `${year}/${String(year + 1).slice(-2)}`;
   }
   return String(year);
