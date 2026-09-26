@@ -220,6 +220,50 @@ export default function CompetitionsPage() {
     setFixtureSource("API_SPORTS");
     setFixturePreview(data.preview);
   }
+  function downloadFixtureTemplate(competition: Competition) {
+    const headers = [
+      "Round",
+      "Date",
+      "Kick-off",
+      "Home Team",
+      "Away Team",
+      "Stadium",
+      "City",
+      "Country",
+    ];
+    const example = [
+      "1",
+      `${competition.year}-09-01`,
+      "19:35",
+      "Home Team",
+      "Away Team",
+      "Stadium Name",
+      "City",
+      "Country",
+    ];
+    const csv = [
+      headers.join(","),
+      example
+        .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+        .join(","),
+    ].join("\r\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const safeName = `${competition.name}-${competition.year}`
+      .replace(/[^a-z0-9]+/gi, "-")
+      .replace(/^-+|-+$/g, "")
+      .toLowerCase();
+
+    link.href = url;
+    link.download = `${safeName || "competition"}-fixture-template.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   async function importFixtureFile(competition: Competition, file: File | null) {
     if (!file) return;
     setManualImportingId(competition.id);
@@ -407,6 +451,14 @@ export default function CompetitionsPage() {
                               onClick={() => void previewFixtures(competition)}
                             >
                               {discoveringId === competition.id ? "Finding..." : "Find Fixture Preview"}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              disabled={discoveringId !== null || updatingId !== null || manualImportingId !== null}
+                              onClick={() => downloadFixtureTemplate(competition)}
+                            >
+                              Download Fixture Template
                             </Button>
                             <label className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-[var(--brand-border)] bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">
                               {manualImportingId === competition.id ? "Reading file..." : "Import CSV / Excel"}
