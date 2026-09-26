@@ -481,3 +481,102 @@ export async function sendCompetitionInvitationEmail({
     previewText: `You have been invited to ${competitionName}.`,
   });
 }
+
+
+export async function sendPerfectXvFriendInvitationEmail({
+  email,
+  firstName,
+  inviterFirstName,
+  unsubscribeToken,
+}: {
+  email: string;
+  firstName: string;
+  inviterFirstName: string;
+  unsubscribeToken: string;
+}) {
+  const appUrl = getAppUrl();
+  const unsubscribeUrl =
+    `${appUrl}/invitation-unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`;
+
+  const safeFirstName = escapeHtml(firstName);
+  const safeInviter = escapeHtml(inviterFirstName);
+  const safeAppUrl = escapeHtml(appUrl);
+  const safeUnsubscribeUrl = escapeHtml(unsubscribeUrl);
+
+  const html = `
+<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#222;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;border-collapse:collapse;">
+      <tr>
+        <td align="center" style="padding:30px 12px;">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="width:100%;max-width:600px;background:#fff;border:1px solid #ddd;border-collapse:collapse;">
+            <tr>
+              <td style="padding:32px;font-size:16px;line-height:24px;">
+                <h1 style="margin:0 0 22px;color:#012169;font-size:26px;line-height:32px;">You’ve been invited to try Perfect XV</h1>
+                <p style="margin:0 0 18px;">Hi ${safeFirstName},</p>
+                <p style="margin:0 0 18px;">${safeInviter} thought you might be interested in Perfect XV.</p>
+                <p style="margin:0 0 18px;">
+                  It’s a rugby prediction site where you predict match scores across different rugby competitions,
+                  compare your results on the leaderboard and, depending on the competition, have the chance to win a prize.
+                </p>
+                <p style="margin:0 0 18px;">
+                  If it sounds like something you’d enjoy, you’re very welcome to take a look and register.
+                </p>
+                ${createEmailButton(appUrl, "Visit Perfect XV")}
+                <p style="margin:0 0 18px;color:#555;">
+                  There’s no obligation to join, and we won’t keep sending invitations if you’re not interested.
+                </p>
+                <p style="margin:22px 0 0;font-size:13px;color:#666;">
+                  <a href="${safeUnsubscribeUrl}" style="color:#012169;text-decoration:underline;">Unsubscribe from Perfect XV invitations</a>
+                </p>
+                <p style="margin:22px 0 0;color:#012169;font-weight:bold;">Perfect XV</p>
+                <p style="margin:2px 0 0;color:#666;font-style:italic;">Analyse. Predict. Win.</p>
+                <p style="margin:18px 0 0;font-size:12px;color:#777;word-break:break-all;">
+                  ${safeAppUrl}
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`.trim();
+
+  const text = [
+    "You’ve been invited to try Perfect XV",
+    "",
+    `Hi ${firstName},`,
+    "",
+    `${inviterFirstName} thought you might be interested in Perfect XV.`,
+    "",
+    "It’s a rugby prediction site where you predict match scores across different rugby competitions, compare your results on the leaderboard and, depending on the competition, have the chance to win a prize.",
+    "",
+    "If it sounds like something you’d enjoy, you’re very welcome to take a look and register:",
+    appUrl,
+    "",
+    "There’s no obligation to join, and we won’t keep sending invitations if you’re not interested.",
+    "",
+    "Unsubscribe from Perfect XV invitations:",
+    unsubscribeUrl,
+    "",
+    "Perfect XV",
+    "Analyse. Predict. Win.",
+  ].join("\n");
+
+  const { data, error } = await resend.emails.send({
+    from: "Perfect XV <noreply@perfect-xv.org>",
+    to: email,
+    subject: "You’ve been invited to try Perfect XV",
+    html,
+    text,
+  });
+
+  if (error) {
+    console.error("FRIEND INVITATION EMAIL ERROR:", error);
+    throw new Error(error.message || "The invitation email could not be sent.");
+  }
+
+  return data;
+}
