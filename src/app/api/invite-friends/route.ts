@@ -9,24 +9,52 @@ export const dynamic = "force-dynamic";
 const MAX_PER_REQUEST = 10;
 const MAX_PER_24_HOURS = 25;
 
-function normaliseEmail(value: unknown) {
+type IncomingPerson = {
+  firstName?: unknown;
+  lastName?: unknown;
+  email?: unknown;
+};
+
+type InviteStatus =
+  | "SENT"
+  | "ALREADY_INVITED"
+  | "REGISTERED"
+  | "UNSUBSCRIBED"
+  | "DUPLICATE_IN_REQUEST"
+  | "LIMIT_REACHED"
+  | "FAILED";
+
+function normaliseEmail(value: unknown): string {
   return String(value ?? "").trim().toLowerCase();
 }
 
-function validEmail(value: string) {
+function validEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function cleanName(value: unknown) {
+function cleanName(value: unknown): string {
   return String(value ?? "").trim().replace(/\s+/g, " ");
 }
 
-function tokenHash(token: string) {
+function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
+}
+
+function providerMessageId(value: unknown): string | null {
+  if (
+    value &&
+    typeof value === "object" &&
+    "id" in value &&
+    typeof (value as { id?: unknown }).id === "string"
+  ) {
+    return (value as { id: string }).id;
+  }
+  return null;
 }
 
 export async function POST(request: NextRequest) {
   const inviter = await getCurrentUser();
+
   if (!inviter) {
     return NextResponse.json(
       { success: false, error: "Authentication required." },
@@ -34,25 +62,43 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = await request.json().catch(() => ({}));
-  const people = Array.isArray(body.people) ? body.people : [];
+  const body: unknown = await request.json().catch(() => null);
+  const rawPeople =
+    body &&
+    typeof body === "object" &&
+    "people" in body &&
+    Array.isArray((body as { people?: unknown }).people)
+      ? ((body as { people: unknown[] }).people)
+      : [];
 
-  if (people.length < 1 || people.length > MAX_PER_REQUEST) {
+  if (rawPeople.length < 1 || rawPeople.length > MAX_PER_REQUEST) {
     return NextResponse.json(
-      { success: false, error: `Enter between 1 and ${MAX_PER_REQUEST} people at a time.` },
+      {
+        success: false,
+        error: `Enter between 1 and ${MAX_PER_REQUEST} people at a time.`,
+      },
       { status: 400 }
     );
   }
 
-  const cleaned = people.map((person: Record<string, unknown>, index: number) => ({
-    index,
-    firstName: cleanName(person.firstName),
-    lastName: cleanName(person.lastName),
-    email: normaliseEmail(person.email),
-  }));
+  const people = rawPeople.map((value, index) => {
+    const person: IncomingPerson =
+      value && typeof value === "object" ? (value as IncomingPerson) : {};
 
-  for (const person of cleaned) {
-    if (!person.firstName || !person.lastName || !validEmail(person.email)) {
+    return {
+      index,
+      firstName: cleanName(person.firstName),
+      lastName: cleanName(person.lastName),
+      email: normaliseEmail(person.email),
+    };
+  });
+
+  for (const person of people) {
+    if (
+      !person.firstName ||
+      !person.lastName ||
+      !validEmail(person.email)
+    ) {
       return NextResponse.json(
         {
           success: false,
@@ -61,13 +107,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-  }
-
-  const duplicateInRequest = new Set<string>();
-  const seen = new Set<string>();
-  for (const person of cleaned) {
-    if (seen.has(person.email)) duplicateInRequest.add(person.email);
-    seen.add(person.email);
   }
 
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -82,60 +121,69 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Invitation limit reached for the last 24 hours. Please try again later.",
+        error:
+          "Invitation limit reached for the last 24 hours. Please try again later.",
       },
       { status: 429 }
     );
   }
 
-  const emails = [...new Set(cleaned.map((person) => person.email))];
-  const [existingUsers, existingInvitations] = await Promise.all([
-    prisma.user.findMany({
-      where: {
-        email: { in: emails, mode: "insensitive" },
-        deletedAt: null,
-      },
-      select: { email: true },
-    }),
-    prisma.perfectXvInvitation.findMany({
-      where: { normalisedEmail: { in: emails } },
-      select: {
-        normalisedEmail: true,
-        unsubscribedAt: true,
-      },
-    }),
-  ]);
+  const requestedEmails = new Set(people.map((person) => person.email));
 
-  const registered = new Set(existingUsers.map((user) => user.email.toLowerCase()));
-  const invitationByEmail = new Map(
-    existingInvitations.map((invitation) => [invitation.normalisedEmail, invitation])
+  const registeredUsers = await prisma.user.findMany({
+    where: { deletedAt: null },
+    select: { email: true },
+  });
+
+  const registeredEmails = new Set(
+    registeredUsers
+      .map((user) => normaliseEmail(user.email))
+      .filter((email) => requestedEmails.has(email))
   );
 
-  const results: Array<{
-    email: string;
-    status: "SENT" | "ALREADY_INVITED" | "REGISTERED" | "UNSUBSCRIBED" | "DUPLICATE_IN_REQUEST" | "LIMIT_REACHED" | "FAILED";
-  }> = [];
+  const existingInvitations = await prisma.perfectXvInvitation.findMany({
+    where: {
+      normalisedEmail: { in: Array.from(requestedEmails) },
+    },
+    select: {
+      normalisedEmail: true,
+      unsubscribedAt: true,
+    },
+  });
 
+  const existingByEmail = new Map(
+    existingInvitations.map((invitation) => [
+      invitation.normalisedEmail,
+      invitation.unsubscribedAt,
+    ])
+  );
+
+  const seenInRequest = new Set<string>();
+  const results: Array<{ email: string; status: InviteStatus }> = [];
   let sentThisRequest = 0;
 
-  for (const person of cleaned) {
-    if (duplicateInRequest.has(person.email) && results.some((result) => result.email === person.email)) {
-      results.push({ email: person.email, status: "DUPLICATE_IN_REQUEST" });
+  for (const person of people) {
+    if (seenInRequest.has(person.email)) {
+      results.push({
+        email: person.email,
+        status: "DUPLICATE_IN_REQUEST",
+      });
       continue;
     }
+    seenInRequest.add(person.email);
 
-    if (registered.has(person.email)) {
+    if (registeredEmails.has(person.email)) {
       results.push({ email: person.email, status: "REGISTERED" });
       continue;
     }
 
-    const existing = invitationByEmail.get(person.email);
-    if (existing?.unsubscribedAt) {
-      results.push({ email: person.email, status: "UNSUBSCRIBED" });
-      continue;
-    }
-    if (existing) {
-      results.push({ email: person.email, status: "ALREADY_INVITED" });
+    if (existingByEmail.has(person.email)) {
+      results.push({
+        email: person.email,
+        status: existingByEmail.get(person.email)
+          ? "UNSUBSCRIBED"
+          : "ALREADY_INVITED",
+      });
       continue;
     }
 
@@ -145,56 +193,76 @@ export async function POST(request: NextRequest) {
     }
 
     const unsubscribeToken = randomBytes(32).toString("hex");
-    let invitationId: number | null = null;
 
     try {
-      const created = await prisma.perfectXvInvitation.create({
+      const invitation = await prisma.perfectXvInvitation.create({
         data: {
           email: person.email,
           normalisedEmail: person.email,
           firstName: person.firstName,
           lastName: person.lastName,
           invitedById: inviter.id,
-          unsubscribeTokenHash: tokenHash(unsubscribeToken),
+          unsubscribeTokenHash: hashToken(unsubscribeToken),
         },
         select: { id: true },
       });
-      invitationId = created.id;
 
-      const delivery = await sendPerfectXvFriendInvitationEmail({
-        email: person.email,
-        firstName: person.firstName,
-        inviterFirstName: inviter.firstName,
-        unsubscribeToken,
-      });
+      try {
+        const delivery = await sendPerfectXvFriendInvitationEmail({
+          email: person.email,
+          firstName: person.firstName,
+          inviterFirstName: inviter.firstName,
+          unsubscribeToken,
+        });
 
-      await prisma.perfectXvInvitation.update({
-        where: { id: created.id },
-        data: {
-          sentAt: new Date(),
-          providerMessageId: delivery?.id ?? null,
-        },
-      });
+        await prisma.perfectXvInvitation.update({
+          where: { id: invitation.id },
+          data: {
+            sentAt: new Date(),
+            providerMessageId: providerMessageId(delivery),
+          },
+        });
 
-      invitationByEmail.set(person.email, {
-        normalisedEmail: person.email,
-        unsubscribedAt: null,
-      });
-      sentThisRequest += 1;
-      results.push({ email: person.email, status: "SENT" });
-    } catch (error) {
-      console.error("Friend invitation failed:", error);
-      if (invitationId) {
-        await prisma.perfectXvInvitation.delete({ where: { id: invitationId } }).catch(() => undefined);
+        existingByEmail.set(person.email, null);
+        sentThisRequest += 1;
+        results.push({ email: person.email, status: "SENT" });
+      } catch (emailError) {
+        console.error("Friend invitation email failed:", emailError);
+        await prisma.perfectXvInvitation.delete({
+          where: { id: invitation.id },
+        });
+        results.push({ email: person.email, status: "FAILED" });
       }
-      results.push({ email: person.email, status: "FAILED" });
+    } catch (databaseError) {
+      console.error("Friend invitation record failed:", databaseError);
+
+      const alreadyExists = await prisma.perfectXvInvitation.findUnique({
+        where: { normalisedEmail: person.email },
+        select: { unsubscribedAt: true },
+      });
+
+      results.push({
+        email: person.email,
+        status: alreadyExists
+          ? alreadyExists.unsubscribedAt
+            ? "UNSUBSCRIBED"
+            : "ALREADY_INVITED"
+          : "FAILED",
+      });
     }
   }
 
-  return NextResponse.json({
-    success: true,
-    sent: results.filter((result) => result.status === "SENT").length,
-    skipped: results.filter((result) => result.status !== "SENT").length,
-    results,
-  });
+  return NextResponse.json(
+    {
+      success: true,
+      sent: results.filter((result) => result.status === "SENT").length,
+      skipped: results.filter((result) => result.status !== "SENT").length,
+      results,
+    },
+    {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    }
+  );
 }

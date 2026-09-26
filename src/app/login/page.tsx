@@ -108,7 +108,14 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.assign("/dashboard");
+      const returnTo =
+        new URLSearchParams(window.location.search).get("returnTo") ?? "";
+      const safeReturnTo =
+        returnTo.startsWith("/") && !returnTo.startsWith("//")
+          ? returnTo
+          : "/dashboard";
+
+      window.location.assign(safeReturnTo);
     } catch (loginError) {
       console.error(
         "Login request failed:",
