@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { enrichMatchesWithLiveScoreInfo, syncLiveScores } from "@/lib/liveScoring";
-import { getTournamentByIdOrCurrent } from "@/lib/currentTournament";
+import { getViewableTournamentByIdOrCurrent } from "@/lib/currentTournament";
 import { fixturePredictionLockAt } from "@/lib/predictionLocking";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,7 @@ export async function GET(request: Request = new Request("http://localhost/api/m
   await syncLiveScores();
   const { searchParams } = new URL(request.url);
   const requestedId = Number(searchParams.get("tournamentId"));
-  const tournament = await getTournamentByIdOrCurrent(
+  const tournament = await getViewableTournamentByIdOrCurrent(
     Number.isInteger(requestedId) && requestedId > 0 ? requestedId : null
   );
 

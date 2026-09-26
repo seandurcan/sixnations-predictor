@@ -1,16 +1,38 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getActiveTournaments, getCurrentTournament } from "@/lib/currentTournament";
+import {
+  ACTIVE_TOURNAMENT_STATUSES,
+  VIEWABLE_TOURNAMENT_STATUSES,
+  getCurrentViewableTournament,
+} from "@/lib/currentTournament";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const [tournaments, current, user] = await Promise.all([
-    getActiveTournaments(),
-    getCurrentTournament(),
-    getCurrentUser(),
-  ]);
+  const user = await getCurrentUser();
+
+  const tournaments = await prisma.tournament.findMany({
+    where: user
+      ? {
+          status: { in: [...VIEWABLE_TOURNAMENT_STATUSES] },
+          OR: [
+            { status: { in: [...ACTIVE_TOURNAMENT_STATUSES] } },
+            {
+              entries: {
+                some: {
+                  userId: user.id,
+                  status: "ENTERED",
+                },
+              },
+            },
+          ],
+        }
+      : { status: { in: [...ACTIVE_TOURNAMENT_STATUSES] } },
+    orderBy: [{ firstKickoff: "asc" }, { year: "asc" }, { id: "asc" }],
+  });
+
+  const current = await getCurrentViewableTournament();
 
   const entries = user && tournaments.length > 0
     ? await prisma.competitionEntry.findMany({

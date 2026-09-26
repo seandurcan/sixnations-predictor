@@ -42,6 +42,36 @@ type SavedPrediction = {
   match?: Match;
 };
 
+type CompletedMatchResult = {
+  id: number;
+  matchNumber: number;
+  round: number;
+  kickoffTime: string;
+  homeTeam: { name: string; shortCode: string };
+  awayTeam: { name: string; shortCode: string };
+  actualHomeScore: number;
+  actualAwayScore: number;
+  prediction: {
+    predictedHomeScore: number;
+    predictedAwayScore: number;
+    pointsAwarded: number;
+    correctResult: boolean;
+    correctMargin: boolean;
+    exactScore: boolean;
+    errorValue: number;
+    differenceScore: number;
+  } | null;
+};
+
+type PersonalResults = {
+  totalPoints: number;
+  leaderboardPosition: number | null;
+  previousLeaderboardPosition: number | null;
+  rankMovement: number | null;
+  latestCompletedMatchId: number | null;
+  matches: CompletedMatchResult[];
+};
+
 export default function PredictionsPage() {
   const { competitions, selectedCompetitionId, setSelectedCompetitionId, loadingCompetitions } = useActiveCompetitions();
   const [user, setUser] = useState<PredictionUser | null>(null);
@@ -58,6 +88,8 @@ export default function PredictionsPage() {
   const [paymentRequired, setPaymentRequired] = useState(false);
   const [saving, setSaving] = useState(false);
   const [quickPicking, setQuickPicking] = useState(false);
+  const [personalResults, setPersonalResults] = useState<PersonalResults | null>(null);
+  const [resultsMode, setResultsMode] = useState(false);
 
   const homeScoreInputRef = useRef<HTMLInputElement>(null);
   const awayScoreInputRef = useRef<HTMLInputElement>(null);
@@ -76,6 +108,8 @@ export default function PredictionsPage() {
     setMatches([]);
     setSavedPredictions([]);
     setCurrentMatchId(null);
+    setPersonalResults(null);
+    setResultsMode(false);
     try {
       const meResponse = await fetch("/api/auth/me");
 
@@ -102,6 +136,28 @@ export default function PredictionsPage() {
         selectedCompetition.entry.paymentStatus !== "COMPLETED"
       ) {
         setPaymentRequired(true);
+        setLoading(false);
+        return;
+      }
+
+      const lockedOrStarted =
+        ["LOCKED", "IN_PROGRESS", "COMPLETED", "ARCHIVED"].includes(selectedCompetition.status) ||
+        Boolean(
+          selectedCompetition.predictionLockAt &&
+          new Date(selectedCompetition.predictionLockAt).getTime() <= Date.now()
+        );
+
+      if (lockedOrStarted) {
+        setResultsMode(true);
+        const resultsResponse = await fetch(
+          `/api/predictions/results?tournamentId=${selectedCompetitionId}`,
+          { cache: "no-store" }
+        );
+        const resultsData = await resultsResponse.json();
+        if (!resultsResponse.ok) {
+          throw new Error(resultsData.error ?? "Unable to load completed match results.");
+        }
+        setPersonalResults(resultsData);
         setLoading(false);
         return;
       }
@@ -354,6 +410,146 @@ export default function PredictionsPage() {
         <PageContainer>
           {competitionPicker}
           <Card>Loading predictions...</Card>
+        </PageContainer>
+      </main>
+    );
+  }
+
+  if (resultsMode) {
+    const movement = personalResults?.rankMovement ?? null;
+    const movementText =
+      movement === null
+        ? "—"
+        : movement > 0
+        ? `↑ ${movement}`
+        : movement < 0
+        ? `↓ ${Math.abs(movement)}`
+        : "—";
+
+    return (
+      <main className="bg-white p-8 text-[var(--brand-navy)]">
+        <PageContainer>
+          <div className="text-center">
+            <PageHeader
+              title="Predictions"
+              subtitle={selectedCompetition
+                ? `${formatCompetitionTitle(selectedCompetition.name, selectedCompetition.year)} · ${user?.firstName ?? "Player"}`
+                : `Welcome ${user?.firstName ?? "Player"}`}
+            />
+          </div>
+
+          {competitionPicker}
+
+          <div className="mb-6 grid gap-4 md:grid-cols-3">
+            <Card title="Total Competition Points">
+              <p className="text-3xl font-bold">
+                {personalResults?.totalPoints ?? 0}
+              </p>
+              <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                Sum of completed-match points only.
+              </p>
+            </Card>
+
+            <Card title="Leaderboard Position">
+              <p className="text-3xl font-bold">
+                {personalResults?.leaderboardPosition ?? "—"}
+              </p>
+            </Card>
+
+            <Card title="Latest Movement">
+              <p className="text-3xl font-bold">
+                {movementText}
+              </p>
+              <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                Movement caused by the latest completed result.
+              </p>
+            </Card>
+          </div>
+
+          <Card title="Completed Matches">
+            {!personalResults || personalResults.matches.length === 0 ? (
+              <p className="text-[var(--brand-muted)]">
+                No completed matches are available yet.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {personalResults.matches.map((match) => {
+                  const prediction = match.prediction;
+                  return (
+                    <div
+                      key={match.id}
+                      className="rounded-lg border border-[var(--brand-border)] p-4"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h3 className="font-bold">
+                            {match.homeTeam.name} {match.actualHomeScore} - {match.actualAwayScore} {match.awayTeam.name}
+                          </h3>
+                          <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                            Round {match.round} · {formatIrishDate(match.kickoffTime)}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-[var(--brand-muted)]">
+                            Match Points
+                          </p>
+                          <p className="text-2xl font-bold">
+                            {prediction?.pointsAwarded ?? 0}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                        <div className="rounded-lg bg-slate-50 p-3">
+                          <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
+                            Your Prediction
+                          </p>
+                          <p className="mt-1 font-bold">
+                            {prediction
+                              ? `${match.homeTeam.shortCode} ${prediction.predictedHomeScore} - ${prediction.predictedAwayScore} ${match.awayTeam.shortCode}`
+                              : "No prediction"}
+                          </p>
+                        </div>
+
+                        <div className="rounded-lg bg-slate-50 p-3">
+                          <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
+                            Correct Result
+                          </p>
+                          <p className="mt-1 font-bold">
+                            {prediction ? (prediction.correctResult ? "Yes" : "No") : "—"}
+                          </p>
+                        </div>
+
+                        <div className="rounded-lg bg-slate-50 p-3">
+                          <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
+                            Exact Score
+                          </p>
+                          <p className="mt-1 font-bold">
+                            {prediction ? (prediction.exactScore ? "Yes" : "No") : "—"}
+                          </p>
+                        </div>
+
+                        <div className="rounded-lg bg-slate-50 p-3">
+                          <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
+                            Correct Margin
+                          </p>
+                          <p className="mt-1 font-bold">
+                            {prediction ? (prediction.correctMargin ? "Yes" : "No") : "—"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {prediction && (
+                        <div className="mt-3 text-sm text-[var(--brand-muted)]">
+                          Score error: {prediction.errorValue}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
         </PageContainer>
       </main>
     );
