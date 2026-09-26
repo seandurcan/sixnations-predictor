@@ -101,6 +101,26 @@ export default function PredictionsPage() {
     }
   }, [loadingCompetitions, selectedCompetitionId]);
 
+  useEffect(() => {
+    function refreshWhenReturning() {
+      if (
+        document.visibilityState === "visible" &&
+        !loadingCompetitions &&
+        selectedCompetitionId
+      ) {
+        void initialisePage();
+      }
+    }
+
+    window.addEventListener("focus", refreshWhenReturning);
+    document.addEventListener("visibilitychange", refreshWhenReturning);
+
+    return () => {
+      window.removeEventListener("focus", refreshWhenReturning);
+      document.removeEventListener("visibilitychange", refreshWhenReturning);
+    };
+  }, [loadingCompetitions, selectedCompetitionId]);
+
   async function initialisePage() {
     if (!selectedCompetitionId) return;
     setLoading(true);
