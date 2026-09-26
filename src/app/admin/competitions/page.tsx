@@ -75,47 +75,77 @@ function isCrossYear(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]/g, "").includes("unitedrugbychampionship");
 }
 
-function validateEditableFixtures(
-  fixtures: PreviewFixture[],
+function fixtureValidationWarnings(
+  fixture: PreviewFixture,
+  index: number,
   competitionYear: number,
+  competitionName: string
+) {
+  const blocking: string[] = [];
+  const advisory: string[] = [];
+  const sixNations = isSixNations(competitionName);
+
+  if (!fixture.homeTeam || !fixture.awayTeam) {
+    blocking.push("Both teams are required.");
+  }
+  if (fixture.homeTeam && fixture.homeTeam === fixture.awayTeam) {
+    blocking.push("Home and away team cannot be the same.");
+  }
+
+  const kickoff = new Date(String(fixture.kickoffTime ?? ""));
+  if (Number.isNaN(kickoff.getTime())) {
+    blocking.push("A valid kickoff time is required.");
+  } else {
+    const kickoffYear = kickoff.getUTCFullYear();
+    const validYear = isCrossYear(competitionName)
+      ? kickoffYear === competitionYear || kickoffYear === competitionYear + 1
+      : kickoffYear === competitionYear;
+    if (!validYear) {
+      blocking.push("Kickoff is outside the competition season.");
+    }
+  }
+
+  if (!fixture.venue?.trim()) {
+    if (sixNations) {
+      blocking.push("Stadium is required.");
+    } else {
+      advisory.push("Stadium not supplied; it will import as TBC.");
+    }
+  }
+
+  return {
+    blocking: blocking.map((warning) => `Fixture ${index + 1}: ${warning}`),
+    advisory,
+  };
+}
+
+function validateCompetitionFixtures(
+  fixtures: PreviewFixture[],
   competitionName: string
 ) {
   const warnings: string[] = [];
   const sixNations = isSixNations(competitionName);
+
   if (fixtures.length === 0) warnings.push("At least one fixture is required.");
   if (sixNations && fixtures.length !== 15) {
     warnings.push(`Exactly 15 fixtures are required for the Six Nations; currently ${fixtures.length}.`);
   }
-  fixtures.forEach((fixture, index) => {
-    if (!fixture.homeTeam || !fixture.awayTeam) warnings.push(`Fixture ${index + 1} needs both teams.`);
-    if (fixture.homeTeam && fixture.homeTeam === fixture.awayTeam) warnings.push(`Fixture ${index + 1} has the same team twice.`);
-    const kickoff = new Date(String(fixture.kickoffTime ?? ""));
-    if (Number.isNaN(kickoff.getTime())) {
-      warnings.push(`Fixture ${index + 1} needs a kickoff time.`);
-    } else {
-      const kickoffYear = kickoff.getUTCFullYear();
-      const validYear = isCrossYear(competitionName)
-        ? kickoffYear === competitionYear || kickoffYear === competitionYear + 1
-        : kickoffYear === competitionYear;
-      if (!validYear) {
-        warnings.push(
-          `Fixture ${index + 1} kickoff is outside the competition season.`
-        );
-      }
-    }
-    if (!fixture.venue?.trim()) warnings.push(`Fixture ${index + 1} needs a stadium.`);
-  });
+
   if (sixNations) {
     const complete = fixtures.filter((fixture) => fixture.homeTeam && fixture.awayTeam);
     const pairings = complete.map((fixture) => [fixture.homeTeam, fixture.awayTeam].sort().join("|"));
-    if (new Set(pairings).size !== pairings.length) warnings.push("Duplicate Six Nations team pairings must be corrected.");
+    if (new Set(pairings).size !== pairings.length) {
+      warnings.push("Duplicate Six Nations team pairings must be corrected.");
+    }
     for (const team of ["England", "France", "Ireland", "Italy", "Scotland", "Wales"]) {
       const count = complete.filter((fixture) => fixture.homeTeam === team || fixture.awayTeam === team).length;
       if (count !== 5) warnings.push(`${team} appears in ${count} fixtures; expected 5.`);
     }
   }
+
   return [...new Set(warnings)];
 }
+
 
 export default function CompetitionsPage() {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
@@ -140,12 +170,28 @@ export default function CompetitionsPage() {
   const [fixtureSource, setFixtureSource] = useState<"API_SPORTS" | "OFFICIAL_SITE" | "MANUAL_FILE" | "MANUAL_ADMIN">("API_SPORTS");
   const previewRef = useRef<HTMLDivElement | null>(null);
 
-  const fixtureWarnings = useMemo(
+  const competitionWarnings = useMemo(
     () => previewCompetition && fixturePreview
-      ? validateEditableFixtures(fixturePreview.fixtures, previewCompetition.year, previewCompetition.name)
+      ? validateCompetitionFixtures(fixturePreview.fixtures, previewCompetition.name)
       : [],
     [fixturePreview, previewCompetition]
   );
+
+  const fixtureBlockingWarnings = useMemo(
+    () => previewCompetition && fixturePreview
+      ? fixturePreview.fixtures.flatMap((fixture, index) =>
+          fixtureValidationWarnings(
+            fixture,
+            index,
+            previewCompetition.year,
+            previewCompetition.name
+          ).blocking
+        )
+      : [],
+    [fixturePreview, previewCompetition]
+  );
+
+  const fixtureWarnings = [...competitionWarnings, ...fixtureBlockingWarnings];
   const currentCompetition = competitions.find(
     (competition) => competition.id === currentTournamentId
   );
@@ -623,11 +669,11 @@ export default function CompetitionsPage() {
                 </span>
               </div>
 
-              {fixtureWarnings.length > 0 && (
+              {competitionWarnings.length > 0 && (
                 <div className="mb-5 rounded-lg border border-amber-300 bg-amber-50 p-4">
-                  <h3 className="font-bold text-amber-950">Validation warnings</h3>
+                  <h3 className="font-bold text-amber-950">Competition validation</h3>
                   <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-950">
-                    {fixtureWarnings.map((warning) => <li key={warning}>{warning}</li>)}
+                    {competitionWarnings.map((warning) => <li key={warning}>{warning}</li>)}
                   </ul>
                 </div>
               )}
@@ -639,6 +685,26 @@ export default function CompetitionsPage() {
                       <h3 className="font-bold">Fixture {index + 1}</h3>
                       <Button type="button" variant="secondary" onClick={() => removeFixture(index)}>Remove</Button>
                     </div>
+                    {(() => {
+                      const validation = fixtureValidationWarnings(
+                        fixture,
+                        index,
+                        previewCompetition.year,
+                        previewCompetition.name
+                      );
+                      const warnings = [
+                        ...validation.blocking.map((warning) =>
+                          warning.replace(`Fixture ${index + 1}: `, "")
+                        ),
+                        ...validation.advisory,
+                      ];
+                      return warnings.length > 0 ? (
+                        <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                          <span className="font-bold">Validation:</span>{" "}
+                          {warnings.join(" ")}
+                        </div>
+                      ) : null;
+                    })()}
                     <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                       <label className="text-sm font-semibold">Home team
                         <select className="mt-1 w-full rounded-lg border border-[var(--brand-border)] bg-white px-3 py-2" value={fixture.homeTeam ?? ""} onChange={(event) => updateFixture(index, "homeTeam", event.target.value || null)}>
