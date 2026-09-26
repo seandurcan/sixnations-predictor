@@ -45,9 +45,15 @@ export async function GET(request: Request) {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
-        totalPoints: user.competitionEntries[0]?.totalPoints ?? 0,
-        exactScores: user.competitionEntries[0]?.exactScores ?? 0,
-        cumulativeError: user.competitionEntries[0]?.cumulativeError ?? 0,
+        totalPoints: user.predictions.reduce(
+          (total, prediction) => total + prediction.pointsAwarded,
+          0
+        ),
+        exactScores: user.predictions.filter((p) => p.exactScore).length,
+        cumulativeError: user.predictions.reduce(
+          (total, prediction) => total + prediction.errorValue,
+          0
+        ),
         differenceScore: user.predictions.reduce(
           (total, prediction) => total + prediction.differenceScore,
           0
