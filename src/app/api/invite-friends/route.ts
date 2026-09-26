@@ -89,12 +89,9 @@ export async function POST(request: NextRequest) {
   }
 
   const emails = [...new Set(cleaned.map((person) => person.email))];
-  const [existingUsers, existingInvitations] = await Promise.all([
+  const [registeredUsers, existingInvitations] = await Promise.all([
     prisma.user.findMany({
-      where: {
-        email: { in: emails, mode: "insensitive" },
-        deletedAt: null,
-      },
+      where: { deletedAt: null },
       select: { email: true },
     }),
     prisma.perfectXvInvitation.findMany({
@@ -106,7 +103,12 @@ export async function POST(request: NextRequest) {
     }),
   ]);
 
-  const registered = new Set(existingUsers.map((user) => user.email.toLowerCase()));
+  const requestedEmailSet = new Set(emails);
+  const registered = new Set(
+    registeredUsers
+      .map((user) => user.email.trim().toLowerCase())
+      .filter((email) => requestedEmailSet.has(email))
+  );
   const invitationByEmail = new Map(
     existingInvitations.map((invitation) => [invitation.normalisedEmail, invitation])
   );
