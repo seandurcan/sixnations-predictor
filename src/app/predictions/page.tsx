@@ -570,7 +570,7 @@ export default function PredictionsPage() {
                             Prediction Delta
                           </p>
                           <p className="mt-1 text-xl font-bold">
-                            {prediction ? prediction.errorValue : "—"}
+                            {prediction ? prediction.differenceScore : "—"}
                           </p>
                         </div>
                       </div>
