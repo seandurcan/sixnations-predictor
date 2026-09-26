@@ -48,6 +48,7 @@ type FixturePreview = {
   discoveredFixtureCount: number;
   participantTeams: string[];
   competitionKind: "SIX_NATIONS" | "LEAGUE";
+  queryDiagnostics?: string[];
 };
 
 function formatKickoff(value: string | null) {
@@ -437,6 +438,13 @@ export default function CompetitionsPage() {
                       ? ` · seasons: ${fixturePreview.providerLeague.seasons.join(", ")}`
                       : ""}. Review and correct every field before approval.
                   </p>
+                  {fixturePreview.queryDiagnostics?.length ? (
+                    <div className="mt-2 text-xs text-[var(--brand-muted)]">
+                      {fixturePreview.queryDiagnostics.map((diagnostic) => (
+                        <div key={diagnostic}>{diagnostic}</div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
                 <span className={`rounded-full px-3 py-1 text-sm font-bold ${fixtureWarnings.length === 0 ? "bg-lime-100 text-lime-900" : "bg-amber-100 text-amber-900"}`}>
                   {fixtureWarnings.length === 0 ? "READY FOR APPROVAL" : "REVIEW REQUIRED"}

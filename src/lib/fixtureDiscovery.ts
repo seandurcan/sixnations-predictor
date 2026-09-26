@@ -56,6 +56,7 @@ export type FixturePreviewResult = {
   expectedFixtureCount: number;
   discoveredFixtureCount: number;
   competitionKind?: "SIX_NATIONS" | "LEAGUE";
+  queryDiagnostics?: string[];
 };
 
 export function normaliseCompetitionName(value: unknown) {
@@ -137,19 +138,45 @@ function seasonAvailable(league: ApiLeague, year: number) {
   );
 }
 
-async function providerGet<T>(path: string, apiKey: string): Promise<T[]> {
+async function providerGet<T>(
+  path: string,
+  apiKey: string,
+  diagnostics?: string[]
+): Promise<T[]> {
   const response = await fetch(`https://v1.rugby.api-sports.io/${path}`, {
     headers: { "x-apisports-key": apiKey },
     cache: "no-store",
     signal: AbortSignal.timeout(10000),
   });
   if (!response.ok) {
-    throw new Error(`API-Sports returned ${response.status}.`);
+    throw new Error(`API-Sports returned HTTP ${response.status} for ${path}.`);
   }
-  const payload = (await response.json()) as { response?: T[]; errors?: unknown };
+  const payload = (await response.json()) as {
+    response?: T[];
+    errors?: unknown;
+    results?: number;
+  };
+
+  const apiErrors =
+    payload.errors && typeof payload.errors === "object"
+      ? Object.entries(payload.errors as Record<string, unknown>)
+          .filter(([, value]) => value !== null && value !== "" && value !== false)
+          .map(([key, value]) => `${key}: ${String(value)}`)
+      : [];
+
+  if (apiErrors.length > 0) {
+    throw new Error(
+      `API-Sports error for ${path}: ${apiErrors.join("; ")}`
+    );
+  }
+
   if (!Array.isArray(payload.response)) {
-    throw new Error("API-Sports returned an unexpected response.");
+    throw new Error(`API-Sports returned an unexpected response for ${path}.`);
   }
+
+  diagnostics?.push(
+    `${path} → ${payload.response.length} result(s)`
+  );
   return payload.response;
 }
 
@@ -214,9 +241,11 @@ export async function discoverCompetitionFixtures(
   apiKey: string
 ): Promise<FixturePreviewResult> {
   const searchName = providerCompetitionSearchName(competitionName);
+  const queryDiagnostics: string[] = [];
   const leagues = await providerGet<ApiLeague>(
     `leagues?search=${encodeURIComponent(searchName)}`,
-    apiKey
+    apiKey,
+    queryDiagnostics
   );
   const target = normaliseCompetitionName(searchName);
   const candidates = leagues.filter(
@@ -239,7 +268,11 @@ export async function discoverCompetitionFixtures(
   const providerSeasonCandidates = crossYear ? [year, year + 1] : [year];
   const gameBatches = await Promise.all(
     providerSeasonCandidates.map((season) =>
-      providerGet<ApiGame>(`games?league=${league.id}&season=${season}`, apiKey)
+      providerGet<ApiGame>(
+        `games?league=${league.id}&season=${season}`,
+        apiKey,
+        queryDiagnostics
+      )
     )
   );
   let providerGames = gameBatches.flat();
@@ -248,7 +281,11 @@ export async function discoverCompetitionFixtures(
   // If both likely season values return nothing for a cross-year competition,
   // fetch the league schedule without a season filter and constrain it by date below.
   if (crossYear && providerGames.length === 0) {
-    providerGames = await providerGet<ApiGame>(`games?league=${league.id}`, apiKey);
+    providerGames = await providerGet<ApiGame>(
+      `games?league=${league.id}`,
+      apiKey,
+      queryDiagnostics
+    );
   }
 
   const games = Array.from(
@@ -328,6 +365,7 @@ export async function discoverCompetitionFixtures(
     expectedFixtureCount: sixNations ? 15 : fixtures.length,
     discoveredFixtureCount: fixtures.length,
     competitionKind: sixNations ? "SIX_NATIONS" : "LEAGUE",
+    queryDiagnostics,
   };
 }
 
