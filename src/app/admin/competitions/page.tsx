@@ -10,6 +10,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { formatCompetitionTitle } from "@/lib/competitionTitle";
 import { getFollowingCompetitionYear } from "@/lib/competitionYear";
+import { parseManualFixtureFile } from "@/lib/manualFixtureImport";
 
 type Competition = {
   id: number;
@@ -133,6 +134,8 @@ export default function CompetitionsPage() {
   const [fixturePreview, setFixturePreview] = useState<FixturePreview | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [manualImportingId, setManualImportingId] = useState<number | null>(null);
+  const [fixtureSource, setFixtureSource] = useState<"API_SPORTS" | "MANUAL_FILE" | "MANUAL_ADMIN">("API_SPORTS");
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   const fixtureWarnings = useMemo(
@@ -214,8 +217,39 @@ export default function CompetitionsPage() {
       return;
     }
     setPreviewCompetition(competition);
+    setFixtureSource("API_SPORTS");
     setFixturePreview(data.preview);
   }
+  async function importFixtureFile(competition: Competition, file: File | null) {
+    if (!file) return;
+    setManualImportingId(competition.id);
+    setError("");
+    setSuccess("");
+    setFixturePreview(null);
+    setPreviewCompetition(null);
+    try {
+      const parsed = await parseManualFixtureFile(file);
+      setPreviewCompetition(competition);
+      setFixtureSource("MANUAL_FILE");
+      setFixturePreview({
+        provider: "Manual CSV/Excel upload",
+        providerLeague: { id: 0, name: competition.name },
+        fixtures: parsed.fixtures,
+        warnings: [],
+        valid: false,
+        expectedFixtureCount: parsed.fixtures.length,
+        discoveredFixtureCount: parsed.fixtures.length,
+        participantTeams: parsed.participantTeams,
+        competitionKind: isSixNations(competition.name) ? "SIX_NATIONS" : "LEAGUE",
+        queryDiagnostics: parsed.diagnostics,
+      });
+    } catch (fileError) {
+      setError(fileError instanceof Error ? fileError.message : "Unable to read the fixture file.");
+    } finally {
+      setManualImportingId(null);
+    }
+  }
+
 
   async function updateCompetitionLifecycle(
     competition: Competition,
@@ -317,6 +351,7 @@ export default function CompetitionsPage() {
       body: JSON.stringify({
         tournamentId: previewCompetition.id,
         fixtures: fixturePreview.fixtures,
+        source: fixtureSource,
       }),
     });
     const data = await response.json();
@@ -364,14 +399,30 @@ export default function CompetitionsPage() {
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         {competition.status === "DRAFT" && competition._count.matches === 0 && (
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            disabled={discoveringId !== null || updatingId !== null}
-                            onClick={() => void previewFixtures(competition)}
-                          >
-                            {discoveringId === competition.id ? "Finding..." : "Find Fixture Preview"}
-                          </Button>
+                          <>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              disabled={discoveringId !== null || updatingId !== null || manualImportingId !== null}
+                              onClick={() => void previewFixtures(competition)}
+                            >
+                              {discoveringId === competition.id ? "Finding..." : "Find Fixture Preview"}
+                            </Button>
+                            <label className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-[var(--brand-border)] bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">
+                              {manualImportingId === competition.id ? "Reading file..." : "Import CSV / Excel"}
+                              <input
+                                className="hidden"
+                                type="file"
+                                accept=".csv,.tsv,.xlsx,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                disabled={discoveringId !== null || updatingId !== null || manualImportingId !== null}
+                                onChange={(event) => {
+                                  const file = event.target.files?.[0] ?? null;
+                                  void importFixtureFile(competition, file);
+                                  event.currentTarget.value = "";
+                                }}
+                              />
+                            </label>
+                          </>
                         )}
                         {competition.status === "DRAFT" && competition._count.matches > 0 && (
                           <Button
@@ -432,7 +483,7 @@ export default function CompetitionsPage() {
                     {fixturePreview.discoveredFixtureCount} of {fixturePreview.expectedFixtureCount} fixtures found through {fixturePreview.provider}
                   </p>
                   <p className="text-sm text-[var(--brand-muted)]">
-                    Provider competition: {fixturePreview.providerLeague.name}
+                    {fixtureSource === "API_SPORTS" ? "Provider competition" : "Fixture source"}: {fixturePreview.providerLeague.name}
                     {fixturePreview.providerLeague.id ? ` (ID ${fixturePreview.providerLeague.id})` : ""}
                     {fixturePreview.providerLeague.seasons?.length
                       ? ` · seasons: ${fixturePreview.providerLeague.seasons.join(", ")}`
