@@ -57,6 +57,7 @@ model User {
   emailVerifications               EmailVerification[]
   emailPreferenceTokens            EmailPreferenceToken[]
   predictionConfirmationDeliveries PredictionConfirmationDelivery[]
+  sentPerfectXvInvitations          PerfectXvInvitation[]          @relation("PerfectXvInviter")
 
   @@index([email])
   @@index([paymentStatus])
@@ -137,6 +138,24 @@ model CompetitionEntry {
   @@unique([userId, tournamentId])
   @@index([tournamentId, status])
   @@index([tournamentId, paymentStatus])
+}
+
+model PerfectXvInvitation {
+  id               Int      @id @default(autoincrement())
+  email            String
+  normalisedEmail  String   @unique
+  firstName        String
+  lastName         String
+  invitedById      Int
+  invitedAt        DateTime @default(now())
+  sentAt           DateTime?
+  providerMessageId String?
+  unsubscribeTokenHash String @unique
+  unsubscribedAt   DateTime?
+  invitedBy        User     @relation("PerfectXvInviter", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([invitedById, invitedAt])
+  @@index([unsubscribedAt])
 }
 
 model CompetitionInvitation {

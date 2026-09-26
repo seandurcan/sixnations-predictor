@@ -153,6 +153,17 @@ export default function HomePage() {
                   </Button>
                 </div>
               )}
+
+              <div className="mt-4">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    window.location.href = "/invite-friends";
+                  }}
+                >
+                  Invite Friends to Perfect XV
+                </Button>
+              </div>
             </div>
 
             <Card id="tournament-predictor-card" className="border-[rgba(0,123,255,0.22)] bg-[rgba(0,123,255,0.04)]">
@@ -394,6 +405,16 @@ export default function HomePage() {
                   }}
                 >
                   View Leaderboard
+                </Button>
+
+                <Button
+                  fullWidth
+                  variant="secondary"
+                  onClick={() => {
+                    window.location.href = "/invite-friends";
+                  }}
+                >
+                  Invite Friends to Perfect XV
                 </Button>
               </div>
             </Card>
