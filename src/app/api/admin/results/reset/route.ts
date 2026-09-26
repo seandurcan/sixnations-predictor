@@ -70,6 +70,17 @@ export async function POST() {
         },
       }),
 
+      prisma.competitionEntry.updateMany({
+        where: {
+          tournamentId: tournament.id,
+        },
+        data: {
+          totalPoints: 0,
+          cumulativeError: 0,
+          exactScores: 0,
+        },
+      }),
+
       prisma.leaderboardSnapshot.deleteMany({
         where: {
           tournamentId:
