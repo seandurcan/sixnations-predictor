@@ -129,13 +129,14 @@ export default function CompetitionsPage() {
   const [saving, setSaving] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [discoveringId, setDiscoveringId] = useState<number | null>(null);
+  const [officialFindingId, setOfficialFindingId] = useState<number | null>(null);
   const [importing, setImporting] = useState(false);
   const [previewCompetition, setPreviewCompetition] = useState<Competition | null>(null);
   const [fixturePreview, setFixturePreview] = useState<FixturePreview | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [manualImportingId, setManualImportingId] = useState<number | null>(null);
-  const [fixtureSource, setFixtureSource] = useState<"API_SPORTS" | "MANUAL_FILE" | "MANUAL_ADMIN">("API_SPORTS");
+  const [fixtureSource, setFixtureSource] = useState<"API_SPORTS" | "OFFICIAL_SITE" | "MANUAL_FILE" | "MANUAL_ADMIN">("API_SPORTS");
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   const fixtureWarnings = useMemo(
@@ -220,6 +221,87 @@ export default function CompetitionsPage() {
     setFixtureSource("API_SPORTS");
     setFixturePreview(data.preview);
   }
+  async function findOfficialFixtures(competition: Competition) {
+    setOfficialFindingId(competition.id);
+    setError("");
+    setSuccess("");
+    setFixturePreview(null);
+    setPreviewCompetition(null);
+    const response = await fetch("/api/admin/competitions/fixtures/official", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tournamentId: competition.id }),
+    });
+    const data = await response.json();
+    setOfficialFindingId(null);
+    if (!response.ok) {
+      setError(data.error ?? "Unable to find fixtures from the official competition source.");
+      return;
+    }
+    setPreviewCompetition(competition);
+    setFixtureSource("OFFICIAL_SITE");
+    setFixturePreview(data.preview);
+  }
+
+  function downloadFoundFixturesCsv() {
+    if (!fixturePreview || !previewCompetition) return;
+    const headers = [
+      "Round",
+      "Date",
+      "Kick-off",
+      "Home Team",
+      "Away Team",
+      "Stadium",
+      "City",
+      "Country",
+    ];
+    const rows = fixturePreview.fixtures.map((fixture) => {
+      const kickoff = fixture.kickoffTime ? new Date(fixture.kickoffTime) : null;
+      const parts = kickoff && !Number.isNaN(kickoff.getTime())
+        ? new Intl.DateTimeFormat("en-IE", {
+            timeZone: "Europe/Dublin",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hourCycle: "h23",
+          }).formatToParts(kickoff)
+        : [];
+      const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+      const date = parts.length ? `${get("year")}-${get("month")}-${get("day")}` : "";
+      const time = parts.length ? `${get("hour")}:${get("minute")}` : "";
+      return [
+        fixture.round ?? "",
+        date,
+        time,
+        fixture.homeTeam ?? "",
+        fixture.awayTeam ?? "",
+        fixture.venue ?? "",
+        fixture.city ?? "",
+        fixture.country ?? "",
+      ];
+    });
+    const csv = [headers, ...rows]
+      .map((row) =>
+        row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",")
+      )
+      .join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const safeName = `${previewCompetition.name}-${previewCompetition.year}`
+      .replace(/[^a-z0-9]+/gi, "-")
+      .replace(/^-+|-+$/g, "")
+      .toLowerCase();
+    link.href = url;
+    link.download = `${safeName || "competition"}-found-fixtures.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function downloadFixtureTemplate(competition: Competition) {
     const headers = [
       "Round",
@@ -447,10 +529,18 @@ export default function CompetitionsPage() {
                             <Button
                               type="button"
                               variant="secondary"
-                              disabled={discoveringId !== null || updatingId !== null || manualImportingId !== null}
+                              disabled={discoveringId !== null || officialFindingId !== null || updatingId !== null || manualImportingId !== null}
                               onClick={() => void previewFixtures(competition)}
                             >
                               {discoveringId === competition.id ? "Finding..." : "Find Fixture Preview"}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              disabled={discoveringId !== null || officialFindingId !== null || updatingId !== null || manualImportingId !== null}
+                              onClick={() => void findOfficialFixtures(competition)}
+                            >
+                              {officialFindingId === competition.id ? "Finding official fixtures..." : "Find Official Fixtures"}
                             </Button>
                             <Button
                               type="button"
@@ -529,6 +619,13 @@ export default function CompetitionsPage() {
         {fixturePreview && previewCompetition && (
           <div ref={previewRef} className="mt-6 scroll-mt-6">
             <Card title={`Fixture Preview — ${formatCompetitionTitle(previewCompetition.name, previewCompetition.year)}`}>
+              <div className="mb-3 flex flex-wrap gap-2">
+                {fixtureSource === "OFFICIAL_SITE" && (
+                  <Button type="button" variant="secondary" onClick={downloadFoundFixturesCsv}>
+                    Download Found Fixtures CSV
+                  </Button>
+                )}
+              </div>
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold">
