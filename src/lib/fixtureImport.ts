@@ -90,7 +90,7 @@ export function prepareCompetitionFixtureImport(
         : String(competition.year);
       errors.push(`Fixture ${index + 1} kickoff must be in ${expected}.`);
     }
-    if (!venue) errors.push(`Fixture ${index + 1} needs a stadium.`);
+    if (!venue && sixNations) errors.push(`Fixture ${index + 1} needs a stadium.`);
 
     return {
       providerGameId:
@@ -101,7 +101,7 @@ export function prepareCompetitionFixtureImport(
       kickoffTime,
       homeTeam,
       awayTeam,
-      venue,
+      venue: venue ?? "TBC",
       city: cleanOptionalText(fixture.city, 120),
       country: cleanOptionalText(fixture.country, 120),
     };
