@@ -134,6 +134,7 @@ export default function CompetitionsPage() {
   const [previewCompetition, setPreviewCompetition] = useState<Competition | null>(null);
   const [fixturePreview, setFixturePreview] = useState<FixturePreview | null>(null);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState<{ id: number; message: string } | null>(null);
   const [success, setSuccess] = useState("");
   const [manualImportingId, setManualImportingId] = useState<number | null>(null);
   const [fixtureSource, setFixtureSource] = useState<"API_SPORTS" | "OFFICIAL_SITE" | "MANUAL_FILE" | "MANUAL_ADMIN">("API_SPORTS");
@@ -203,6 +204,7 @@ export default function CompetitionsPage() {
   async function previewFixtures(competition: Competition) {
     setDiscoveringId(competition.id);
     setError("");
+    setActionError(null);
     setSuccess("");
     setFixturePreview(null);
     setPreviewCompetition(null);
@@ -214,7 +216,7 @@ export default function CompetitionsPage() {
     const data = await response.json();
     setDiscoveringId(null);
     if (!response.ok) {
-      setError(data.error ?? "Unable to discover fixtures.");
+      setActionError({ id: competition.id, message: data.error ?? "Unable to discover fixtures." });
       return;
     }
     setPreviewCompetition(competition);
@@ -224,6 +226,7 @@ export default function CompetitionsPage() {
   async function findOfficialFixtures(competition: Competition) {
     setOfficialFindingId(competition.id);
     setError("");
+    setActionError(null);
     setSuccess("");
     setFixturePreview(null);
     setPreviewCompetition(null);
@@ -235,7 +238,10 @@ export default function CompetitionsPage() {
     const data = await response.json();
     setOfficialFindingId(null);
     if (!response.ok) {
-      setError(data.error ?? "Unable to find fixtures from the official competition source.");
+      setActionError({
+        id: competition.id,
+        message: data.error ?? "Unable to find fixtures from the online competition source.",
+      });
       return;
     }
     setPreviewCompetition(competition);
@@ -303,47 +309,8 @@ export default function CompetitionsPage() {
   }
 
   function downloadFixtureTemplate(competition: Competition) {
-    const headers = [
-      "Round",
-      "Date",
-      "Kick-off",
-      "Home Team",
-      "Away Team",
-      "Stadium",
-      "City",
-      "Country",
-    ];
-    const example = [
-      "1",
-      `${competition.year}-09-01`,
-      "19:35",
-      "Home Team",
-      "Away Team",
-      "Stadium Name",
-      "City",
-      "Country",
-    ];
-    const csv = [
-      headers.join(","),
-      example
-        .map((value) => `"${String(value).replace(/"/g, '""')}"`)
-        .join(","),
-    ].join("\r\n");
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    const safeName = `${competition.name}-${competition.year}`
-      .replace(/[^a-z0-9]+/gi, "-")
-      .replace(/^-+|-+$/g, "")
-      .toLowerCase();
-
-    link.href = url;
-    link.download = `${safeName || "competition"}-fixture-template.csv`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    window.location.href =
+      `/api/admin/competitions/fixtures/template?tournamentId=${competition.id}`;
   }
 
   async function importFixtureFile(competition: Competition, file: File | null) {
@@ -540,7 +507,7 @@ export default function CompetitionsPage() {
                               disabled={discoveringId !== null || officialFindingId !== null || updatingId !== null || manualImportingId !== null}
                               onClick={() => void findOfficialFixtures(competition)}
                             >
-                              {officialFindingId === competition.id ? "Finding official fixtures..." : "Find Official Fixtures"}
+                              {officialFindingId === competition.id ? "Finding fixtures..." : "Find Fixtures Online"}
                             </Button>
                             <Button
                               type="button"
@@ -565,6 +532,11 @@ export default function CompetitionsPage() {
                               />
                             </label>
                           </>
+                        )}
+                        {actionError?.id === competition.id && (
+                          <div className="w-full max-w-md rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">
+                            {actionError.message}
+                          </div>
                         )}
                         {competition.status === "DRAFT" && competition._count.matches > 0 && (
                           <Button
