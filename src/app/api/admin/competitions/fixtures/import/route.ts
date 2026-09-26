@@ -45,11 +45,13 @@ export async function POST(request: NextRequest) {
     : [];
   const requestedSource = String(body.source ?? "API_SPORTS");
   const auditSource =
-    requestedSource === "MANUAL_FILE"
-      ? "Manual CSV/Excel upload"
-      : requestedSource === "MANUAL_ADMIN"
-        ? "Manual admin entry"
-        : "API-Sports/Admin review";
+    requestedSource === "OFFICIAL_SITE"
+      ? "Official competition website/Admin review"
+      : requestedSource === "MANUAL_FILE"
+        ? "Manual CSV/Excel upload"
+        : requestedSource === "MANUAL_ADMIN"
+          ? "Manual admin entry"
+          : "API-Sports/Admin review";
 
   if (!Number.isInteger(tournamentId) || tournamentId <= 0) {
     return NextResponse.json(
