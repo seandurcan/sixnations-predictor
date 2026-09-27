@@ -5,11 +5,17 @@ import { prisma } from "@/lib/prisma";
 import { assignCompetitionRanks } from "@/lib/scoring";
 import {
   championshipEras,
+  championshipVenues,
   classicMatches,
+  heritageRecords,
   heritageSources,
+  historicSeasons,
   playerProfiles,
+  rivalryTrophies,
+  silverwareSource,
   sixNationsWinners,
   teamHistories,
+  venuesSource,
 } from "@/lib/heritage";
 
 export const dynamic = "force-dynamic";
@@ -245,6 +251,153 @@ export default async function HeritagePage() {
             </div>
           </Card>
 
+          <Card title="Historic Tables & Season Stories">
+            <p className="mb-6 leading-7 text-[var(--brand-muted)]">
+              Selected modern Championships, with the final table alongside the story of how the title was won.
+            </p>
+
+            <div className="space-y-5">
+              {historicSeasons.map((season) => (
+                <details
+                  key={season.year}
+                  className="rounded-xl border border-[var(--brand-border)] bg-white"
+                >
+                  <summary className="cursor-pointer px-5 py-4 font-bold">
+                    {season.year} — {season.champion}
+                  </summary>
+                  <div className="border-t border-[var(--brand-border)] p-5">
+                    <p className="mb-5 leading-7 text-[var(--brand-muted)]">
+                      {season.story}
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse text-sm">
+                        <thead>
+                          <tr className="bg-slate-100">
+                            <th className="border border-slate-200 p-2 text-left">Pos</th>
+                            <th className="border border-slate-200 p-2 text-left">Team</th>
+                            <th className="border border-slate-200 p-2 text-right">P</th>
+                            <th className="border border-slate-200 p-2 text-right">W</th>
+                            <th className="border border-slate-200 p-2 text-right">D</th>
+                            <th className="border border-slate-200 p-2 text-right">L</th>
+                            <th className="border border-slate-200 p-2 text-right">PD</th>
+                            <th className="border border-slate-200 p-2 text-right">Pts</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {season.standings.map((row) => (
+                            <tr key={row.team}>
+                              <td className="border border-slate-200 p-2 font-bold">{row.position}</td>
+                              <td className="border border-slate-200 p-2">{row.team}</td>
+                              <td className="border border-slate-200 p-2 text-right">{row.played}</td>
+                              <td className="border border-slate-200 p-2 text-right">{row.won}</td>
+                              <td className="border border-slate-200 p-2 text-right">{row.drawn}</td>
+                              <td className="border border-slate-200 p-2 text-right">{row.lost}</td>
+                              <td className="border border-slate-200 p-2 text-right">{row.pointsDifference > 0 ? `+${row.pointsDifference}` : row.pointsDifference}</td>
+                              <td className="border border-slate-200 p-2 text-right font-bold">{row.tablePoints}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <a
+                      href={season.source}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-4 inline-block text-sm font-semibold text-[var(--brand-blue)] underline"
+                    >
+                      Season source
+                    </a>
+                  </div>
+                </details>
+              ))}
+            </div>
+          </Card>
+
+          <Card title="Championship Records">
+            <div className="grid gap-4 md:grid-cols-2">
+              {heritageRecords.map((record) => (
+                <article
+                  key={record.title}
+                  className="rounded-xl border border-[var(--brand-border)] bg-slate-50 p-5"
+                >
+                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--brand-blue)]">
+                    {record.title}
+                  </p>
+                  <p className="mt-2 text-2xl font-black">{record.value}</p>
+                  <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">
+                    {record.detail}
+                  </p>
+                  <a
+                    href={record.source}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-block text-sm font-semibold text-[var(--brand-blue)] underline"
+                  >
+                    Official statistics
+                  </a>
+                </article>
+              ))}
+            </div>
+          </Card>
+
+          <Card title="Trophies & Rivalries">
+            <p className="mb-6 leading-7 text-[var(--brand-muted)]">
+              The Championship is layered with historic rivalry trophies as well as the main Six Nations title and the Triple Crown.
+            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              {rivalryTrophies.map((trophy) => (
+                <article
+                  key={trophy.name}
+                  className="rounded-xl border border-[var(--brand-border)] p-5"
+                >
+                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--brand-orange)]">
+                    {trophy.fixture}
+                  </p>
+                  <h3 className="mt-1 text-xl font-bold">{trophy.name}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">
+                    {trophy.story}
+                  </p>
+                </article>
+              ))}
+            </div>
+            <a
+              href={silverwareSource}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 inline-block text-sm font-semibold text-[var(--brand-blue)] underline"
+            >
+              Official guide to Six Nations silverware
+            </a>
+          </Card>
+
+          <Card title="Championship Venues">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {championshipVenues.map((venue) => (
+                <article
+                  key={venue.stadium}
+                  className="rounded-xl border border-[var(--brand-border)] bg-slate-50 p-5"
+                >
+                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--brand-blue)]">
+                    {venue.nation}
+                  </p>
+                  <h3 className="mt-1 text-lg font-bold">{venue.stadium}</h3>
+                  <p className="text-sm font-semibold">{venue.city}</p>
+                  <p className="mt-3 text-sm leading-6 text-[var(--brand-muted)]">
+                    {venue.note}
+                  </p>
+                </article>
+              ))}
+            </div>
+            <a
+              href={venuesSource}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 inline-block text-sm font-semibold text-[var(--brand-blue)] underline"
+            >
+              Official 2027 Championship venues
+            </a>
+          </Card>
+
           <Card title="Perfect XV Competition History">
             {perfectXvHistory.length === 0 ? (
               <div className="rounded-lg bg-slate-50 p-5">
@@ -318,15 +471,15 @@ export default async function HeritagePage() {
           <Card title="Where this section goes next">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-lg bg-slate-50 p-4">
-                <h3 className="font-bold">Historic Tables & Season Stories</h3>
+                <h3 className="font-bold">Deeper Historic Archive</h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">
-                  Season-by-season standings and readable summaries of how individual Championships unfolded.
+                  Expand the season tables back through the Five Nations and Home Nations eras, with more title-deciding stories and classic matches.
                 </p>
               </div>
               <div className="rounded-lg bg-slate-50 p-4">
-                <h3 className="font-bold">Records, Venues & Deeper Archive</h3>
+                <h3 className="font-bold">More Records & Player Stories</h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">
-                  Grand Slams, Triple Crowns, scoring and appearance records, famous grounds, full historic tables and a growing archive of classic matches.
+                  Add appearance, scoring and try records alongside profiles from earlier Championship eras.
                 </p>
               </div>
             </div>
