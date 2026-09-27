@@ -99,7 +99,7 @@ async function loadPerfectXvHistory() {
   });
 }
 
-function playerName(firstName: string, lastName: string) {
+function playerName(firstName: string | null, lastName: string | null) {
   return [firstName, lastName].filter(Boolean).join(" ").trim() || "Unknown Player";
 }
 
