@@ -34,11 +34,11 @@ describe("post-kick-off results", () => {
       awayTeam: { name: "France", shortCode: "FRA" },
       actualHomeScore: 24, actualAwayScore: 10,
       prediction: { predictedHomeScore: 24, predictedAwayScore: 10,
-        pointsAwarded: 1.5, correctResult: true, correctMargin: true,
+        pointsAwarded: 6, correctResult: true, correctMargin: true,
         exactScore: true, errorValue: 0, differenceScore: 0 },
     };
     mockResults([match, { ...match, id: 2, prediction: null }], {
-      totalPoints: 4.5, correctResults: 4, exactScores: 1,
+      totalPoints: 11, correctResults: 4, exactScores: 1,
       correctMargins: 2, cumulativeError: 18,
     });
     render(<PredictionsPage />);
@@ -49,13 +49,13 @@ describe("post-kick-off results", () => {
       const resultCard = screen.getAllByText("Correct Result Points")[index].parentElement!;
       expect(card.parentElement).toBe(resultCard.parentElement);
       expect(card.className).toBe(resultCard.className);
-      expect(within(card).getByText(index === 0 ? "1.5" : "0")).toBeInTheDocument();
+      expect(within(card).getByText(index === 0 ? "6" : "0")).toBeInTheDocument();
     });
     const totals = screen.getByRole("heading", { name: "Leaderboard Totals" }).parentElement!;
     expect(within(totals).getAllByRole("term").map((el) => el.textContent)).toEqual([
       "Total Points", "Correct Results", "Perfect Scores", "Correct Margins", "Aggregate Score Error",
     ]);
-    expect(within(totals).getAllByRole("definition").map((el) => el.textContent)).toEqual(["4.5", "4", "1", "2", "18"]);
+    expect(within(totals).getAllByRole("definition").map((el) => el.textContent)).toEqual(["11", "4", "1", "2", "18"]);
     expect(points[1].compareDocumentPosition(totals) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 

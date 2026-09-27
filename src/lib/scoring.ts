@@ -35,11 +35,12 @@ export function calculateMatchScore(
   return {
     // Perfect XV scoring:
     // 1 point for the correct match result.
-    // 0.5 bonus for an exact score.
-    // Correct margin is retained as a later leaderboard tie-break, not a points bonus.
+    // 2 bonus points for the correct margin; 3 bonus points for an exact score.
+    // Agreed rules: bonuses stack, for a maximum of 6. Do not change without owner approval.
     pointsAwarded:
       (correctResult ? 1 : 0) +
-      (exactScore ? 0.5 : 0),
+      (correctMargin ? 2 : 0) +
+      (exactScore ? 3 : 0),
     exactScore,
     correctMargin,
     correctResult,

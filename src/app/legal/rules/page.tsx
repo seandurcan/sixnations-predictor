@@ -29,12 +29,15 @@ export default function RulesPage() {
                   <strong className="text-[var(--brand-navy)]">Correct match outcome:</strong> 1 point.
                 </li>
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Exact score:</strong> 0.5 bonus point.
+                  <strong className="text-[var(--brand-navy)]">Correct margin:</strong> 2 bonus points.
+                </li>
+                <li>
+                  <strong className="text-[var(--brand-navy)]">Exact score:</strong> 3 bonus points.
                 </li>
               </ul>
 
               <p>
-                An exact score therefore earns <strong className="text-[var(--brand-navy)]">1.5 points</strong> in total for that match. Correct winning margin is retained as a leaderboard tie-break rather than an additional points award.
+                An exact score therefore earns <strong className="text-[var(--brand-navy)]">6 points</strong> in total for that match. The bonuses stack: 1 for the result, 2 for the margin and 3 for the exact score.
               </p>
             </div>
           </Card>

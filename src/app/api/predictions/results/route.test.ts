@@ -26,7 +26,7 @@ beforeEach(() => {
 
 it.each([true, false])("returns the same entrant metrics as the leaderboard (completed results: %s)", async (hasResults) => {
   const predictions = hasResults ? [
-    { matchId: 10, pointsAwarded: 1.5, correctResult: true, exactScore: true, correctMargin: true, errorValue: 0, differenceScore: 0 },
+    { matchId: 10, pointsAwarded: 6, correctResult: true, exactScore: true, correctMargin: true, errorValue: 0, differenceScore: 0 },
     { matchId: 11, pointsAwarded: 1, correctResult: true, exactScore: false, correctMargin: false, errorValue: 9, differenceScore: -3 },
     { matchId: 12, pointsAwarded: 0, correctResult: false, exactScore: false, correctMargin: false, errorValue: 7, differenceScore: 3 },
   ] : [];

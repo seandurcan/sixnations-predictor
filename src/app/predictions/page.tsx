@@ -554,10 +554,10 @@ export default function PredictionsPage() {
 
                         <div className="rounded-lg bg-slate-50 p-3">
                           <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
-                            Correct Margin Tie-break
+                            Correct Margin Points
                           </p>
                           <p className="mt-1 text-xl font-bold">
-                            {prediction ? (prediction.correctMargin ? 1 : 0) : "—"}
+                            {prediction ? (prediction.correctMargin ? 2 : 0) : "—"}
                           </p>
                         </div>
 
@@ -566,7 +566,7 @@ export default function PredictionsPage() {
                             Exact Score Bonus
                           </p>
                           <p className="mt-1 text-xl font-bold">
-                            {prediction ? (prediction.exactScore ? 0.5 : 0) : "—"}
+                            {prediction ? (prediction.exactScore ? 3 : 0) : "—"}
                           </p>
                         </div>
 

@@ -363,7 +363,7 @@ export default function HomePage() {
                   </li>
 
                   <li>
-                    Exact scores earn an additional 0.5 bonus point.
+                    Correct margins earn 2 bonus points and exact scores earn another 3: a maximum of 6 points per match.
                   </li>
 
                   <li>
