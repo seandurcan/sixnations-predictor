@@ -20,7 +20,7 @@ export default function TermsPage() {
 
           <Card title="2. Competition Rules & Eligibility">
             <p>
-              Participants must submit all predictions before the competition-wide deadline, one minute before the tournament&apos;s first kick-off. Once that deadline passes, no further entries may be submitted and all predictions are locked. Decisions made by administrators regarding scoring and leaderboards are final.
+              Participants must submit all predictions for each competition stage before that stage&apos;s deadline, one minute before its first kick-off. Once a stage deadline passes, predictions in that stage are locked. The Six Nations is treated as one tournament-wide stage; competitions with later knockout rounds may open additional stages once the relevant teams and fixtures are known. Decisions made by administrators regarding scoring and leaderboards are final.
             </p>
           </Card>
 
