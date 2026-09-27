@@ -9,32 +9,48 @@ export const dynamic = "force-dynamic";
 type Ranked = {
   id: number;
   totalPoints: number;
+  cumulativeError: number;
   exactScores: number;
   correctMargins: number;
   correctResults: number;
   differenceScore: number;
+  tournamentPointsGuessError?: number | null;
 };
 
 function rankUsers(
-  users: Array<{ id: number; predictions: Array<{
-    matchId: number;
-    pointsAwarded: number;
-    exactScore: boolean;
-    correctMargin: boolean;
-    correctResult: boolean;
-    differenceScore: number;
-  }> }>,
-  matchIds: Set<number>
+  users: Array<{
+    id: number;
+    tournamentPointsGuess: number | null;
+    predictions: Array<{
+      matchId: number;
+      pointsAwarded: number;
+      errorValue: number;
+      exactScore: boolean;
+      correctMargin: boolean;
+      correctResult: boolean;
+      differenceScore: number;
+    }>;
+  }>,
+  matchIds: Set<number>,
+  actualTournamentPoints: number | null
 ) {
   const rows: Ranked[] = users.map((user) => {
     const predictions = user.predictions.filter((prediction) => matchIds.has(prediction.matchId));
     return {
       id: user.id,
       totalPoints: predictions.reduce((sum, prediction) => sum + prediction.pointsAwarded, 0),
+      cumulativeError: predictions.reduce(
+        (sum, prediction) => sum + prediction.errorValue,
+        0
+      ),
       exactScores: predictions.filter((prediction) => prediction.exactScore).length,
       correctMargins: predictions.filter((prediction) => prediction.correctMargin).length,
       correctResults: predictions.filter((prediction) => prediction.correctResult).length,
       differenceScore: predictions.reduce((sum, prediction) => sum + prediction.differenceScore, 0),
+      tournamentPointsGuessError:
+        actualTournamentPoints !== null && user.tournamentPointsGuess !== null
+          ? Math.abs(user.tournamentPointsGuess - actualTournamentPoints)
+          : null,
     };
   });
   return assignCompetitionRanks(rows);
@@ -55,7 +71,13 @@ export async function GET(request: Request) {
         id: tournamentId,
         status: { in: [...VIEWABLE_TOURNAMENT_STATUSES] },
       },
-      select: { id: true, name: true, year: true, status: true },
+      select: {
+        id: true,
+        name: true,
+        year: true,
+        status: true,
+        _count: { select: { matches: true } },
+      },
     });
     if (!tournament) {
       return NextResponse.json({ success: false, error: "Competition not available." }, { status: 404 });
@@ -63,7 +85,11 @@ export async function GET(request: Request) {
 
     const entry = await prisma.competitionEntry.findUnique({
       where: { userId_tournamentId: { userId: user.id, tournamentId } },
-      select: { status: true, paymentStatus: true },
+      select: {
+        status: true,
+        paymentStatus: true,
+        tournamentPointsGuess: true,
+      },
     });
     if (!entry || entry.status !== "ENTERED") {
       return NextResponse.json({ success: false, error: "You are not entered in this competition." }, { status: 403 });
@@ -99,11 +125,17 @@ export async function GET(request: Request) {
       },
       select: {
         id: true,
+        competitionEntries: {
+          where: { tournamentId },
+          select: { tournamentPointsGuess: true },
+          take: 1,
+        },
         predictions: {
           where: { matchId: { in: [...completedIds] } },
           select: {
             matchId: true,
             pointsAwarded: true,
+            errorValue: true,
             exactScore: true,
             correctMargin: true,
             correctResult: true,
@@ -113,7 +145,31 @@ export async function GET(request: Request) {
       },
     });
 
-    const currentRanks = rankUsers(entrants, completedIds);
+    const competitionComplete =
+      tournament._count.matches > 0 &&
+      completedMatches.length === tournament._count.matches;
+    const actualTournamentPoints = competitionComplete
+      ? completedMatches.reduce(
+          (total, match) =>
+            total +
+            (match.actualHomeScore ?? 0) +
+            (match.actualAwayScore ?? 0),
+          0
+        )
+      : null;
+
+    const rankedEntrants = entrants.map((entrant) => ({
+      id: entrant.id,
+      tournamentPointsGuess:
+        entrant.competitionEntries[0]?.tournamentPointsGuess ?? null,
+      predictions: entrant.predictions,
+    }));
+
+    const currentRanks = rankUsers(
+      rankedEntrants,
+      completedIds,
+      actualTournamentPoints
+    );
     const currentUserRank = currentRanks.find((row) => row.id === user.id)?.rank ?? null;
 
     const latestCompleted = [...completedMatches].sort(
@@ -123,7 +179,11 @@ export async function GET(request: Request) {
     let previousRank: number | null = null;
     if (latestCompleted && completedMatches.length > 1) {
       const previousIds = new Set([...completedIds].filter((id) => id !== latestCompleted.id));
-      previousRank = rankUsers(entrants, previousIds).find((row) => row.id === user.id)?.rank ?? null;
+      previousRank = rankUsers(
+        rankedEntrants,
+        previousIds,
+        null
+      ).find((row) => row.id === user.id)?.rank ?? null;
     }
 
     const totalPoints = userPredictions.reduce(
