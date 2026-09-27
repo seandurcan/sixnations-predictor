@@ -130,9 +130,13 @@ export default async function HeritagePage() {
                     {era.years}
                   </p>
                   <h3 className="mt-1 text-xl font-bold">{era.title}</h3>
-                  <p className="mt-3 leading-7 text-[var(--brand-muted)]">
-                    {era.description}
-                  </p>
+                  <div className="mt-4 space-y-4 text-[var(--brand-muted)]">
+                    {era.paragraphs.map((paragraph) => (
+                      <p key={paragraph} className="leading-7">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
