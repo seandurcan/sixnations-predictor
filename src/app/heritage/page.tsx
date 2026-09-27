@@ -7,7 +7,9 @@ import {
   championshipEras,
   classicMatches,
   heritageSources,
+  playerProfiles,
   sixNationsWinners,
+  teamHistories,
 } from "@/lib/heritage";
 
 export const dynamic = "force-dynamic";
@@ -171,6 +173,78 @@ export default async function HeritagePage() {
             </div>
           </Card>
 
+          <Card title="The Six Nations Teams">
+            <p className="mb-6 leading-7 text-[var(--brand-muted)]">
+              Six nations, six very different Championship stories. Each has its own traditions, rivalries, eras of success and players who shaped the tournament.
+            </p>
+
+            <div className="grid gap-5 lg:grid-cols-2">
+              {teamHistories.map((team) => (
+                <article
+                  key={team.team}
+                  className="rounded-xl border border-[var(--brand-border)] p-5"
+                >
+                  <p className="text-sm font-bold uppercase tracking-wide text-[var(--brand-blue)]">
+                    {team.team}
+                  </p>
+                  <h3 className="mt-1 text-xl font-bold">{team.heading}</h3>
+                  <p className="mt-3 leading-7 text-[var(--brand-muted)]">
+                    {team.story}
+                  </p>
+
+                  <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-[var(--brand-muted)]">
+                    {team.highlights.map((highlight) => (
+                      <li key={highlight}>{highlight}</li>
+                    ))}
+                  </ul>
+
+                  <a
+                    href={team.source}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-block text-sm font-semibold text-[var(--brand-blue)] underline"
+                  >
+                    Official Six Nations team record
+                  </a>
+                </article>
+              ))}
+            </div>
+          </Card>
+
+          <Card title="Players Who Shaped the Championship">
+            <p className="mb-6 leading-7 text-[var(--brand-muted)]">
+              An initial collection of players whose performances, records and leadership became part of the Championship&apos;s modern story.
+            </p>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {playerProfiles.map((player) => (
+                <article
+                  key={`${player.team}-${player.name}`}
+                  className="rounded-xl border border-[var(--brand-border)] bg-slate-50 p-5"
+                >
+                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--brand-orange)]">
+                    {player.team} · {player.position}
+                  </p>
+                  <h3 className="mt-1 text-xl font-bold">{player.name}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[var(--brand-muted)]">
+                    {player.summary}
+                  </p>
+                  <p className="mt-4 text-sm font-semibold text-[var(--brand-navy)]">
+                    {player.distinction}
+                  </p>
+                  <a
+                    href={player.source}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-block text-sm font-semibold text-[var(--brand-blue)] underline"
+                  >
+                    Read source
+                  </a>
+                </article>
+              ))}
+            </div>
+          </Card>
+
           <Card title="Perfect XV Competition History">
             {perfectXvHistory.length === 0 ? (
               <div className="rounded-lg bg-slate-50 p-5">
@@ -244,9 +318,9 @@ export default async function HeritagePage() {
           <Card title="Where this section goes next">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-lg bg-slate-50 p-4">
-                <h3 className="font-bold">Team Histories & Great Players</h3>
+                <h3 className="font-bold">Historic Tables & Season Stories</h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">
-                  Championship stories for Ireland, England, France, Scotland, Wales and Italy, followed by profiles of the players who shaped different eras.
+                  Season-by-season standings and readable summaries of how individual Championships unfolded.
                 </p>
               </div>
               <div className="rounded-lg bg-slate-50 p-4">
