@@ -333,23 +333,75 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
         data: { status: "COMPLETED" },
       });
 
-      const users = await prisma.user.findMany({
-        where: { deletedAt: null, competitionEntries: { some: { tournamentId: match.tournamentId, status: "ENTERED" } } },
-        include: {
-        predictions: { where: { match: { tournamentId: match.tournamentId } } },
-        competitionEntries: { where: { tournamentId: match.tournamentId }, take: 1 },
-      },
+      const completedFixtureScores = await prisma.match.findMany({
+        where: {
+          tournamentId: match.tournamentId,
+          completed: true,
+          actualHomeScore: { not: null },
+          actualAwayScore: { not: null },
+        },
+        select: {
+          actualHomeScore: true,
+          actualAwayScore: true,
+        },
       });
+
+      const actualTournamentPoints = completedFixtureScores.reduce(
+        (total, fixture) =>
+          total +
+          (fixture.actualHomeScore ?? 0) +
+          (fixture.actualAwayScore ?? 0),
+        0
+      );
+
+      const users = await prisma.user.findMany({
+        where: {
+          deletedAt: null,
+          competitionEntries: {
+            some: {
+              tournamentId: match.tournamentId,
+              status: "ENTERED",
+            },
+          },
+        },
+        include: {
+          predictions: {
+            where: {
+              match: {
+                tournamentId: match.tournamentId,
+                completed: true,
+              },
+            },
+          },
+          competitionEntries: {
+            where: { tournamentId: match.tournamentId },
+            take: 1,
+          },
+        },
+      });
+
       const rankings = assignCompetitionRanks(
-        users.map((user) => ({
-          id: user.id,
-          totalPoints: user.competitionEntries[0]?.totalPoints ?? 0,
-          exactScores: user.competitionEntries[0]?.exactScores ?? 0,
-          cumulativeError: user.competitionEntries[0]?.cumulativeError ?? 0,
-          differenceScore: user.predictions.reduce((total, p) => total + p.differenceScore, 0),
-          correctMargins: user.predictions.filter((p) => p.correctMargin).length,
-          correctResults: user.predictions.filter((p) => p.correctResult).length,
-        }))
+        users.map((user) => {
+          const entry = user.competitionEntries[0];
+          const pointsGuess = entry?.tournamentPointsGuess ?? null;
+
+          return {
+            id: user.id,
+            totalPoints: entry?.totalPoints ?? 0,
+            cumulativeError: entry?.cumulativeError ?? 0,
+            exactScores: entry?.exactScores ?? 0,
+            correctMargins: user.predictions.filter(
+              (prediction) => prediction.correctMargin
+            ).length,
+            correctResults: user.predictions.filter(
+              (prediction) => prediction.correctResult
+            ).length,
+            tournamentPointsGuessError:
+              pointsGuess === null
+                ? null
+                : Math.abs(pointsGuess - actualTournamentPoints),
+          };
+        })
       );
 
       const podium = rankings.filter((entrant) => entrant.rank <= 3);
