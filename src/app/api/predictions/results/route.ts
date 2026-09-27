@@ -140,7 +140,8 @@ export async function GET(request: Request) {
       rankedEntrants,
       completedIds
     );
-    const currentUserRank = currentRanks.find((row) => row.id === user.id)?.rank ?? null;
+    const currentUserResults = currentRanks.find((row) => row.id === user.id);
+    const currentUserRank = currentUserResults?.rank ?? null;
 
     const latestCompleted = [...completedMatches].sort(
       (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()
@@ -164,6 +165,10 @@ export async function GET(request: Request) {
       success: true,
       tournament,
       totalPoints,
+      correctResults: currentUserResults?.correctResults ?? 0,
+      exactScores: currentUserResults?.exactScores ?? 0,
+      correctMargins: currentUserResults?.correctMargins ?? 0,
+      cumulativeError: currentUserResults?.cumulativeError ?? 0,
       leaderboardPosition: currentUserRank,
       previousLeaderboardPosition: previousRank,
       rankMovement:
