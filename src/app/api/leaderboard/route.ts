@@ -34,34 +34,6 @@ export async function GET(request: Request) {
       })
     : [];
 
-  const completedMatches = tournament
-    ? await prisma.match.findMany({
-        where: {
-          tournamentId: tournament.id,
-          completed: true,
-          actualHomeScore: { not: null },
-          actualAwayScore: { not: null },
-        },
-        select: {
-          actualHomeScore: true,
-          actualAwayScore: true,
-        },
-      })
-    : [];
-
-  const totalMatchCount = tournament
-    ? await prisma.match.count({ where: { tournamentId: tournament.id } })
-    : 0;
-  const competitionComplete =
-    totalMatchCount > 0 && completedMatches.length === totalMatchCount;
-  const actualTournamentPoints = completedMatches.reduce(
-    (total, match) =>
-      total +
-      (match.actualHomeScore ?? 0) +
-      (match.actualAwayScore ?? 0),
-    0
-  );
-
   const latestSnapshot = await prisma.leaderboardSnapshot.findFirst({
     where: tournament ? { tournamentId: tournament.id } : { tournamentId: -1 },
     orderBy: { snapshotNumber: "desc" },
@@ -95,15 +67,6 @@ export async function GET(request: Request) {
         ),
         correctMargins: user.predictions.filter((p) => p.correctMargin).length,
         correctResults: user.predictions.filter((p) => p.correctResult).length,
-        tournamentPointsGuessError:
-          competitionComplete &&
-          user.competitionEntries[0]?.tournamentPointsGuess !== null &&
-          user.competitionEntries[0]?.tournamentPointsGuess !== undefined
-            ? Math.abs(
-                user.competitionEntries[0].tournamentPointsGuess -
-                  actualTournamentPoints
-              )
-            : null,
         predictionSubmittedAt: user.predictionSubmittedAt,
         registrationOrder: user.registrationOrder,
         previousRank: snapshot?.previousRank ?? null,
