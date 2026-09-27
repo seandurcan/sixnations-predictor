@@ -114,6 +114,156 @@ export const classicMatches: ClassicMatch[] = [
       "The final act of the extraordinary 2015 Super Saturday became a frantic race against points difference. England scored 55 but still fell six points short of the margin needed, leaving Ireland as champions.",
   },
   {
+    year: 2003,
+    champion: "England",
+    story:
+      "England and Ireland reached the final weekend unbeaten, turning their meeting in Dublin into a Grand Slam decider. England won 42–6 to complete a clean sweep and their third title in four seasons.",
+    source: "https://www.rugbypass.com/six-nations/history/2003/",
+    standings: [
+      { position: 1, team: "England", played: 5, won: 5, drawn: 0, lost: 0, pointsDifference: 127, tablePoints: 10 },
+      { position: 2, team: "Ireland", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 22, tablePoints: 8 },
+      { position: 3, team: "France", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: 78, tablePoints: 6 },
+      { position: 4, team: "Scotland", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: -80, tablePoints: 4 },
+      { position: 5, team: "Italy", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: -85, tablePoints: 2 },
+      { position: 6, team: "Wales", played: 5, won: 0, drawn: 0, lost: 5, pointsDifference: -62, tablePoints: 0 },
+    ],
+  },
+  {
+    year: 2005,
+    champion: "Wales",
+    story:
+      "Wales swept all five matches to win their first Grand Slam in 27 years, beginning a new modern era of Welsh Championship success.",
+    source: "https://www.rugbypass.com/six-nations/history/2005/",
+    standings: [
+      { position: 1, team: "Wales", played: 5, won: 5, drawn: 0, lost: 0, pointsDifference: 74, tablePoints: 10 },
+      { position: 2, team: "France", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 52, tablePoints: 8 },
+      { position: 3, team: "Ireland", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: 25, tablePoints: 6 },
+      { position: 4, team: "England", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: 44, tablePoints: 4 },
+      { position: 5, team: "Scotland", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: -71, tablePoints: 2 },
+      { position: 6, team: "Italy", played: 5, won: 0, drawn: 0, lost: 5, pointsDifference: -124, tablePoints: 0 },
+    ],
+  },
+  {
+    year: 2009,
+    champion: "Ireland",
+    story:
+      "Ireland ended a 61-year wait for a Grand Slam. Ronan O'Gara's late drop goal in Cardiff put Ireland ahead before Wales' final long-range penalty fell short.",
+    source: "https://www.rugbypass.com/six-nations/history/2009/",
+    standings: [
+      { position: 1, team: "Ireland", played: 5, won: 5, drawn: 0, lost: 0, pointsDifference: 48, tablePoints: 10 },
+      { position: 2, team: "England", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: 54, tablePoints: 6 },
+      { position: 3, team: "France", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: 23, tablePoints: 6 },
+      { position: 4, team: "Wales", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: 19, tablePoints: 6 },
+      { position: 5, team: "Scotland", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: -23, tablePoints: 2 },
+      { position: 6, team: "Italy", played: 5, won: 0, drawn: 0, lost: 5, pointsDifference: -121, tablePoints: 0 },
+    ],
+  },
+  {
+    year: 2010,
+    champion: "France",
+    story:
+      "France won all five matches and sealed the Grand Slam by beating England 12–10 in Paris. It was their first Grand Slam since 2004.",
+    source: "https://www.rugbypass.com/six-nations/history/2010/",
+    standings: [
+      { position: 1, team: "France", played: 5, won: 5, drawn: 0, lost: 0, pointsDifference: 66, tablePoints: 10 },
+      { position: 2, team: "Ireland", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: 11, tablePoints: 6 },
+      { position: 3, team: "England", played: 5, won: 2, drawn: 1, lost: 2, pointsDifference: 12, tablePoints: 5 },
+      { position: 4, team: "Wales", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: -4, tablePoints: 4 },
+      { position: 5, team: "Scotland", played: 5, won: 1, drawn: 1, lost: 3, pointsDifference: -17, tablePoints: 3 },
+      { position: 6, team: "Italy", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: -68, tablePoints: 2 },
+    ],
+  },
+  {
+    year: 2012,
+    champion: "Wales",
+    story:
+      "Wales completed a Grand Slam by beating France on the final weekend, their third clean sweep in eight seasons.",
+    source: "https://www.rugbypass.com/six-nations/history/2012/",
+    standings: [
+      { position: 1, team: "Wales", played: 5, won: 5, drawn: 0, lost: 0, pointsDifference: 51, tablePoints: 10 },
+      { position: 2, team: "England", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 27, tablePoints: 8 },
+      { position: 3, team: "Ireland", played: 5, won: 2, drawn: 1, lost: 2, pointsDifference: 27, tablePoints: 5 },
+      { position: 4, team: "France", played: 5, won: 2, drawn: 1, lost: 2, pointsDifference: 15, tablePoints: 5 },
+      { position: 5, team: "Italy", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: -68, tablePoints: 2 },
+      { position: 6, team: "Scotland", played: 5, won: 0, drawn: 0, lost: 5, pointsDifference: -52, tablePoints: 0 },
+    ],
+  },
+  {
+    year: 2015,
+    champion: "Ireland",
+    story:
+      "Ireland, England and Wales all finished with four wins, so the title came down to points difference on an extraordinary Super Saturday. Ireland finished six points of points difference ahead of England.",
+    source: "https://www.rugbypass.com/six-nations/history/2015/",
+    standings: [
+      { position: 1, team: "Ireland", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 63, tablePoints: 8 },
+      { position: 2, team: "England", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 57, tablePoints: 8 },
+      { position: 3, team: "Wales", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 53, tablePoints: 8 },
+      { position: 4, team: "France", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: 2, tablePoints: 4 },
+      { position: 5, team: "Italy", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: -120, tablePoints: 2 },
+      { position: 6, team: "Scotland", played: 5, won: 0, drawn: 0, lost: 5, pointsDifference: -55, tablePoints: 0 },
+    ],
+  },
+  {
+    year: 2016,
+    champion: "England",
+    story:
+      "England secured the title with a round to spare and then completed their first Grand Slam since 2003 by beating France in Paris.",
+    source: "https://www.rugbypass.com/six-nations/history/2016/",
+    standings: [
+      { position: 1, team: "England", played: 5, won: 5, drawn: 0, lost: 0, pointsDifference: 62, tablePoints: 10 },
+      { position: 2, team: "Wales", played: 5, won: 3, drawn: 1, lost: 1, pointsDifference: 62, tablePoints: 7 },
+      { position: 3, team: "Ireland", played: 5, won: 2, drawn: 1, lost: 2, pointsDifference: 41, tablePoints: 5 },
+      { position: 4, team: "Scotland", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: 7, tablePoints: 4 },
+      { position: 5, team: "France", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: -27, tablePoints: 4 },
+      { position: 6, team: "Italy", played: 5, won: 0, drawn: 0, lost: 5, pointsDifference: -145, tablePoints: 0 },
+    ],
+  },
+  {
+    year: 2019,
+    champion: "Wales",
+    story:
+      "Wales won all five matches and sealed the Grand Slam by beating Ireland 25–7 in Cardiff. The tournament then ended with England and Scotland drawing 38–38 at Twickenham.",
+    source: "https://www.rugbypass.com/six-nations/history/2019/",
+    standings: [
+      { position: 1, team: "Wales", played: 5, won: 5, drawn: 0, lost: 0, pointsDifference: 49, tablePoints: 23 },
+      { position: 2, team: "England", played: 5, won: 3, drawn: 1, lost: 1, pointsDifference: 83, tablePoints: 18 },
+      { position: 3, team: "Ireland", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: 1, tablePoints: 14 },
+      { position: 4, team: "France", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: -25, tablePoints: 10 },
+      { position: 5, team: "Scotland", played: 5, won: 1, drawn: 1, lost: 3, pointsDifference: -20, tablePoints: 9 },
+      { position: 6, team: "Italy", played: 5, won: 0, drawn: 0, lost: 5, pointsDifference: -88, tablePoints: 0 },
+    ],
+  },
+  {
+    year: 2022,
+    champion: "France",
+    story:
+      "France won all five matches and completed their first Grand Slam since 2010. Ireland finished second and took the Triple Crown.",
+    source: "https://www.rugbypass.com/six-nations/history/2022/",
+    standings: [
+      { position: 1, team: "France", played: 5, won: 5, drawn: 0, lost: 0, pointsDifference: 68, tablePoints: 25 },
+      { position: 2, team: "Ireland", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 105, tablePoints: 21 },
+      { position: 3, team: "England", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: 5, tablePoints: 10 },
+      { position: 4, team: "Scotland", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: -29, tablePoints: 10 },
+      { position: 5, team: "Wales", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: -28, tablePoints: 7 },
+      { position: 6, team: "Italy", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: -121, tablePoints: 4 },
+    ],
+  },
+  {
+    year: 2026,
+    champion: "France",
+    story:
+      "France retained the Championship with four wins from five and a final table total of 21 points, finishing two points ahead of Ireland.",
+    source: "https://www.rugbypass.com/six-nations/history/2026/",
+    standings: [
+      { position: 1, team: "France", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 81, tablePoints: 21 },
+      { position: 2, team: "Ireland", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 38, tablePoints: 19 },
+      { position: 3, team: "Scotland", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: -1, tablePoints: 16 },
+      { position: 4, team: "Italy", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: -38, tablePoints: 9 },
+      { position: 5, team: "England", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: 2, tablePoints: 8 },
+      { position: 6, team: "Wales", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: -82, tablePoints: 6 },
+    ],
+  },
+  {
     year: 2018,
     title: "France v Ireland",
     score: "France 13–15 Ireland",
@@ -403,6 +553,39 @@ export type ChampionshipVenue = {
   nation: string;
   note: string;
 };
+
+export const historicMilestones = [
+  {
+    year: "1948",
+    title: "Ireland's first Grand Slam",
+    story:
+      "Ireland completed their first Grand Slam in 1948, one of the landmark achievements in the country's Championship history.",
+  },
+  {
+    year: "1973",
+    title: "The unique five-way tie",
+    story:
+      "Every Five Nations side won two matches and lost two, leaving England, France, Ireland, Scotland and Wales sharing the Championship — a result never repeated.",
+  },
+  {
+    year: "1993",
+    title: "A physical Championship trophy arrives",
+    story:
+      "France became the first nation presented with a tangible Championship trophy in 1993.",
+  },
+  {
+    year: "1994",
+    title: "Points difference ends shared titles",
+    story:
+      "From 1994, teams level on table points were separated by points difference rather than automatically sharing the Championship.",
+  },
+  {
+    year: "1999",
+    title: "The final Five Nations",
+    story:
+      "Scotland won the final Five Nations Championship before Italy joined and the Six Nations era began in 2000.",
+  },
+];
 
 export const historicSeasons: HistoricSeason[] = [
   {
