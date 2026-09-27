@@ -363,3 +363,229 @@ export const playerProfiles: PlayerProfile[] = [
     source: "https://www.sixnationsrugby.com/en/m6n/guinness-six-nations-player-of-the-championship",
   },
 ];
+
+
+export type HistoricStanding = {
+  position: number;
+  team: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  pointsDifference: number;
+  tablePoints: number;
+};
+
+export type HistoricSeason = {
+  year: number;
+  champion: string;
+  story: string;
+  source: string;
+  standings: HistoricStanding[];
+};
+
+export type HeritageRecord = {
+  title: string;
+  value: string;
+  detail: string;
+  source: string;
+};
+
+export type RivalryTrophy = {
+  name: string;
+  fixture: string;
+  story: string;
+};
+
+export type ChampionshipVenue = {
+  city: string;
+  stadium: string;
+  nation: string;
+  note: string;
+};
+
+export const historicSeasons: HistoricSeason[] = [
+  {
+    year: 2018,
+    champion: "Ireland",
+    story:
+      "Ireland completed a Grand Slam at Twickenham on the final weekend, finishing the Championship with five wins from five. Wales finished second, Scotland third and England slipped to fifth.",
+    source: "https://www.rugbypass.com/six-nations/history/2018/",
+    standings: [
+      { position: 1, team: "Ireland", played: 5, won: 5, drawn: 0, lost: 0, pointsDifference: 78, tablePoints: 26 },
+      { position: 2, team: "Wales", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: 36, tablePoints: 15 },
+      { position: 3, team: "Scotland", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: -27, tablePoints: 13 },
+      { position: 4, team: "France", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: 14, tablePoints: 11 },
+      { position: 5, team: "England", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: 10, tablePoints: 10 },
+      { position: 6, team: "Italy", played: 5, won: 0, drawn: 0, lost: 5, pointsDifference: -111, tablePoints: 1 },
+    ],
+  },
+  {
+    year: 2023,
+    champion: "Ireland",
+    story:
+      "Ireland won all five matches and sealed a Grand Slam in Dublin against England. France finished second with four wins, while Scotland took third.",
+    source: "https://www.rugbypass.com/six-nations/history/2023/",
+    standings: [
+      { position: 1, team: "Ireland", played: 5, won: 5, drawn: 0, lost: 0, pointsDifference: 79, tablePoints: 27 },
+      { position: 2, team: "France", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 59, tablePoints: 20 },
+      { position: 3, team: "Scotland", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: 20, tablePoints: 15 },
+      { position: 4, team: "England", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: -35, tablePoints: 10 },
+      { position: 5, team: "Wales", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: -63, tablePoints: 6 },
+      { position: 6, team: "Italy", played: 5, won: 0, drawn: 0, lost: 5, pointsDifference: -60, tablePoints: 1 },
+    ],
+  },
+  {
+    year: 2024,
+    champion: "Ireland",
+    story:
+      "Ireland retained the Championship after winning four of five matches. England ended Ireland's Grand Slam hopes in round four, but Ireland finished the job against Scotland on the final weekend.",
+    source: "https://www.rugbypass.com/six-nations/history/2024/",
+    standings: [
+      { position: 1, team: "Ireland", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 84, tablePoints: 20 },
+      { position: 2, team: "France", played: 5, won: 3, drawn: 1, lost: 1, pointsDifference: 6, tablePoints: 15 },
+      { position: 3, team: "England", played: 5, won: 3, drawn: 0, lost: 2, pointsDifference: -5, tablePoints: 14 },
+      { position: 4, team: "Scotland", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: 0, tablePoints: 12 },
+      { position: 5, team: "Italy", played: 5, won: 2, drawn: 1, lost: 2, pointsDifference: -34, tablePoints: 11 },
+      { position: 6, team: "Wales", played: 5, won: 0, drawn: 0, lost: 5, pointsDifference: -51, tablePoints: 4 },
+    ],
+  },
+  {
+    year: 2025,
+    champion: "France",
+    story:
+      "France returned to the top of the Championship with four wins and the strongest points difference in the field. England finished one point behind them and Ireland a further point back.",
+    source: "https://www.rugbypass.com/six-nations/history/2025/",
+    standings: [
+      { position: 1, team: "France", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 125, tablePoints: 21 },
+      { position: 2, team: "England", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 74, tablePoints: 20 },
+      { position: 3, team: "Ireland", played: 5, won: 4, drawn: 0, lost: 1, pointsDifference: 18, tablePoints: 19 },
+      { position: 4, team: "Scotland", played: 5, won: 2, drawn: 0, lost: 3, pointsDifference: -16, tablePoints: 11 },
+      { position: 5, team: "Italy", played: 5, won: 1, drawn: 0, lost: 4, pointsDifference: -82, tablePoints: 5 },
+      { position: 6, team: "Wales", played: 5, won: 0, drawn: 0, lost: 5, pointsDifference: -119, tablePoints: 3 },
+    ],
+  },
+];
+
+export const heritageRecords: HeritageRecord[] = [
+  {
+    title: "Most Six Nations titles since 2000",
+    value: "France — 8",
+    detail: "France lead the modern Six Nations era for Championship wins.",
+    source: "https://www.sixnationsrugby.com/en/m6n/stats/202600",
+  },
+  {
+    title: "Most Grand Slams in the Six Nations era",
+    value: "France and Wales — 4 each",
+    detail: "The official Six Nations statistics list France and Wales level on four Grand Slams since 2000.",
+    source: "https://www.sixnationsrugby.com/en/m6n/stats/202600",
+  },
+  {
+    title: "Most team points in the Six Nations era",
+    value: "England — 3,666",
+    detail: "England lead the official cumulative points total for the Six Nations era.",
+    source: "https://www.sixnationsrugby.com/en/m6n/stats/202600",
+  },
+  {
+    title: "Most team tries in the Six Nations era",
+    value: "England — 403",
+    detail: "England also lead the official cumulative try total for the Six Nations era.",
+    source: "https://www.sixnationsrugby.com/en/m6n/stats/202600",
+  },
+];
+
+export const rivalryTrophies: RivalryTrophy[] = [
+  {
+    name: "Calcutta Cup",
+    fixture: "England v Scotland",
+    story:
+      "First contested in 1879, the Calcutta Cup is the oldest rivalry trophy in the Championship.",
+  },
+  {
+    name: "Millennium Trophy",
+    fixture: "England v Ireland",
+    story:
+      "Introduced in 1988 to commemorate Dublin's millennial celebrations.",
+  },
+  {
+    name: "Centenary Quaich",
+    fixture: "Ireland v Scotland",
+    story:
+      "Introduced in 1989, with the quaich representing friendship between Ireland and Scotland.",
+  },
+  {
+    name: "Giuseppe Garibaldi Trophy",
+    fixture: "France v Italy",
+    story:
+      "Contested since 2007 and named after Giuseppe Garibaldi.",
+  },
+  {
+    name: "Auld Alliance Trophy",
+    fixture: "France v Scotland",
+    story:
+      "Established in 2018 to honour French and Scottish rugby players who died in the First World War.",
+  },
+  {
+    name: "Doddie Weir Cup",
+    fixture: "Wales v Scotland",
+    story:
+      "First contested in 2018 and named in honour of former Scotland international Doddie Weir.",
+  },
+  {
+    name: "Cuttitta Cup",
+    fixture: "Italy v Scotland",
+    story:
+      "Introduced in 2022 in memory of former Italy captain and Scotland scrum coach Massimo Cuttitta.",
+  },
+  {
+    name: "Solidarity Trophy",
+    fixture: "France v Ireland",
+    story:
+      "Introduced in 2026 to celebrate the cultural, diplomatic and rugby relationship between France and Ireland.",
+  },
+];
+
+export const championshipVenues: ChampionshipVenue[] = [
+  {
+    city: "Dublin",
+    stadium: "Aviva Stadium",
+    nation: "Ireland",
+    note: "Ireland's modern Championship home and host of the opening fixture of the 2027 tournament.",
+  },
+  {
+    city: "London",
+    stadium: "Allianz Stadium, Twickenham",
+    nation: "England",
+    note: "The long-standing home of England rugby and the setting for some of the Championship's defining finishes.",
+  },
+  {
+    city: "Saint-Denis",
+    stadium: "Stade de France",
+    nation: "France",
+    note: "France's national stadium and the Paris-region stage for the Championship's biggest fixtures.",
+  },
+  {
+    city: "Edinburgh",
+    stadium: "Scottish Gas Murrayfield",
+    nation: "Scotland",
+    note: "Scotland's national rugby stadium and a central home of the Calcutta Cup rivalry.",
+  },
+  {
+    city: "Cardiff",
+    stadium: "Principality Stadium",
+    nation: "Wales",
+    note: "A city-centre stadium renowned for the intensity of Welsh Championship match days.",
+  },
+  {
+    city: "Rome",
+    stadium: "Stadio Olimpico",
+    nation: "Italy",
+    note: "Italy's current Six Nations home in Rome.",
+  },
+];
+
+export const silverwareSource =
+  "https://www.sixnationsrugby.com/en/m6n/news/complete-guide-to-six-nations-silverware-cups-trophies";
+
+export const venuesSource =
+  "https://www.sixnationsrugby.com/en/m6n/infos/le-calendrier-des-matchs-du-tournoi-des-six-nations-2027";
