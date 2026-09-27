@@ -139,45 +139,98 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
 
   let snapshotNumber: number | null = null;
 
-  if (scoreChanged) {
-    const predictions = await prisma.prediction.findMany({ where: { matchId: args.matchId } });
+  const scoringStateChanged =
+    (args.completed && (scoreChanged || completionChanged)) ||
+    (!args.completed && existingMatch.completed);
+
+  if (scoringStateChanged) {
+    const predictions = await prisma.prediction.findMany({
+      where: { matchId: args.matchId },
+    });
+
     for (const prediction of predictions) {
-      const score = calculateMatchScore(
-        prediction.predictedHomeScore,
-        prediction.predictedAwayScore,
-        args.homeScore,
-        args.awayScore
-      );
-      await prisma.prediction.update({
-        where: { id: prediction.id },
-        data: {
-          pointsAwarded: score.pointsAwarded,
-          errorValue: score.errorValue,
-          exactScore: score.exactScore,
-          correctMargin: score.correctMargin,
-          correctResult: score.correctResult,
-          differenceScore: score.differenceScore,
-        },
-      });
+      if (args.completed) {
+        const score = calculateMatchScore(
+          prediction.predictedHomeScore,
+          prediction.predictedAwayScore,
+          args.homeScore,
+          args.awayScore
+        );
+        await prisma.prediction.update({
+          where: { id: prediction.id },
+          data: {
+            pointsAwarded: score.pointsAwarded,
+            errorValue: score.errorValue,
+            exactScore: score.exactScore,
+            correctMargin: score.correctMargin,
+            correctResult: score.correctResult,
+            differenceScore: score.differenceScore,
+          },
+        });
+      } else {
+        await prisma.prediction.update({
+          where: { id: prediction.id },
+          data: {
+            pointsAwarded: 0,
+            errorValue: 0,
+            exactScore: false,
+            correctMargin: false,
+            correctResult: false,
+            differenceScore: 0,
+          },
+        });
+      }
     }
 
     const users = await prisma.user.findMany({
-      where: { deletedAt: null, competitionEntries: { some: { tournamentId: match.tournamentId, status: "ENTERED" } } },
+      where: {
+        deletedAt: null,
+        competitionEntries: {
+          some: {
+            tournamentId: match.tournamentId,
+            status: "ENTERED",
+          },
+        },
+      },
       include: {
-        predictions: { where: { match: { tournamentId: match.tournamentId } } },
-        competitionEntries: { where: { tournamentId: match.tournamentId }, take: 1 },
+        predictions: {
+          where: {
+            match: {
+              tournamentId: match.tournamentId,
+              completed: true,
+            },
+          },
+        },
+        competitionEntries: {
+          where: { tournamentId: match.tournamentId },
+          take: 1,
+        },
       },
     });
+
     for (const user of users) {
-      const totalPoints = user.predictions.reduce((total, p) => total + p.pointsAwarded, 0);
-      const cumulativeError = user.predictions.reduce((total, p) => total + p.errorValue, 0);
-      const exactScores = user.predictions.filter((p) => p.exactScore).length;
+      const totalPoints = user.predictions.reduce(
+        (total, prediction) => total + prediction.pointsAwarded,
+        0
+      );
+      const cumulativeError = user.predictions.reduce(
+        (total, prediction) => total + prediction.errorValue,
+        0
+      );
+      const exactScores = user.predictions.filter(
+        (prediction) => prediction.exactScore
+      ).length;
+
       await prisma.user.update({
         where: { id: user.id },
         data: { totalPoints, cumulativeError, exactScores },
       });
+
       await prisma.competitionEntry.updateMany({
-        where: { userId: user.id, tournamentId: match.tournamentId },
+        where: {
+          userId: user.id,
+          tournamentId: match.tournamentId,
+        },
         data: { totalPoints, cumulativeError, exactScores },
       });
     }
@@ -189,34 +242,65 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
     snapshotNumber = (latestSnapshot?.snapshotNumber ?? 0) + 1;
 
     const refreshedUsers = await prisma.user.findMany({
-      where: { deletedAt: null, competitionEntries: { some: { tournamentId: match.tournamentId, status: "ENTERED" } } },
+      where: {
+        deletedAt: null,
+        competitionEntries: {
+          some: {
+            tournamentId: match.tournamentId,
+            status: "ENTERED",
+          },
+        },
+      },
       include: {
-        predictions: { where: { match: { tournamentId: match.tournamentId } } },
-        competitionEntries: { where: { tournamentId: match.tournamentId }, take: 1 },
+        predictions: {
+          where: {
+            match: {
+              tournamentId: match.tournamentId,
+              completed: true,
+            },
+          },
+        },
+        competitionEntries: {
+          where: { tournamentId: match.tournamentId },
+          take: 1,
+        },
       },
     });
+
     const rankings = assignCompetitionRanks(
       refreshedUsers.map((user) => ({
         id: user.id,
         totalPoints: user.competitionEntries[0]?.totalPoints ?? 0,
-        exactScores: user.competitionEntries[0]?.exactScores ?? 0,
-        cumulativeError: user.competitionEntries[0]?.cumulativeError ?? 0,
-        differenceScore: user.predictions.reduce((total, p) => total + p.differenceScore, 0),
-        correctMargins: user.predictions.filter((p) => p.correctMargin).length,
-        correctResults: user.predictions.filter((p) => p.correctResult).length,
+        cumulativeError:
+          user.competitionEntries[0]?.cumulativeError ?? 0,
+        exactScores:
+          user.competitionEntries[0]?.exactScores ?? 0,
+        correctMargins: user.predictions.filter(
+          (prediction) => prediction.correctMargin
+        ).length,
+        correctResults: user.predictions.filter(
+          (prediction) => prediction.correctResult
+        ).length,
       }))
     );
 
     const previousSnapshots = latestSnapshot
       ? await prisma.leaderboardSnapshot.findMany({
-          where: { tournamentId: match.tournamentId, snapshotNumber: latestSnapshot.snapshotNumber },
+          where: {
+            tournamentId: match.tournamentId,
+            snapshotNumber: latestSnapshot.snapshotNumber,
+          },
         })
       : [];
 
     for (const user of rankings) {
-      const previousSnapshot = previousSnapshots.find((s) => s.userId === user.id);
+      const previousSnapshot = previousSnapshots.find(
+        (snapshot) => snapshot.userId === user.id
+      );
       const previousRank = previousSnapshot?.rank ?? null;
-      const rankMovement = previousRank === null ? null : previousRank - user.rank;
+      const rankMovement =
+        previousRank === null ? null : previousRank - user.rank;
+
       await prisma.leaderboardSnapshot.create({
         data: {
           tournamentId: match.tournamentId,
@@ -226,7 +310,7 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
           previousRank,
           rankMovement,
           totalPoints: user.totalPoints,
-          cumulativeError: user.cumulativeError,
+          cumulativeError: user.cumulativeError ?? 0,
           exactScores: user.exactScores,
           correctMargins: user.correctMargins,
           correctResults: user.correctResults,
