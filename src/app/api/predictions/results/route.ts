@@ -14,13 +14,11 @@ type Ranked = {
   correctMargins: number;
   correctResults: number;
   differenceScore: number;
-  tournamentPointsGuessError?: number | null;
 };
 
 function rankUsers(
   users: Array<{
     id: number;
-    tournamentPointsGuess: number | null;
     predictions: Array<{
       matchId: number;
       pointsAwarded: number;
@@ -31,8 +29,7 @@ function rankUsers(
       differenceScore: number;
     }>;
   }>,
-  matchIds: Set<number>,
-  actualTournamentPoints: number | null
+  matchIds: Set<number>
 ) {
   const rows: Ranked[] = users.map((user) => {
     const predictions = user.predictions.filter((prediction) => matchIds.has(prediction.matchId));
@@ -47,10 +44,6 @@ function rankUsers(
       correctMargins: predictions.filter((prediction) => prediction.correctMargin).length,
       correctResults: predictions.filter((prediction) => prediction.correctResult).length,
       differenceScore: predictions.reduce((sum, prediction) => sum + prediction.differenceScore, 0),
-      tournamentPointsGuessError:
-        actualTournamentPoints !== null && user.tournamentPointsGuess !== null
-          ? Math.abs(user.tournamentPointsGuess - actualTournamentPoints)
-          : null,
     };
   });
   return assignCompetitionRanks(rows);
@@ -76,7 +69,6 @@ export async function GET(request: Request) {
         name: true,
         year: true,
         status: true,
-        _count: { select: { matches: true } },
       },
     });
     if (!tournament) {
@@ -88,7 +80,6 @@ export async function GET(request: Request) {
       select: {
         status: true,
         paymentStatus: true,
-        tournamentPointsGuess: true,
       },
     });
     if (!entry || entry.status !== "ENTERED") {
@@ -125,11 +116,6 @@ export async function GET(request: Request) {
       },
       select: {
         id: true,
-        competitionEntries: {
-          where: { tournamentId },
-          select: { tournamentPointsGuess: true },
-          take: 1,
-        },
         predictions: {
           where: { matchId: { in: [...completedIds] } },
           select: {
@@ -145,30 +131,14 @@ export async function GET(request: Request) {
       },
     });
 
-    const competitionComplete =
-      tournament._count.matches > 0 &&
-      completedMatches.length === tournament._count.matches;
-    const actualTournamentPoints = competitionComplete
-      ? completedMatches.reduce(
-          (total, match) =>
-            total +
-            (match.actualHomeScore ?? 0) +
-            (match.actualAwayScore ?? 0),
-          0
-        )
-      : null;
-
     const rankedEntrants = entrants.map((entrant) => ({
       id: entrant.id,
-      tournamentPointsGuess:
-        entrant.competitionEntries[0]?.tournamentPointsGuess ?? null,
       predictions: entrant.predictions,
     }));
 
     const currentRanks = rankUsers(
       rankedEntrants,
-      completedIds,
-      actualTournamentPoints
+      completedIds
     );
     const currentUserRank = currentRanks.find((row) => row.id === user.id)?.rank ?? null;
 
@@ -181,8 +151,7 @@ export async function GET(request: Request) {
       const previousIds = new Set([...completedIds].filter((id) => id !== latestCompleted.id));
       previousRank = rankUsers(
         rankedEntrants,
-        previousIds,
-        null
+        previousIds
       ).find((row) => row.id === user.id)?.rank ?? null;
     }
 
