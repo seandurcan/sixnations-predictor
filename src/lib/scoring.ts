@@ -30,53 +30,59 @@ export function calculateMatchScore(
   const exactScore =
     predictedHome === actualHome &&
     predictedAway === actualAway;
-  const marginError =
-    Math.abs(predictedMargin - actualMargin);
+  const marginDelta = predictedMargin - actualMargin;
 
   return {
-    // Scoring: 1 point for the correct outcome,
-    // 2 bonus points for the correct margin,
-    // and 3 bonus points for an exact score.
+    // Perfect XV scoring:
+    // 1 point for the correct match result.
+    // 0.5 bonus for an exact score.
+    // Correct margin is retained as a later leaderboard tie-break, not a points bonus.
     pointsAwarded:
       (correctResult ? 1 : 0) +
-      (correctMargin ? 2 : 0) +
-      (exactScore ? 3 : 0),
+      (exactScore ? 0.5 : 0),
     exactScore,
     correctMargin,
     correctResult,
+    // Aggregate score error is the sum of the absolute home and away score errors.
     errorValue:
       Math.abs(predictedHome - actualHome) +
       Math.abs(predictedAway - actualAway),
-    differenceScore:
-      correctResult ? -marginError : marginError,
+    // Signed prediction delta is retained for display/audit only.
+    differenceScore: marginDelta,
   };
 }
 
 export type RankingEntry = {
   id: number;
   totalPoints: number;
-  differenceScore: number;
+  cumulativeError?: number;
   exactScores: number;
   correctMargins: number;
   correctResults: number;
+  differenceScore?: number;
 };
+
+function normalisedError(value: number | undefined) {
+  return Number.isFinite(value) ? Number(value) : Number.POSITIVE_INFINITY;
+}
+
 
 export function compareLeaderboardEntries(
   a: RankingEntry,
   b: RankingEntry
 ) {
   return (
-    // Locked Perfect XV ranking order:
-    // 1 Points Total
-    // 2 Correct Wins
-    // 3 Perfect Scores
-    // 4 Correct Margins
-    // 5 Lowest Prediction Delta
+    // Locked Perfect XV leaderboard hierarchy:
+    // 1 Total points
+    // 2 Most correct results
+    // 3 Most exact scores
+    // 4 Most correct winning margins
+    // 5 Lowest aggregate score error
     b.totalPoints - a.totalPoints ||
     b.correctResults - a.correctResults ||
     b.exactScores - a.exactScores ||
     b.correctMargins - a.correctMargins ||
-    a.differenceScore - b.differenceScore
+    normalisedError(a.cumulativeError) - normalisedError(b.cumulativeError)
   );
 }
 

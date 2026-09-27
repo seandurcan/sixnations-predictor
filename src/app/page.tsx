@@ -325,7 +325,7 @@ export default function HomePage() {
 
               <Card title="Predictions">
                 <p className="text-[var(--brand-muted)]">
-                  Submit and edit all 15 match predictions until one minute before the tournament&apos;s first match kicks off.
+                  Submit and edit every fixture in the current stage until one minute before that stage&apos;s first match kicks off.
                 </p>
               </Card>
 
@@ -337,7 +337,7 @@ export default function HomePage() {
 
               <Card title="Prediction Lock">
                 <p className="text-[var(--brand-muted)]">
-                  All predictions lock one minute before the tournament&apos;s first match kicks off, and no further entries or changes can be made.
+                  Each competition stage locks one minute before its first match. The Six Nations is one tournament-wide stage.
                 </p>
               </Card>
             </div>
@@ -359,15 +359,15 @@ export default function HomePage() {
                   </li>
 
                   <li>
-                    Earn points when your prediction is correct.
+                    Earn 1 point for a correct match result.
                   </li>
 
                   <li>
-                    Exact scores help separate the best predictors.
+                    Exact scores earn an additional 0.5 bonus point.
                   </li>
 
                   <li>
-                    Points differential tracks how close your score predictions are overall.
+                    Aggregate score error tracks how close your predicted team scores are overall and is the first leaderboard tie-break.
                   </li>
                 </ul>
               </div>

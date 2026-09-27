@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 type Ranked = {
   id: number;
   totalPoints: number;
+  cumulativeError: number;
   exactScores: number;
   correctMargins: number;
   correctResults: number;
@@ -16,14 +17,18 @@ type Ranked = {
 };
 
 function rankUsers(
-  users: Array<{ id: number; predictions: Array<{
-    matchId: number;
-    pointsAwarded: number;
-    exactScore: boolean;
-    correctMargin: boolean;
-    correctResult: boolean;
-    differenceScore: number;
-  }> }>,
+  users: Array<{
+    id: number;
+    predictions: Array<{
+      matchId: number;
+      pointsAwarded: number;
+      errorValue: number;
+      exactScore: boolean;
+      correctMargin: boolean;
+      correctResult: boolean;
+      differenceScore: number;
+    }>;
+  }>,
   matchIds: Set<number>
 ) {
   const rows: Ranked[] = users.map((user) => {
@@ -31,6 +36,10 @@ function rankUsers(
     return {
       id: user.id,
       totalPoints: predictions.reduce((sum, prediction) => sum + prediction.pointsAwarded, 0),
+      cumulativeError: predictions.reduce(
+        (sum, prediction) => sum + prediction.errorValue,
+        0
+      ),
       exactScores: predictions.filter((prediction) => prediction.exactScore).length,
       correctMargins: predictions.filter((prediction) => prediction.correctMargin).length,
       correctResults: predictions.filter((prediction) => prediction.correctResult).length,
@@ -55,7 +64,12 @@ export async function GET(request: Request) {
         id: tournamentId,
         status: { in: [...VIEWABLE_TOURNAMENT_STATUSES] },
       },
-      select: { id: true, name: true, year: true, status: true },
+      select: {
+        id: true,
+        name: true,
+        year: true,
+        status: true,
+      },
     });
     if (!tournament) {
       return NextResponse.json({ success: false, error: "Competition not available." }, { status: 404 });
@@ -63,7 +77,10 @@ export async function GET(request: Request) {
 
     const entry = await prisma.competitionEntry.findUnique({
       where: { userId_tournamentId: { userId: user.id, tournamentId } },
-      select: { status: true, paymentStatus: true },
+      select: {
+        status: true,
+        paymentStatus: true,
+      },
     });
     if (!entry || entry.status !== "ENTERED") {
       return NextResponse.json({ success: false, error: "You are not entered in this competition." }, { status: 403 });
@@ -104,6 +121,7 @@ export async function GET(request: Request) {
           select: {
             matchId: true,
             pointsAwarded: true,
+            errorValue: true,
             exactScore: true,
             correctMargin: true,
             correctResult: true,
@@ -113,8 +131,17 @@ export async function GET(request: Request) {
       },
     });
 
-    const currentRanks = rankUsers(entrants, completedIds);
-    const currentUserRank = currentRanks.find((row) => row.id === user.id)?.rank ?? null;
+    const rankedEntrants = entrants.map((entrant) => ({
+      id: entrant.id,
+      predictions: entrant.predictions,
+    }));
+
+    const currentRanks = rankUsers(
+      rankedEntrants,
+      completedIds
+    );
+    const currentUserResults = currentRanks.find((row) => row.id === user.id);
+    const currentUserRank = currentUserResults?.rank ?? null;
 
     const latestCompleted = [...completedMatches].sort(
       (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()
@@ -123,7 +150,10 @@ export async function GET(request: Request) {
     let previousRank: number | null = null;
     if (latestCompleted && completedMatches.length > 1) {
       const previousIds = new Set([...completedIds].filter((id) => id !== latestCompleted.id));
-      previousRank = rankUsers(entrants, previousIds).find((row) => row.id === user.id)?.rank ?? null;
+      previousRank = rankUsers(
+        rankedEntrants,
+        previousIds
+      ).find((row) => row.id === user.id)?.rank ?? null;
     }
 
     const totalPoints = userPredictions.reduce(
@@ -135,6 +165,10 @@ export async function GET(request: Request) {
       success: true,
       tournament,
       totalPoints,
+      correctResults: currentUserResults?.correctResults ?? 0,
+      exactScores: currentUserResults?.exactScores ?? 0,
+      correctMargins: currentUserResults?.correctMargins ?? 0,
+      cumulativeError: currentUserResults?.cumulativeError ?? 0,
       leaderboardPosition: currentUserRank,
       previousLeaderboardPosition: previousRank,
       rankMovement:

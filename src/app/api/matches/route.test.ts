@@ -22,7 +22,7 @@ vi.mock("@/lib/liveScoring", () => ({
 }));
 
 vi.mock("@/lib/currentTournament", () => ({
-  getTournamentByIdOrCurrent: vi.fn().mockResolvedValue({
+  getViewableTournamentByIdOrCurrent: vi.fn().mockResolvedValue({
     id: 1,
     name: "Six Nations Championship",
     year: 2027,

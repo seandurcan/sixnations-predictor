@@ -37,6 +37,10 @@ export async function GET(request: Request = new Request("http://localhost/api/m
   });
 
   const enriched = await enrichMatchesWithLiveScoreInfo(matches);
+  const stageFixtures = matches.map((match) => ({
+    round: match.round,
+    kickoffTime: match.kickoffTime,
+  }));
   return NextResponse.json(
     enriched.map((match) => ({
       ...match,
@@ -44,6 +48,8 @@ export async function GET(request: Request = new Request("http://localhost/api/m
         competitionName: match.tournament.name,
         tournamentPredictionLockAt: match.tournament.predictionLockAt,
         kickoffTime: match.kickoffTime,
+        matchRound: match.round,
+        tournamentMatches: stageFixtures,
       })?.toISOString() ?? null,
     })),
     { headers: { "Cache-Control": "no-store" } }

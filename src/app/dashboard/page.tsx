@@ -387,52 +387,37 @@ export default function DashboardPage() {
           <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <StatCard
               title="Points Total"
-              value={
-                userRow?.totalPoints ??
-                0
-              }
+              value={userRow?.totalPoints ?? 0}
               tone="blue"
             />
 
             <StatCard
-              title="Correct Wins"
-              value={
-                userRow?.correctResults ??
-                0
-              }
+              title="Correct Results"
+              value={userRow?.correctResults ?? 0}
               tone="navy"
             />
 
             <StatCard
               title="Perfect Scores"
-              value={
-                userRow?.exactScores ??
-                0
-              }
+              value={userRow?.exactScores ?? 0}
               tone="lime"
             />
 
             <StatCard
               title="Correct Margins"
-              value={
-                userRow?.correctMargins ??
-                0
-              }
+              value={userRow?.correctMargins ?? 0}
               tone="orange"
             />
 
             <StatCard
-              title="Prediction Delta"
-              value={
-                userRow?.differenceScore ??
-                0
-              }
+              title="Aggregate Score Error"
+              value={userRow?.cumulativeError ?? 0}
               tone="navy"
             />
           </div>
 
           <p className="mt-3 text-sm text-[var(--brand-muted)]">
-            Points Total → Correct Wins → Perfect Scores → Correct Margins → Prediction Delta
+            Points Total → Correct Results → Perfect Scores → Correct Margins → Lowest Aggregate Score Error
           </p>
         </div>
 
@@ -540,11 +525,11 @@ export default function DashboardPage() {
                     </p>
 
                     <p>
-                      Score Error:{" "}
+                      Prediction Delta:{" "}
                       <span className="font-semibold text-[var(--brand-orange)]">
                         {
                           lastPrediction
-                            .errorValue
+                            .differenceScore
                         }
                       </span>
                     </p>

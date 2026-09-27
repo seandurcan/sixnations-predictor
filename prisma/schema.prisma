@@ -32,7 +32,7 @@ model User {
   themePreference       ThemePreference @default(SYSTEM)
   emailVerified         Boolean         @default(false)
   paidAt                DateTime?
-  totalPoints           Int             @default(0)
+  totalPoints           Float           @default(0)
   cumulativeError       Int             @default(0)
   exactScores           Int             @default(0)
   registrationOrder     Int
@@ -126,7 +126,7 @@ model CompetitionEntry {
   predictionsSubmitted  Boolean                @default(false)
   predictionSubmittedAt DateTime?
   tournamentPointsGuess Int?
-  totalPoints           Int                    @default(0)
+  totalPoints           Float                  @default(0)
   cumulativeError       Int                    @default(0)
   exactScores           Int                    @default(0)
   withdrawnFromStatus   CompetitionEntryStatus?
@@ -247,7 +247,7 @@ model Prediction {
   predictedHomeScore Int
   predictedAwayScore Int
 
-  pointsAwarded Int @default(0)
+  pointsAwarded Float @default(0)
 
   errorValue Int @default(0)
 
@@ -316,7 +316,7 @@ model LeaderboardSnapshot {
   rank            Int
   previousRank    Int?
   rankMovement    Int?
-  totalPoints     Int
+  totalPoints     Float
   cumulativeError Int
   exactScores     Int
   correctMargins  Int        @default(0)
@@ -345,7 +345,7 @@ model TournamentWinner {
   id           Int      @id @default(autoincrement())
   tournamentId Int
   userId       Int
-  finalPoints  Int
+  finalPoints  Float
   rank         Int      @default(1)
   createdAt    DateTime @default(now())
 

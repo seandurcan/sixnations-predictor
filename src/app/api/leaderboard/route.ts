@@ -21,7 +21,14 @@ export async function GET(request: Request) {
     ? await prisma.user.findMany({
         where: { deletedAt: null, competitionEntries: { some: { tournamentId: tournament.id, status: "ENTERED" } } },
         include: {
-          predictions: { where: { match: { tournamentId: tournament.id } } },
+          predictions: {
+            where: {
+              match: {
+                tournamentId: tournament.id,
+                completed: true,
+              },
+            },
+          },
           competitionEntries: { where: { tournamentId: tournament.id }, take: 1 },
         },
       })

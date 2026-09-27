@@ -65,6 +65,10 @@ type CompletedMatchResult = {
 
 type PersonalResults = {
   totalPoints: number;
+  correctResults: number;
+  exactScores: number;
+  correctMargins: number;
+  cumulativeError: number;
   leaderboardPosition: number | null;
   previousLeaderboardPosition: number | null;
   rankMovement: number | null;
@@ -516,17 +520,9 @@ export default function PredictionsPage() {
                             Round {match.round} · {formatIrishDate(match.kickoffTime)}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-semibold text-[var(--brand-muted)]">
-                            Match Points
-                          </p>
-                          <p className="text-2xl font-bold">
-                            {prediction?.pointsAwarded ?? 0}
-                          </p>
-                        </div>
                       </div>
 
-                      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
                         <div className="rounded-lg bg-slate-50 p-3">
                           <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
                             Your Prediction
@@ -535,6 +531,15 @@ export default function PredictionsPage() {
                             {prediction
                               ? `${match.homeTeam.shortCode} ${prediction.predictedHomeScore} - ${prediction.predictedAwayScore} ${match.awayTeam.shortCode}`
                               : "No prediction"}
+                          </p>
+                        </div>
+
+                        <div className="rounded-lg bg-slate-50 p-3">
+                          <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
+                            Match Points
+                          </p>
+                          <p className="mt-1 text-xl font-bold">
+                            {prediction?.pointsAwarded ?? 0}
                           </p>
                         </div>
 
@@ -549,19 +554,19 @@ export default function PredictionsPage() {
 
                         <div className="rounded-lg bg-slate-50 p-3">
                           <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
-                            Correct Margin Points
+                            Correct Margin Tie-break
                           </p>
                           <p className="mt-1 text-xl font-bold">
-                            {prediction ? (prediction.correctMargin ? 2 : 0) : "—"}
+                            {prediction ? (prediction.correctMargin ? 1 : 0) : "—"}
                           </p>
                         </div>
 
                         <div className="rounded-lg bg-slate-50 p-3">
                           <p className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
-                            Exact Score Points
+                            Exact Score Bonus
                           </p>
                           <p className="mt-1 text-xl font-bold">
-                            {prediction ? (prediction.exactScore ? 3 : 0) : "—"}
+                            {prediction ? (prediction.exactScore ? 0.5 : 0) : "—"}
                           </p>
                         </div>
 
@@ -580,6 +585,27 @@ export default function PredictionsPage() {
               </div>
             )}
           </Card>
+
+          <div className="mt-6">
+            <Card title="Leaderboard Totals">
+              <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                {[
+                  ["Total Points", personalResults?.totalPoints ?? 0],
+                  ["Correct Results", personalResults?.correctResults ?? 0],
+                  ["Perfect Scores", personalResults?.exactScores ?? 0],
+                  ["Correct Margins", personalResults?.correctMargins ?? 0],
+                  ["Aggregate Score Error", personalResults?.cumulativeError ?? 0],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg bg-slate-50 p-3">
+                    <dt className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
+                      {label}
+                    </dt>
+                    <dd className="mt-1 text-xl font-bold">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Card>
+          </div>
         </PageContainer>
       </main>
     );
