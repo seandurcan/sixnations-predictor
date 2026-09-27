@@ -9,6 +9,7 @@ import {
   classicMatches,
   heritageRecords,
   heritageSources,
+  historicMilestones,
   historicSeasons,
   playerProfiles,
   rivalryTrophies,
@@ -251,13 +252,34 @@ export default async function HeritagePage() {
             </div>
           </Card>
 
+          <Card title="Championship Milestones Before the Six Nations Era">
+            <div className="grid gap-4 md:grid-cols-2">
+              {historicMilestones.map((milestone) => (
+                <article
+                  key={`${milestone.year}-${milestone.title}`}
+                  className="rounded-xl border border-[var(--brand-border)] bg-slate-50 p-5"
+                >
+                  <p className="text-sm font-bold uppercase tracking-wide text-[var(--brand-orange)]">
+                    {milestone.year}
+                  </p>
+                  <h3 className="mt-1 text-xl font-bold">{milestone.title}</h3>
+                  <p className="mt-3 leading-7 text-[var(--brand-muted)]">
+                    {milestone.story}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </Card>
+
           <Card title="Historic Tables & Season Stories">
             <p className="mb-6 leading-7 text-[var(--brand-muted)]">
               Selected modern Championships, with the final table alongside the story of how the title was won.
             </p>
 
             <div className="space-y-5">
-              {historicSeasons.map((season) => (
+              {[...historicSeasons]
+                .sort((a, b) => b.year - a.year)
+                .map((season) => (
                 <details
                   key={season.year}
                   className="rounded-xl border border-[var(--brand-border)] bg-white"
