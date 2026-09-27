@@ -24,6 +24,12 @@ export async function POST(
               name: true,
               firstKickoff: true,
               predictionLockAt: true,
+              matches: {
+                select: {
+                  round: true,
+                  kickoffTime: true,
+                },
+              },
             },
           },
         },
@@ -68,6 +74,8 @@ export async function POST(
       competitionName: match.tournament.name,
       tournamentPredictionLockAt: match.tournament.predictionLockAt,
       kickoffTime: match.kickoffTime,
+      matchRound: match.round,
+      tournamentMatches: match.tournament.matches,
     });
     if (!predictionLockAt) {
       return NextResponse.json(
