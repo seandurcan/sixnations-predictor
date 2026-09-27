@@ -384,7 +384,7 @@ export default function DashboardPage() {
             Leaderboard ranking is applied from left to right.
           </p>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <StatCard
               title="Points Total"
               value={userRow?.totalPoints ?? 0}
@@ -392,8 +392,8 @@ export default function DashboardPage() {
             />
 
             <StatCard
-              title="Aggregate Score Error"
-              value={userRow?.cumulativeError ?? 0}
+              title="Correct Results"
+              value={userRow?.correctResults ?? 0}
               tone="navy"
             />
 
@@ -410,25 +410,14 @@ export default function DashboardPage() {
             />
 
             <StatCard
-              title="Correct Results"
-              value={userRow?.correctResults ?? 0}
-              tone="navy"
-            />
-
-            <StatCard
-              title="Total Points Guess Delta"
-              value={
-                userRow?.tournamentPointsGuessError === null ||
-                userRow?.tournamentPointsGuessError === undefined
-                  ? "—"
-                  : userRow.tournamentPointsGuessError
-              }
+              title="Aggregate Score Error"
+              value={userRow?.cumulativeError ?? 0}
               tone="navy"
             />
           </div>
 
           <p className="mt-3 text-sm text-[var(--brand-muted)]">
-            Points Total → Lowest Aggregate Score Error → Perfect Scores → Correct Margins → Correct Results → Closest Total Points Guess
+            Points Total → Correct Results → Perfect Scores → Correct Margins → Lowest Aggregate Score Error
           </p>
         </div>
 
