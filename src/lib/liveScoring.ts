@@ -333,27 +333,6 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
         data: { status: "COMPLETED" },
       });
 
-      const completedFixtureScores = await prisma.match.findMany({
-        where: {
-          tournamentId: match.tournamentId,
-          completed: true,
-          actualHomeScore: { not: null },
-          actualAwayScore: { not: null },
-        },
-        select: {
-          actualHomeScore: true,
-          actualAwayScore: true,
-        },
-      });
-
-      const actualTournamentPoints = completedFixtureScores.reduce(
-        (total, fixture) =>
-          total +
-          (fixture.actualHomeScore ?? 0) +
-          (fixture.actualAwayScore ?? 0),
-        0
-      );
-
       const users = await prisma.user.findMany({
         where: {
           deletedAt: null,
@@ -383,7 +362,6 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
       const rankings = assignCompetitionRanks(
         users.map((user) => {
           const entry = user.competitionEntries[0];
-          const pointsGuess = entry?.tournamentPointsGuess ?? null;
 
           return {
             id: user.id,
@@ -396,10 +374,6 @@ async function applyMatchScoreInTransaction(args: ApplyScoreArgs, prisma: Prisma
             correctResults: user.predictions.filter(
               (prediction) => prediction.correctResult
             ).length,
-            tournamentPointsGuessError:
-              pointsGuess === null
-                ? null
-                : Math.abs(pointsGuess - actualTournamentPoints),
           };
         })
       );
