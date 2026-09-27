@@ -59,7 +59,6 @@ export type RankingEntry = {
   exactScores: number;
   correctMargins: number;
   correctResults: number;
-  tournamentPointsGuessError?: number | null;
   differenceScore?: number;
 };
 
@@ -67,9 +66,6 @@ function normalisedError(value: number | undefined) {
   return Number.isFinite(value) ? Number(value) : Number.POSITIVE_INFINITY;
 }
 
-function normalisedGuessError(value: number | null | undefined) {
-  return Number.isFinite(value) ? Number(value) : Number.POSITIVE_INFINITY;
-}
 
 export function compareLeaderboardEntries(
   a: RankingEntry,
@@ -78,18 +74,15 @@ export function compareLeaderboardEntries(
   return (
     // Locked Perfect XV leaderboard hierarchy:
     // 1 Total points
-    // 2 Lowest aggregate score error
+    // 2 Most correct results
     // 3 Most exact scores
     // 4 Most correct winning margins
-    // 5 Most correct results
-    // 6 Closest prediction for total points scored across the competition
+    // 5 Lowest aggregate score error
     b.totalPoints - a.totalPoints ||
-    normalisedError(a.cumulativeError) - normalisedError(b.cumulativeError) ||
+    b.correctResults - a.correctResults ||
     b.exactScores - a.exactScores ||
     b.correctMargins - a.correctMargins ||
-    b.correctResults - a.correctResults ||
-    normalisedGuessError(a.tournamentPointsGuessError) -
-      normalisedGuessError(b.tournamentPointsGuessError)
+    normalisedError(a.cumulativeError) - normalisedError(b.cumulativeError)
   );
 }
 
