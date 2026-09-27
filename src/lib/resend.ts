@@ -1,7 +1,23 @@
 import { Resend } from "resend";
 
-if (!process.env.RESEND_API_KEY) {
-  console.warn("WARNING: RESEND_API_KEY environment variable is not set.");
+let client: Resend | undefined;
+
+function getClient(): Resend {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    throw new Error("RESEND_API_KEY is not configured.");
+  }
+  client ??= new Resend(key);
+  return client;
 }
 
-export const resend = new Resend(process.env.RESEND_API_KEY || "");
+// Building pages imports mail modules, but should not require mail credentials.
+// Check configuration only when a caller actually uses the email service.
+export const resend = {
+  get emails() {
+    return getClient().emails;
+  },
+  get batch() {
+    return getClient().batch;
+  },
+};
