@@ -14,7 +14,7 @@ export default function RulesPage() {
         <div className="space-y-6 text-[var(--brand-muted)]">
           <Card title="Prediction Lock">
             <p>
-              All predictions must be submitted before the competition-wide deadline, one minute before the tournament&apos;s first kick-off. Once that deadline passes, all predictions are locked and no further entries or changes can be made.
+              Predictions lock by competition stage. Every fixture in a stage is predicted before that stage begins, and the whole stage locks one minute before its first kick-off. The Six Nations is one tournament-wide stage. In competitions with later knockout rounds, a new stage opens once its fixtures and teams are known.
             </p>
           </Card>
 
@@ -29,15 +29,12 @@ export default function RulesPage() {
                   <strong className="text-[var(--brand-navy)]">Correct match outcome:</strong> 1 point.
                 </li>
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Correct winning margin:</strong> 2 bonus points.
-                </li>
-                <li>
-                  <strong className="text-[var(--brand-navy)]">Exact score:</strong> 3 bonus points.
+                  <strong className="text-[var(--brand-navy)]">Exact score:</strong> 0.5 bonus point.
                 </li>
               </ul>
 
               <p>
-                An exact score also has the correct outcome and correct margin, so it earns the maximum <strong className="text-[var(--brand-navy)]">6 points</strong> for that match.
+                An exact score therefore earns <strong className="text-[var(--brand-navy)]">1.5 points</strong> in total for that match. Correct winning margin is retained as a leaderboard tie-break rather than an additional points award.
               </p>
             </div>
           </Card>
@@ -45,65 +42,39 @@ export default function RulesPage() {
           <Card title="Leaderboard Hierarchy">
             <div className="space-y-5">
               <p>
-                The leaderboard is not decided by Points Total alone. If two or more entrants have the same Points Total, Perfect XV works through the following criteria in order until the tie is separated.
+                If two or more entrants have the same Points Total, Perfect XV works through the following criteria in order until the tie is separated.
               </p>
 
               <ol className="list-decimal space-y-4 pl-5">
                 <li>
                   <strong className="text-[var(--brand-navy)]">Points Total</strong>
-                  <p className="mt-1">
-                    The entrant with the most points is ranked highest.
-                  </p>
+                  <p className="mt-1">The entrant with the most points is ranked highest.</p>
                 </li>
-
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Correct Wins</strong>
-                  <p className="mt-1">
-                    If Points Total is tied, the entrant who correctly predicted the outcome of more matches ranks higher. This includes correctly predicted draws as well as home and away wins.
-                  </p>
-                  <p className="mt-1 text-sm">
-                    Example: Sean and Mary both have 30 points. Sean has 10 correct outcomes and Mary has 9, so Sean ranks above Mary.
-                  </p>
+                  <strong className="text-[var(--brand-navy)]">Lowest Aggregate Score Error</strong>
+                  <p className="mt-1">If Points Total is tied, the entrant whose predicted team scores are closest overall ranks higher.</p>
                 </li>
-
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Perfect Scores</strong>
-                  <p className="mt-1">
-                    If they are still tied, the entrant with more exact score predictions ranks higher.
-                  </p>
-                  <p className="mt-1 text-sm">
-                    Example: both entrants have 30 points and 10 correct outcomes. One has 3 exact scores and the other has 2, so the entrant with 3 exact scores ranks higher.
-                  </p>
+                  <strong className="text-[var(--brand-navy)]">Exact Scores</strong>
+                  <p className="mt-1">If still tied, the entrant with more exact score predictions ranks higher.</p>
                 </li>
-
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Correct Margins</strong>
-                  <p className="mt-1">
-                    If the tie remains, the entrant who predicted the exact winning margin more often ranks higher. A correctly predicted draw counts as a margin of zero.
-                  </p>
-                  <p className="mt-1 text-sm">
-                    Example: Ireland win by 7. Predictions of 27-20 and 20-13 both have the correct winning margin of 7, even though neither is the exact score.
-                  </p>
+                  <strong className="text-[var(--brand-navy)]">Correct Winning Margins</strong>
+                  <p className="mt-1">If still tied, the entrant with more correctly predicted winning margins ranks higher.</p>
                 </li>
-
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Prediction Delta</strong>
-                  <p className="mt-1">
-                    If all of the above are still tied, the lowest Prediction Delta ranks higher. Prediction Delta measures how close the predicted winning margins were to the actual winning margins across the tournament, while also distinguishing correct and incorrect match outcomes.
-                  </p>
-                  <p className="mt-1 text-sm">
-                    In simple terms: the lower the Prediction Delta, the better the overall accuracy of the entrant&apos;s predicted margins.
-                  </p>
+                  <strong className="text-[var(--brand-navy)]">Correct Results</strong>
+                  <p className="mt-1">If still tied, the entrant with more correctly predicted match outcomes ranks higher.</p>
+                </li>
+                <li>
+                  <strong className="text-[var(--brand-navy)]">Total Tournament Points Guess</strong>
+                  <p className="mt-1">If the competition is complete and the tie remains, the entrant whose pre-tournament guess is closest to the total points scored across all fixtures ranks higher.</p>
                 </li>
               </ol>
 
               <div className="rounded-lg bg-[var(--brand-soft-lime)] p-4">
-                <p className="font-semibold text-[var(--brand-navy)]">
-                  If entrants are still tied after all five criteria
-                </p>
-                <p className="mt-1">
-                  They remain jointly ranked. Perfect XV does not introduce an extra tie-breaker beyond Prediction Delta.
-                </p>
+                <p className="font-semibold text-[var(--brand-navy)]">If entrants are still tied</p>
+                <p className="mt-1">They remain jointly ranked.</p>
               </div>
             </div>
           </Card>
