@@ -55,6 +55,8 @@ export async function POST(request: Request) {
           competitionName: tournament.name,
           tournamentPredictionLockAt: tournament.predictionLockAt,
           kickoffTime: match.kickoffTime,
+          matchRound: match.round,
+          tournamentMatches: tournament.matches,
         }, now)
     );
 
