@@ -36,6 +36,7 @@ const ICONS = {
   home: "\u{1F3E0}",
   leaderboard: "\u{1F3C6}",
   news: "\u{1F4F0}",
+  heritage: "\u{1F3DB}\uFE0F",
   dashboard: "\u{1F4CA}",
   predictions: "\u{1F4DD}",
   admin: "\u{1F6E0}\uFE0F",
@@ -71,6 +72,11 @@ const publicLinks: NavItem[] = [
     label: "News",
     href: "/news",
     icon: ICONS.news,
+  },
+  {
+    label: "Heritage & History",
+    href: "/heritage",
+    icon: ICONS.heritage,
   },
 ];
 
