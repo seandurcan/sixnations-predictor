@@ -625,7 +625,7 @@ export async function sendHelpdeskEscalationEmail({
 
   const { data, error } = await resend.emails.send({
     from: "Perfect XV Helpdesk <noreply@perfect-xv.org>",
-    to: "administrator@perfect-xv.org",
+    to: ["administrator@perfect-xv.org", "seandurcan@gmail.com"],
     replyTo: requesterEmail,
     subject: `Perfect XV Helpdesk: ${ticketId}`,
     html,
