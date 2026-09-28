@@ -274,15 +274,22 @@ async function writeAiArticle(factPack: unknown) {
 function buildFallbackArticle(factPack: {
   competition: string;
   round: number;
-  matches: Array<{
-    homeTeam: string;
-    awayTeam: string;
-    homeScore: number;
-    awayScore: number;
-    correctResultCount: number;
+  editorialBrief: {
+    primaryAngles: string[];
+    hardestResult: {
+      homeTeam: string;
+      awayTeam: string;
+      homeScore: number;
+      awayScore: number;
+      correctResultCount: number;
+      predictionCount: number;
+    } | null;
     exactScoreCount: number;
-    predictionCount: number;
-  }>;
+    leadChanged: boolean;
+    previousLeaderName: string | null;
+    currentLeaderName: string | null;
+    topGap: number | null;
+  };
   roundPerformers: Array<{
     name: string;
     roundPoints: number;
@@ -300,134 +307,131 @@ function buildFallbackArticle(factPack: {
   biggestFalls: Array<{ name: string; movement: number; rank: number }>;
 }) {
   const leader = factPack.leaderboard[0];
+  const second = factPack.leaderboard[1];
   const roundStar = factPack.roundPerformers[0];
-  const previousLeader = factPack.leaderboard.find((entry) => entry.previousRank === 1);
-  const leadChanged = Boolean(previousLeader && leader && previousLeader.name !== leader.name);
+  const hardest = factPack.editorialBrief.hardestResult;
+  const previousLeader = factPack.editorialBrief.previousLeaderName;
 
-  const headline = leader
-    ? leadChanged
-      ? leader.name + " takes over at the top after Round " + factPack.round
-      : roundStar && roundStar.name !== leader.name
-        ? roundStar.name +
-          " stars in Round " +
-          factPack.round +
-          " as " +
-          leader.name +
-          " stays top"
-        : leader.name + " sets the standard in Round " + factPack.round
-    : factPack.competition + " Round " + factPack.round + " report";
+  const headline = factPack.editorialBrief.leadChanged && leader
+    ? leader.name + " takes over at the top after Round " + factPack.round
+    : roundStar && leader && roundStar.name !== leader.name
+      ? roundStar.name + " makes the biggest impression in Round " + factPack.round
+      : leader
+        ? leader.name + " holds the lead after Round " + factPack.round
+        : factPack.competition + " Round " + factPack.round + " report";
 
   const standfirst =
-    roundStar && leader
-      ? roundStar.name +
-        " produced the round's strongest return, while " +
-        leader.name +
-        " emerged from the round at the head of the Perfect XV standings."
-      : "The latest results reshaped the Perfect XV standings as another round of predictions was settled.";
-
-  const matchSentence = factPack.matches
-    .map(
-      (match) =>
-        match.homeTeam +
-        " " +
-        match.homeScore +
-        "-" +
-        match.awayScore +
-        " " +
-        match.awayTeam +
-        " (" +
-        match.correctResultCount +
-        "/" +
-        match.predictionCount +
-        " predicted the result; " +
-        match.exactScoreCount +
-        " exact)"
-    )
-    .join("; ");
+    factPack.editorialBrief.primaryAngles[0] ??
+    "The latest completed round brought a fresh set of gains and setbacks in the Perfect XV standings.";
 
   const paragraphs: string[] = [];
-  paragraphs.push(
-    "Round " +
-      factPack.round +
-      " of " +
-      factPack.competition +
-      " delivered another shift in the Perfect XV contest. " +
-      (roundStar
-        ? roundStar.name +
-          " led the scoring for the round with " +
-          roundStar.roundPoints +
-          " points" +
-          (roundStar.exactScores
-            ? ", helped by " +
-              roundStar.exactScores +
-              (roundStar.exactScores === 1 ? " exact score" : " exact scores")
-            : "") +
-          "."
-        : "The completed fixtures have now been added to the standings.")
-  );
 
-  if (matchSentence) {
+  if (roundStar) {
     paragraphs.push(
-      "The rugby behind the numbers told its own story: " +
-        matchSentence +
-        ". Those calls separated the field and fed directly into the movement on the table."
+      roundStar.name +
+        " emerged as the standout performer of Round " +
+        factPack.round +
+        ", collecting " +
+        roundStar.roundPoints +
+        " points" +
+        (roundStar.exactScores > 0
+          ? " and landing " +
+            roundStar.exactScores +
+            (roundStar.exactScores === 1 ? " exact score." : " exact scores.")
+          : ".")
+    );
+  }
+
+  if (hardest) {
+    const missed = Math.max(0, hardest.predictionCount - hardest.correctResultCount);
+    paragraphs.push(
+      hardest.awayTeam +
+        "'s " +
+        hardest.awayScore +
+        "-" +
+        hardest.homeScore +
+        " result against " +
+        hardest.homeTeam +
+        " proved the round's biggest obstacle for the field. Only " +
+        hardest.correctResultCount +
+        " of " +
+        hardest.predictionCount +
+        " entrants called the outcome correctly, leaving " +
+        missed +
+        " on the wrong side of the result."
+    );
+  }
+
+  if (factPack.editorialBrief.exactScoreCount === 0) {
+    paragraphs.push(
+      "There were no exact scores anywhere in the round, so the advantage came from identifying the right outcomes and margins rather than finding a perfect scoreline."
+    );
+  } else {
+    paragraphs.push(
+      "Exact scores were scarce enough to matter, with " +
+        factPack.editorialBrief.exactScoreCount +
+        " recorded across the round."
     );
   }
 
   if (leader) {
-    const second = factPack.leaderboard[1];
     paragraphs.push(
-      leader.name +
-        " finishes the round in first place on " +
-        leader.totalPoints +
-        " points" +
-        (second
-          ? ", with " +
-            second.name +
-            " next on " +
-            second.totalPoints +
-            "."
-          : ".") +
-        (leadChanged && previousLeader
-          ? " That represents a change at the summit, with " +
-            previousLeader.name +
-            " having held first place before the round."
-          : "")
+      factPack.editorialBrief.leadChanged && previousLeader
+        ? leader.name +
+            " now leads the competition on " +
+            leader.totalPoints +
+            " points, replacing " +
+            previousLeader +
+            " at the top."
+        : leader.name +
+            " remains at the head of the standings on " +
+            leader.totalPoints +
+            " points" +
+            (second
+              ? ", with " +
+                second.name +
+                " next on " +
+                second.totalPoints +
+                "."
+              : ".")
     );
   }
 
   const rise = factPack.biggestRises[0];
   const fall = factPack.biggestFalls[0];
   if (rise || fall) {
-    paragraphs.push(
-      [
-        rise
-          ? rise.name +
-            " supplied the biggest climb, moving up " +
-            rise.movement +
-            " places to " +
-            rise.rank +
-            "."
-          : "",
-        fall
-          ? fall.name +
-            " had the sharpest reverse, dropping " +
-            Math.abs(fall.movement) +
-            " places to " +
-            fall.rank +
-            "."
-          : "",
-      ]
-        .filter(Boolean)
-        .join(" ")
-    );
+    const movementLines: string[] = [];
+    if (rise) {
+      movementLines.push(
+        rise.name +
+          " made the round's biggest climb, gaining " +
+          rise.movement +
+          " places to reach " +
+          rise.rank +
+          "."
+      );
+    }
+    if (fall) {
+      movementLines.push(
+        fall.name +
+          " experienced the largest fall, slipping " +
+          Math.abs(fall.movement) +
+          " places to " +
+          fall.rank +
+          "."
+      );
+    }
+    paragraphs.push(movementLines.join(" "));
   }
 
-  paragraphs.push(
-    "With Round " +
-      factPack.round +
-      " now in the books, the table records the damage and the gains. The next set of predictions will decide whether this round's movers can make their progress stick."
-  );
+  if (factPack.editorialBrief.topGap !== null && factPack.editorialBrief.topGap <= 2) {
+    paragraphs.push(
+      "The top of the table remains tightly packed, with only " +
+        factPack.editorialBrief.topGap +
+        (factPack.editorialBrief.topGap === 1 ? " point" : " points") +
+        " separating first and second."
+    );
+  }
 
   return { headline, standfirst, body: paragraphs.join("\n\n") };
 }
@@ -576,7 +580,116 @@ export async function generateCompletedRoundStory(
   });
 
   const title = formatCompetitionTitle(tournament.name, tournament.year);
+
+  const rankedByDifficulty = [...roundMatches]
+    .filter((match) => match.predictionCount > 0)
+    .sort(
+      (a, b) =>
+        a.correctResultCount / a.predictionCount -
+        b.correctResultCount / b.predictionCount
+    );
+  const hardestResult = rankedByDifficulty[0] ?? null;
+  const easiestResult =
+    rankedByDifficulty.length > 0
+      ? rankedByDifficulty[rankedByDifficulty.length - 1]
+      : null;
+  const exactScoreCount = roundMatches.reduce(
+    (sum, match) => sum + match.exactScoreCount,
+    0
+  );
+  const currentLeader = leaderboard[0] ?? null;
+  const previousLeader = leaderboard.find((entry) => entry.previousRank === 1) ?? null;
+  const leadChanged = Boolean(
+    currentLeader &&
+      previousLeader &&
+      currentLeader.name !== previousLeader.name
+  );
+  const topGap =
+    leaderboard.length > 1
+      ? leaderboard[0].totalPoints - leaderboard[1].totalPoints
+      : null;
+  const roundStar = roundPerformers[0] ?? null;
+  const primaryAngles: string[] = [];
+
+  if (leadChanged && currentLeader && previousLeader) {
+    primaryAngles.push(
+      currentLeader.name +
+        " took over at the top from " +
+        previousLeader.name +
+        " after Round " +
+        round +
+        "."
+    );
+  }
+  if (roundStar) {
+    primaryAngles.push(
+      roundStar.name +
+        " was the strongest performer of the round with " +
+        roundStar.roundPoints +
+        " points."
+    );
+  }
+  if (hardestResult) {
+    primaryAngles.push(
+      hardestResult.homeTeam +
+        " v " +
+        hardestResult.awayTeam +
+        " was the hardest result to call: only " +
+        hardestResult.correctResultCount +
+        " of " +
+        hardestResult.predictionCount +
+        " entrants predicted the correct outcome."
+    );
+  }
+  if (exactScoreCount === 0) {
+    primaryAngles.push("Nobody recorded an exact score in the round.");
+  } else {
+    primaryAngles.push(
+      exactScoreCount +
+        (exactScoreCount === 1
+          ? " exact score was recorded in the round."
+          : " exact scores were recorded in the round.")
+    );
+  }
+  if (biggestRises[0]) {
+    primaryAngles.push(
+      biggestRises[0].name +
+        " made the biggest climb, gaining " +
+        biggestRises[0].movement +
+        " places."
+    );
+  }
+  if (biggestFalls[0]) {
+    primaryAngles.push(
+      biggestFalls[0].name +
+        " had the biggest fall, dropping " +
+        Math.abs(biggestFalls[0].movement) +
+        " places."
+    );
+  }
+  if (topGap !== null && topGap <= 2) {
+    primaryAngles.push(
+      "Only " +
+        topGap +
+        (topGap === 1 ? " point separates" : " points separate") +
+        " first and second."
+    );
+  }
+
   const factPack = {
+    competition: title,
+    round,
+    entrantCount: entries.length,
+    editorialBrief: {
+      primaryAngles,
+      hardestResult,
+      easiestResult,
+      exactScoreCount,
+      leadChanged,
+      previousLeaderName: previousLeader?.name ?? null,
+      currentLeaderName: currentLeader?.name ?? null,
+      topGap,
+    },
     competition: title,
     round,
     entrantCount: entries.length,
