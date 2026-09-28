@@ -338,7 +338,7 @@ function buildFallbackArticle(factPack: {
       " now in the books, the table records the damage and the gains. The next set of predictions will decide whether this round's movers can make their progress stick."
   );
 
-  return { headline, standfirst, body: paragraphs.join("\\n\\n") };
+  return { headline, standfirst, body: paragraphs.join("\n\n") };
 }
 
 export async function generateCompletedRoundStory(
