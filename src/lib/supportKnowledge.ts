@@ -35,7 +35,7 @@ const topics: SupportTopic[] = [
     optionLabel: "Leaderboard ranking",
     optionPrompt: "Explain the leaderboard ranking order",
     phrases: ["leaderboard ranking", "ranking order", "tie break", "tiebreak", "why am i ranked"],
-    keywords: ["leaderboard", "rank", "ranking", "tie", "wins", "perfect", "margins", "delta"],
+    keywords: ["leaderboard", "rank", "ranking", "tie", "wins", "perfect", "margins", "delta", "points"],
     answer:
       "Perfect XV ranks entrants in this exact order: 1) Points Total, 2) Correct Wins (correctly predicted draws count as correct outcomes), 3) Perfect Scores, 4) Correct Margins, and 5) Prediction Delta, where the lowest cumulative Prediction Delta ranks higher. If entrants are still equal after all five criteria, they remain jointly ranked.",
     sources: [
@@ -49,7 +49,7 @@ const topics: SupportTopic[] = [
     optionLabel: "Prediction Delta",
     optionPrompt: "Explain how Prediction Delta works",
     phrases: ["prediction delta", "cumulative prediction delta", "delta calculated", "delta mean"],
-    keywords: ["delta", "difference", "margin", "negative", "positive", "cumulative"],
+    keywords: ["delta", "difference", "margin", "negative", "positive", "cumulative", "prediction"],
     answer:
       "Prediction Delta measures how far the predicted points difference is from the actual points difference. Its magnitude is the absolute difference between those margins. It is negative when the predicted result is correct and positive when the predicted result is wrong. Cumulative Prediction Delta is the signed total across completed matches.",
     sources: [
@@ -77,7 +77,7 @@ const topics: SupportTopic[] = [
     optionLabel: "Prediction locking",
     optionPrompt: "Explain when predictions lock",
     phrases: ["when do predictions lock", "prediction deadline", "can i change prediction", "locked prediction"],
-    keywords: ["lock", "locked", "deadline", "change", "edit", "kickoff", "kick-off", "stage"],
+    keywords: ["lock", "locked", "deadline", "change", "edit", "kickoff", "kick-off", "stage", "prediction", "predictions"],
     answer:
       "Predictions lock by competition stage. Every fixture in a stage must be predicted before that stage begins, and the stage locks one minute before its first kick-off. The Six Nations is one tournament-wide stage. Once a stage is locked, its predictions cannot be entered or changed.",
     sources: [
@@ -131,7 +131,7 @@ const topics: SupportTopic[] = [
     optionLabel: "Completed matches and results",
     optionPrompt: "Explain what I see after matches are completed",
     phrases: ["completed matches", "after matches begin", "my match points", "results view", "leaderboard movement"],
-    keywords: ["completed", "results", "movement", "match", "final", "points"],
+    keywords: ["completed", "results", "movement", "match", "final", "points", "prediction", "predictions"],
     answer:
       "After matches begin, completed fixtures are added to the results view. Each completed match shows the final score, your locked prediction, Match Points and its scoring breakdown. Total Competition Points include completed matches only, and your current leaderboard position and movement update as results are completed.",
     sources: [
