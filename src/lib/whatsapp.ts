@@ -9,10 +9,44 @@ export async function sendAdminWhatsAppAlert(message: string): Promise<WhatsAppA
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
   const to = process.env.WHATSAPP_ADMIN_TO?.trim();
   const graphVersion = process.env.WHATSAPP_GRAPH_VERSION?.trim();
+  const templateName = process.env.WHATSAPP_ALERT_TEMPLATE_NAME?.trim();
+  const templateLanguage =
+    process.env.WHATSAPP_ALERT_TEMPLATE_LANGUAGE?.trim() || "en";
 
   if (!token || !phoneNumberId || !to || !graphVersion) {
     return { sent: false, configured: false };
   }
+
+  const ticketMatch = message.match(/Ticket:\s*([^\n]+)/i);
+  const ticketReference = ticketMatch?.[1]?.trim() || "new ticket";
+
+  const payload = templateName
+    ? {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to,
+        type: "template",
+        template: {
+          name: templateName,
+          language: { code: templateLanguage },
+          components: [
+            {
+              type: "body",
+              parameters: [{ type: "text", text: ticketReference }],
+            },
+          ],
+        },
+      }
+    : {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to,
+        type: "text",
+        text: {
+          preview_url: false,
+          body: message.slice(0, 3500),
+        },
+      };
 
   try {
     const response = await fetch(
@@ -23,16 +57,7 @@ export async function sendAdminWhatsAppAlert(message: string): Promise<WhatsAppA
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to,
-          type: "text",
-          text: {
-            preview_url: false,
-            body: message.slice(0, 3500),
-          },
-        }),
+        body: JSON.stringify(payload),
         cache: "no-store",
       }
     );
