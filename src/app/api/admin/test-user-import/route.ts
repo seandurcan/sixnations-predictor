@@ -101,6 +101,48 @@ function buildTestingEmail(firstName: string, unsubscribeUrl: string) {
   return { html, text };
 }
 
+
+export async function GET(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (!auth.authorized) return auth.response;
+
+  const totalActive = await prisma.user.count({
+    where: { deletedAt: null },
+  });
+
+  const protectedAliases = await prisma.user.count({
+    where: {
+      deletedAt: null,
+      email: {
+        startsWith: "seandurcan+",
+        mode: "insensitive",
+      },
+    },
+  });
+
+  const ordinaryActive = totalActive - protectedAliases;
+
+  const unverifiedOrdinary = await prisma.user.count({
+    where: {
+      deletedAt: null,
+      emailVerified: false,
+      NOT: {
+        email: {
+          startsWith: "seandurcan+",
+          mode: "insensitive",
+        },
+      },
+    },
+  });
+
+  return NextResponse.json({
+    totalActive,
+    protectedAliases,
+    ordinaryActive,
+    unverifiedOrdinary,
+  });
+}
+
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized) return auth.response;
