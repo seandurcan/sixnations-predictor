@@ -3,15 +3,25 @@ export type SupportSource = {
   href: string;
 };
 
+export type SupportOption = {
+  id: string;
+  label: string;
+  prompt: string;
+};
+
 export type SupportAnswer = {
   answer: string;
   sources: SupportSource[];
   matchedTopic: string | null;
+  options: SupportOption[];
+  needsChoice: boolean;
 };
 
 type SupportTopic = {
   id: string;
   title: string;
+  optionLabel: string;
+  optionPrompt: string;
   phrases: string[];
   keywords: string[];
   answer: string;
@@ -22,6 +32,8 @@ const topics: SupportTopic[] = [
   {
     id: "leaderboard",
     title: "Leaderboard and ranking",
+    optionLabel: "Leaderboard ranking",
+    optionPrompt: "Explain the leaderboard ranking order",
     phrases: ["leaderboard ranking", "ranking order", "tie break", "tiebreak", "why am i ranked"],
     keywords: ["leaderboard", "rank", "ranking", "tie", "wins", "perfect", "margins", "delta"],
     answer:
@@ -34,6 +46,8 @@ const topics: SupportTopic[] = [
   {
     id: "prediction-delta",
     title: "Prediction Delta",
+    optionLabel: "Prediction Delta",
+    optionPrompt: "Explain how Prediction Delta works",
     phrases: ["prediction delta", "cumulative prediction delta", "delta calculated", "delta mean"],
     keywords: ["delta", "difference", "margin", "negative", "positive", "cumulative"],
     answer:
@@ -46,6 +60,8 @@ const topics: SupportTopic[] = [
   {
     id: "scoring",
     title: "Scoring",
+    optionLabel: "Match scoring",
+    optionPrompt: "Explain how match points are scored",
     phrases: ["how many points", "scoring system", "exact score", "correct margin", "match points"],
     keywords: ["score", "scoring", "points", "exact", "margin", "result", "bonus"],
     answer:
@@ -58,6 +74,8 @@ const topics: SupportTopic[] = [
   {
     id: "locking",
     title: "Prediction locking",
+    optionLabel: "Prediction locking",
+    optionPrompt: "Explain when predictions lock",
     phrases: ["when do predictions lock", "prediction deadline", "can i change prediction", "locked prediction"],
     keywords: ["lock", "locked", "deadline", "change", "edit", "kickoff", "kick-off", "stage"],
     answer:
@@ -70,6 +88,8 @@ const topics: SupportTopic[] = [
   {
     id: "predictions",
     title: "Entering and editing predictions",
+    optionLabel: "Entering or editing predictions",
+    optionPrompt: "Explain how to enter or edit predictions",
     phrases: ["make predictions", "enter prediction", "edit prediction", "save prediction", "prediction progress"],
     keywords: ["prediction", "predictions", "enter", "edit", "save", "fixture", "progress"],
     answer:
@@ -81,6 +101,8 @@ const topics: SupportTopic[] = [
   {
     id: "quick-pick",
     title: "Quick Pick",
+    optionLabel: "Quick Pick",
+    optionPrompt: "Explain Quick Pick",
     phrases: ["quick pick", "quickpick", "random predictions"],
     keywords: ["quick", "pick", "random", "generate"],
     answer:
@@ -92,6 +114,8 @@ const topics: SupportTopic[] = [
   {
     id: "verification-password",
     title: "Verification and password help",
+    optionLabel: "Login, verification or password",
+    optionPrompt: "Help with verification, login or password reset",
     phrases: ["verify email", "verification email", "forgot password", "reset password", "resend verification"],
     keywords: ["verify", "verification", "password", "reset", "login", "email", "resend"],
     answer:
@@ -104,6 +128,8 @@ const topics: SupportTopic[] = [
   {
     id: "completed-results",
     title: "Predictions after matches begin",
+    optionLabel: "Completed matches and results",
+    optionPrompt: "Explain what I see after matches are completed",
     phrases: ["completed matches", "after matches begin", "my match points", "results view", "leaderboard movement"],
     keywords: ["completed", "results", "movement", "match", "final", "points"],
     answer:
@@ -115,6 +141,8 @@ const topics: SupportTopic[] = [
   {
     id: "competitions",
     title: "Choosing a competition",
+    optionLabel: "Choosing a competition",
+    optionPrompt: "Explain how to choose or switch competitions",
     phrases: ["choose competition", "switch competition", "multiple competitions"],
     keywords: ["competition", "competitions", "selector", "choose", "switch", "selected"],
     answer:
@@ -126,6 +154,8 @@ const topics: SupportTopic[] = [
   {
     id: "entry-payment",
     title: "Competition entry and payment",
+    optionLabel: "Competition entry or payment",
+    optionPrompt: "Explain competition entry and payment",
     phrases: ["competition entry required", "payment required", "pay to enter", "stripe test"],
     keywords: ["payment", "pay", "entry", "stripe", "charge", "testing"],
     answer:
@@ -137,6 +167,8 @@ const topics: SupportTopic[] = [
   {
     id: "prediction-record",
     title: "Prediction PDF and confirmation email",
+    optionLabel: "Prediction PDF or confirmation email",
+    optionPrompt: "Explain prediction records, PDFs and confirmation emails",
     phrases: ["prediction pdf", "confirmation email", "download predictions", "record of predictions"],
     keywords: ["pdf", "confirmation", "download", "record", "email", "locked"],
     answer:
@@ -148,6 +180,8 @@ const topics: SupportTopic[] = [
   {
     id: "invite",
     title: "Invite friends",
+    optionLabel: "Inviting friends",
+    optionPrompt: "Explain how to invite friends",
     phrases: ["invite friends", "invite someone", "send invitation"],
     keywords: ["invite", "friend", "friends", "invitation", "email"],
     answer:
@@ -160,6 +194,8 @@ const topics: SupportTopic[] = [
   {
     id: "account-details",
     title: "Update account details",
+    optionLabel: "Updating account details",
+    optionPrompt: "Explain how to update my account details",
     phrases: ["change my details", "update account", "change name", "my account"],
     keywords: ["account", "details", "name", "update", "profile"],
     answer:
@@ -172,6 +208,8 @@ const topics: SupportTopic[] = [
   {
     id: "email-preferences",
     title: "Email preferences",
+    optionLabel: "Email preferences",
+    optionPrompt: "Explain email preferences or unsubscribing",
     phrases: ["unsubscribe", "email preferences", "stop emails", "optional emails"],
     keywords: ["email", "emails", "unsubscribe", "preferences", "announcements"],
     answer:
@@ -184,6 +222,8 @@ const topics: SupportTopic[] = [
   {
     id: "fixtures",
     title: "Fixtures and live results",
+    optionLabel: "Fixtures and live results",
+    optionPrompt: "Explain fixtures and live results",
     phrases: ["live result", "live score", "fixture result", "official result"],
     keywords: ["fixture", "fixtures", "live", "result", "results", "score", "final", "venue"],
     answer:
@@ -195,6 +235,8 @@ const topics: SupportTopic[] = [
   {
     id: "heritage",
     title: "Heritage and History",
+    optionLabel: "Heritage & History",
+    optionPrompt: "Explain Heritage & History",
     phrases: ["heritage and history", "championship history", "rugby history"],
     keywords: ["heritage", "history", "archive", "records", "trophies", "venues", "players"],
     answer:
@@ -222,6 +264,61 @@ function tokens(value: string) {
   );
 }
 
+function rankTopics(message: string) {
+  const query = normalise(message);
+  const queryTokens = tokens(query);
+
+  return topics
+    .map((topic) => {
+      let score = 0;
+
+      for (const phrase of topic.phrases) {
+        const normalisedPhrase = normalise(phrase);
+        if (query.includes(normalisedPhrase)) score += 8;
+      }
+
+      for (const keyword of topic.keywords) {
+        const normalisedKeyword = normalise(keyword);
+        if (queryTokens.has(normalisedKeyword)) score += 3;
+        else if (query.includes(normalisedKeyword)) score += 1;
+      }
+
+      return { topic, score };
+    })
+    .sort((a, b) => b.score - a.score);
+}
+
+function asOption(topic: SupportTopic): SupportOption {
+  return {
+    id: topic.id,
+    label: topic.optionLabel,
+    prompt: topic.optionPrompt,
+  };
+}
+
+export function answerSupportTopic(topicId: string): SupportAnswer {
+  const topic = topics.find((item) => item.id === topicId);
+
+  if (!topic) {
+    return {
+      answer:
+        "I could not match that option to approved Perfect XV help material. Please choose another support topic or check the User Manual.",
+      sources: [{ label: "User Manual", href: "/user-manual" }],
+      matchedTopic: null,
+      options: [],
+      needsChoice: false,
+    };
+  }
+
+  return {
+    answer: topic.answer,
+    sources: topic.sources,
+    matchedTopic: topic.title,
+    options: [],
+    needsChoice: false,
+  };
+}
+
 export function answerSupportQuestion(message: string): SupportAnswer {
   const query = normalise(message);
 
@@ -230,47 +327,73 @@ export function answerSupportQuestion(message: string): SupportAnswer {
       answer: "Ask me a question about using Perfect XV.",
       sources: [],
       matchedTopic: null,
+      options: [],
+      needsChoice: false,
     };
   }
 
-  const queryTokens = tokens(query);
-
-  const ranked = topics
-    .map((topic) => {
-      let score = 0;
-
-      for (const phrase of topic.phrases) {
-        if (query.includes(normalise(phrase))) score += 8;
-      }
-
-      for (const keyword of topic.keywords) {
-        const normalisedKeyword = normalise(keyword);
-        if (queryTokens.has(normalisedKeyword) || query.includes(normalisedKeyword)) {
-          score += 2;
-        }
-      }
-
-      return { topic, score };
-    })
-    .sort((a, b) => b.score - a.score);
-
-  const best = ranked[0];
+  const ranked = rankTopics(query);
+  const positive = ranked.filter((item) => item.score > 0);
+  const best = positive[0];
+  const second = positive[1];
 
   if (!best || best.score < 2) {
     return {
       answer:
-        "I could not find a reliable answer in the approved Perfect XV help material. I would rather not guess. Please check the User Manual or Competition Rules, or contact the site administrator if the problem continues.",
+        "I could not identify a reliable Perfect XV topic from that question. Try choosing one of these common areas, or check the User Manual.",
       sources: [
         { label: "User Manual", href: "/user-manual" },
         { label: "Competition Rules", href: "/legal/rules" },
       ],
       matchedTopic: null,
+      options: [
+        asOption(topics.find((topic) => topic.id === "predictions")!),
+        asOption(topics.find((topic) => topic.id === "scoring")!),
+        asOption(topics.find((topic) => topic.id === "verification-password")!),
+      ],
+      needsChoice: true,
+    };
+  }
+
+  const clearPhraseMatch = best.score >= 8;
+  const clearlyAhead = !second || best.score - second.score >= 4;
+
+  if (clearPhraseMatch && clearlyAhead) {
+    const related = positive
+      .slice(1, 3)
+      .filter((item) => item.score >= 2)
+      .map((item) => asOption(item.topic));
+
+    return {
+      answer: best.topic.answer,
+      sources: best.topic.sources,
+      matchedTopic: best.topic.title,
+      options: related,
+      needsChoice: false,
+    };
+  }
+
+  const likelyOptions = positive
+    .filter((item) => item.score >= Math.max(2, best.score - 4))
+    .slice(0, 3)
+    .map((item) => asOption(item.topic));
+
+  if (likelyOptions.length === 1) {
+    return {
+      answer: best.topic.answer,
+      sources: best.topic.sources,
+      matchedTopic: best.topic.title,
+      options: [],
+      needsChoice: false,
     };
   }
 
   return {
-    answer: best.topic.answer,
-    sources: best.topic.sources,
-    matchedTopic: best.topic.title,
+    answer:
+      "I can interpret that a few ways. Which of these is closest to what you mean?",
+    sources: [],
+    matchedTopic: null,
+    options: likelyOptions,
+    needsChoice: true,
   };
 }

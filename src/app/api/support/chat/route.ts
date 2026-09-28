@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
 
-import { answerSupportQuestion } from "@/lib/supportKnowledge";
+import {
+  answerSupportQuestion,
+  answerSupportTopic,
+} from "@/lib/supportKnowledge";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const topicId = typeof body?.topicId === "string" ? body.topicId.trim() : "";
     const message = typeof body?.message === "string" ? body.message.trim() : "";
+
+    if (topicId) {
+      return NextResponse.json(answerSupportTopic(topicId), {
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
 
     if (!message) {
       return NextResponse.json(

@@ -7,11 +7,19 @@ type Source = {
   href: string;
 };
 
+type SupportOption = {
+  id: string;
+  label: string;
+  prompt: string;
+};
+
 type Message = {
   id: number;
   role: "assistant" | "user";
   text: string;
   sources?: Source[];
+  options?: SupportOption[];
+  needsChoice?: boolean;
 };
 
 const suggestedQuestions = [
@@ -48,25 +56,27 @@ export default function SupportChatbot() {
     });
   }, [messages, open]);
 
-  async function ask(question: string) {
-    const trimmed = question.trim();
-    if (!trimmed || sending) return;
+  async function requestSupport(payload: { message?: string; topicId?: string }, userText?: string) {
+    if (sending) return;
 
-    const userMessage: Message = {
-      id: nextId.current++,
-      role: "user",
-      text: trimmed,
-    };
+    if (userText) {
+      setMessages((current) => [
+        ...current,
+        {
+          id: nextId.current++,
+          role: "user",
+          text: userText,
+        },
+      ]);
+    }
 
-    setMessages((current) => [...current, userMessage]);
-    setInput("");
     setSending(true);
 
     try {
       const response = await fetch("/api/support/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed }),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
@@ -79,6 +89,8 @@ export default function SupportChatbot() {
             ? result.answer
             : result.error || "Perfect XV Support could not answer that question.",
         sources: response.ok && Array.isArray(result.sources) ? result.sources : undefined,
+        options: response.ok && Array.isArray(result.options) ? result.options : undefined,
+        needsChoice: response.ok && result.needsChoice === true,
       };
 
       setMessages((current) => [...current, assistantMessage]);
@@ -99,6 +111,19 @@ export default function SupportChatbot() {
     } finally {
       setSending(false);
     }
+  }
+
+  async function ask(question: string) {
+    const trimmed = question.trim();
+    if (!trimmed || sending) return;
+
+    setInput("");
+    await requestSupport({ message: trimmed }, trimmed);
+  }
+
+  async function chooseOption(option: SupportOption) {
+    if (sending) return;
+    await requestSupport({ topicId: option.id }, option.label);
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -139,6 +164,27 @@ export default function SupportChatbot() {
                 }
               >
                 <p className="whitespace-pre-wrap">{message.text}</p>
+
+                {message.options && message.options.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      {message.needsChoice ? "Likely matches" : "Related help"}
+                    </p>
+                    <div className="grid gap-2">
+                      {message.options.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => void chooseOption(option)}
+                          disabled={sending}
+                          className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-left text-xs font-semibold text-blue-800 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {message.sources && message.sources.length > 0 && (
                   <div className="mt-3 border-t border-slate-200 pt-2">
@@ -183,7 +229,7 @@ export default function SupportChatbot() {
 
             {sending && (
               <p className="text-xs font-medium text-slate-500" role="status">
-                Checking approved support material...
+                Interpreting your question and checking approved support material...
               </p>
             )}
           </div>

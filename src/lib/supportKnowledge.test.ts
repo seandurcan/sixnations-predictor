@@ -1,20 +1,39 @@
 import { describe, expect, it } from "vitest";
 
-import { answerSupportQuestion } from "./supportKnowledge";
+import { answerSupportQuestion, answerSupportTopic } from "./supportKnowledge";
 
-describe("answerSupportQuestion", () => {
-  it("returns the locked leaderboard hierarchy", () => {
+describe("Perfect XV support interpretation", () => {
+  it("answers a clear leaderboard question directly", () => {
     const result = answerSupportQuestion("How is the leaderboard ranked?");
 
+    expect(result.needsChoice).toBe(false);
     expect(result.answer).toContain("1) Points Total");
     expect(result.answer).toContain("2) Correct Wins");
     expect(result.answer).toContain("5) Prediction Delta");
     expect(result.answer).toContain("jointly ranked");
   });
 
-  it("explains signed Prediction Delta", () => {
-    const result = answerSupportQuestion("Why is my Prediction Delta negative?");
+  it("interprets an ambiguous points question and offers likely choices", () => {
+    const result = answerSupportQuestion("Can you explain my points?");
 
+    expect(result.needsChoice).toBe(true);
+    expect(result.options.length).toBeGreaterThan(1);
+    expect(result.options.map((option) => option.id)).toContain("scoring");
+  });
+
+  it("offers likely choices for an unclear prediction question", () => {
+    const result = answerSupportQuestion("My prediction is not right");
+
+    expect(result.options.length).toBeGreaterThan(0);
+    expect(result.options.some((option) =>
+      ["predictions", "locking", "completed-results", "prediction-delta"].includes(option.id)
+    )).toBe(true);
+  });
+
+  it("returns the selected approved topic answer", () => {
+    const result = answerSupportTopic("prediction-delta");
+
+    expect(result.needsChoice).toBe(false);
     expect(result.answer).toContain("negative when the predicted result is correct");
     expect(result.answer).toContain("positive when the predicted result is wrong");
   });
@@ -23,7 +42,8 @@ describe("answerSupportQuestion", () => {
     const result = answerSupportQuestion("What colour car should I buy?");
 
     expect(result.matchedTopic).toBeNull();
-    expect(result.answer).toContain("rather not guess");
+    expect(result.needsChoice).toBe(true);
+    expect(result.answer).toContain("could not identify");
     expect(result.sources.map((source) => source.href)).toContain("/user-manual");
   });
 });
