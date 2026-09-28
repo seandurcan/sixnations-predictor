@@ -81,12 +81,12 @@ export function compareLeaderboardEntries(
   return (
     // Locked Perfect XV leaderboard hierarchy:
     // 1 Total points
-    // 2 Lowest aggregate score error
+    // 2 Lowest cumulative Prediction Delta
     // 3 Most exact scores
     // 4 Most correct winning margins
     // 5 Most correct results
     b.totalPoints - a.totalPoints ||
-    normalisedError(a.cumulativeError) - normalisedError(b.cumulativeError) ||
+    normalisedError(a.differenceScore) - normalisedError(b.differenceScore) ||
     b.exactScores - a.exactScores ||
     b.correctMargins - a.correctMargins ||
     b.correctResults - a.correctResults
