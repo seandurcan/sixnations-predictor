@@ -18,6 +18,8 @@ type SupportAction = {
   href: string;
 };
 
+type HelpdeskStatus = "idle" | "sending" | "sent";
+
 type Message = {
   id: number;
   role: "assistant" | "user";
@@ -28,6 +30,13 @@ type Message = {
   action?: SupportAction | null;
   interactionId?: string | null;
   feedback?: boolean | null;
+  question?: string;
+  helpdeskEmail?: string;
+  helpdeskStatus?: HelpdeskStatus;
+  helpdeskError?: string;
+  ticketId?: string;
+  emailStatus?: string;
+  whatsappStatus?: string;
 };
 
 const suggestedQuestions = [
@@ -66,7 +75,8 @@ export default function SupportChatbot() {
 
   async function requestSupport(
     payload: { message?: string; topicId?: string; interactionId?: string },
-    userText?: string
+    userText?: string,
+    originalQuestion?: string
   ) {
     if (sending) return;
 
@@ -112,8 +122,11 @@ export default function SupportChatbot() {
         interactionId:
           response.ok && typeof result.interactionId === "string"
             ? result.interactionId
-            : null,
+            : payload.interactionId ?? null,
         feedback: null,
+        question: originalQuestion ?? userText ?? payload.message,
+        helpdeskEmail: "",
+        helpdeskStatus: "idle",
       };
 
       setMessages((current) => [...current, assistantMessage]);
@@ -141,17 +154,19 @@ export default function SupportChatbot() {
     if (!trimmed || sending) return;
 
     setInput("");
-    await requestSupport({ message: trimmed }, trimmed);
+    await requestSupport({ message: trimmed }, trimmed, trimmed);
   }
 
-  async function chooseOption(option: SupportOption, interactionId?: string | null) {
+  async function chooseOption(option: SupportOption, message: Message) {
     if (sending) return;
+
     await requestSupport(
       {
         topicId: option.id,
-        ...(interactionId ? { interactionId } : {}),
+        ...(message.interactionId ? { interactionId: message.interactionId } : {}),
       },
-      option.label
+      option.label,
+      message.question
     );
   }
 
@@ -167,11 +182,109 @@ export default function SupportChatbot() {
 
       setMessages((current) =>
         current.map((message) =>
-          message.id === messageId ? { ...message, feedback: helpful } : message
+          message.id === messageId
+            ? {
+                ...message,
+                feedback: helpful,
+                helpdeskError: undefined,
+              }
+            : message
         )
       );
     } catch {
-      // Feedback is optional; a failed feedback request should not interrupt support.
+      // Feedback is optional; failure must not block support.
+    }
+  }
+
+  function updateHelpdeskEmail(messageId: number, value: string) {
+    setMessages((current) =>
+      current.map((message) =>
+        message.id === messageId
+          ? { ...message, helpdeskEmail: value, helpdeskError: undefined }
+          : message
+      )
+    );
+  }
+
+  async function escalateToHelpdesk(message: Message) {
+    const requesterEmail = message.helpdeskEmail?.trim() ?? "";
+    const question = message.question?.trim() ?? "";
+
+    if (!requesterEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(requesterEmail)) {
+      setMessages((current) =>
+        current.map((item) =>
+          item.id === message.id
+            ? { ...item, helpdeskError: "Enter a valid email address so the helpdesk can reply." }
+            : item
+        )
+      );
+      return;
+    }
+
+    if (!question) {
+      setMessages((current) =>
+        current.map((item) =>
+          item.id === message.id
+            ? { ...item, helpdeskError: "The original support question is unavailable." }
+            : item
+        )
+      );
+      return;
+    }
+
+    setMessages((current) =>
+      current.map((item) =>
+        item.id === message.id
+          ? { ...item, helpdeskStatus: "sending", helpdeskError: undefined }
+          : item
+      )
+    );
+
+    try {
+      const response = await fetch("/api/support/escalate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requesterEmail,
+          question,
+          chatbotAnswer: message.text,
+          interactionId: message.interactionId ?? undefined,
+        }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Unable to send the question to the helpdesk.");
+      }
+
+      setMessages((current) =>
+        current.map((item) =>
+          item.id === message.id
+            ? {
+                ...item,
+                helpdeskStatus: "sent",
+                ticketId: result.ticketId,
+                emailStatus: result.emailStatus,
+                whatsappStatus: result.whatsappStatus,
+              }
+            : item
+        )
+      );
+    } catch (error) {
+      setMessages((current) =>
+        current.map((item) =>
+          item.id === message.id
+            ? {
+                ...item,
+                helpdeskStatus: "idle",
+                helpdeskError:
+                  error instanceof Error
+                    ? error.message
+                    : "Unable to send the question to the helpdesk.",
+              }
+            : item
+        )
+      );
     }
   }
 
@@ -184,7 +297,7 @@ export default function SupportChatbot() {
     <div className="fixed bottom-4 right-4 z-[70] sm:bottom-6 sm:right-6">
       {open && (
         <section
-          className="mb-3 flex h-[min(36rem,calc(100vh-7rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+          className="mb-3 flex h-[min(38rem,calc(100vh-7rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
           aria-label="Perfect XV Support"
         >
           <header className="flex items-start justify-between border-b border-slate-200 bg-slate-950 px-4 py-3 text-white">
@@ -224,7 +337,7 @@ export default function SupportChatbot() {
                         <button
                           key={option.id}
                           type="button"
-                          onClick={() => void chooseOption(option, message.interactionId)}
+                          onClick={() => void chooseOption(option, message)}
                           disabled={sending}
                           className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-left text-xs font-semibold text-blue-800 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -296,10 +409,56 @@ export default function SupportChatbot() {
                             </button>
                           </div>
                         </div>
-                      ) : (
+                      ) : message.feedback ? (
                         <p className="text-xs font-semibold text-slate-500">
                           Thanks for the feedback.
                         </p>
+                      ) : message.helpdeskStatus === "sent" ? (
+                        <div className="rounded-xl border border-lime-300 bg-lime-50 p-3">
+                          <p className="text-sm font-bold text-slate-900">
+                            Question sent to the Perfect XV Helpdesk.
+                          </p>
+                          <p className="mt-1 text-xs text-slate-700">
+                            Ticket: {message.ticketId}. A reply will be sent to {message.helpdeskEmail}.
+                          </p>
+                          {message.emailStatus === "FAILED" ? (
+                            <p className="mt-2 text-xs font-semibold text-orange-700">
+                              The ticket was recorded, but the automatic helpdesk email reported a delivery error.
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <p className="text-sm font-semibold text-slate-800">
+                            Still need help?
+                          </p>
+                          <p className="text-xs text-slate-600">
+                            Send this question to the Perfect XV Helpdesk. Enter the email address where you want the reply sent.
+                          </p>
+                          <input
+                            type="email"
+                            value={message.helpdeskEmail ?? ""}
+                            onChange={(event) => updateHelpdeskEmail(message.id, event.target.value)}
+                            placeholder="Your reply email address"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            disabled={message.helpdeskStatus === "sending"}
+                          />
+                          {message.helpdeskError ? (
+                            <p className="text-xs font-semibold text-red-700">
+                              {message.helpdeskError}
+                            </p>
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => void escalateToHelpdesk(message)}
+                            disabled={message.helpdeskStatus === "sending"}
+                            className="w-full rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {message.helpdeskStatus === "sending"
+                              ? "Sending to Helpdesk..."
+                              : "Send Question to Helpdesk"}
+                          </button>
+                        </div>
                       )}
                     </div>
                   )}
@@ -357,7 +516,8 @@ export default function SupportChatbot() {
             </div>
             <p className="mt-2 text-[11px] text-slate-500">
               Support questions, option choices and feedback may be retained without your account identity
-              to improve question matching. Do not enter passwords or payment details.{" "}
+              to improve question matching. Helpdesk escalation stores the reply email address you provide. Do
+              not enter passwords or payment details.{" "}
               <a href="/legal/privacy" className="font-semibold underline">Privacy</a>
             </p>
           </form>
