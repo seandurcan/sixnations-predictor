@@ -23,6 +23,7 @@ const sections = [
   ["account-details", "15. Update your details"],
   ["email", "16. Email preferences"],
   ["heritage", "17. Heritage & History"],
+  ["support", "18. Support Assistant"],
 ] as const;
 
 function BulletList({ items }: { items: React.ReactNode[] }) {
@@ -288,6 +289,18 @@ export default function UserManualPage() {
               </div>
             </Card>
           </section>
+
+          <section id="support" className="scroll-mt-28">
+            <Card title="18. Support Assistant">
+              <BulletList items={[
+                <>Use <strong>Ask Perfect XV</strong> for help with site features, scoring, predictions, leaderboard questions, account help and other approved support topics.</>,
+                <>If a question could mean more than one thing, the assistant offers likely choices instead of guessing.</>,
+                <>Where appropriate, an answer includes a direct button such as <strong>Open Leaderboard</strong>, <strong>Open My Predictions</strong> or <strong>Open My Account</strong>.</>,
+                <>You can mark an answer Helpful or Not Helpful. Questions, selected options and feedback may be retained without your account identity to improve question matching.</>,
+                <>Suggested wording improvements require administrator approval before they can influence future interpretation. They cannot change competition rules or scoring.</>,
+                <>Do not enter passwords, payment-card details or unnecessary sensitive information into the Support Assistant.</>,
+              ]} />
+            </Card>
         </div>
       </PageContainer>
     </main>

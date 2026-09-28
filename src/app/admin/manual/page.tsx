@@ -26,6 +26,7 @@ const sections = [
   ["testing", "15. Testing controls"],
   ["operations", "16. Deployment and operations"],
   ["matchday", "17. Match-day checklist"],
+  ["support", "18. Support Assistant learning"],
 ] as const;
 
 function Checklist({ items }: { items: React.ReactNode[] }) {
@@ -231,12 +232,15 @@ export default function AdministrationManualPage() {
               ]} />
               <p className="mt-4 text-[var(--brand-muted)]">Current leaderboard comparator:</p>
               <ol className="list-decimal space-y-1 pl-6 font-semibold">
-                <li>Total Points</li>
-                <li>Lowest Aggregate Score Error</li>
-                <li>Most Exact Scores</li>
-                <li>Most Correct Winning Margins</li>
-                <li>Most Correct Results</li>
+                <li>Points Total</li>
+                <li>Correct Wins</li>
+                <li>Perfect Scores</li>
+                <li>Correct Margins</li>
+                <li>Prediction Delta — lowest cumulative value ranks higher</li>
               </ol>
+              <p className="mt-3 text-[var(--brand-muted)]">
+                Entrants still equal after all five criteria remain jointly ranked.
+              </p>
             </Card>
           </section>
 
@@ -303,6 +307,21 @@ export default function AdministrationManualPage() {
               </div>
             </Card>
           </section>
+
+          <section id="support" className="scroll-mt-28">
+            <Card title="18. Support Assistant Learning">
+              <Checklist items={[
+                <>Open <strong>Support Insights</strong> from the Admin menu to review recent support questions, helpful/not-helpful feedback and proposed wording-to-topic mappings.</>,
+                <>A mapping proposal is created when a user selects one of the assistant&apos;s likely-answer options.</>,
+                <>Approve a mapping only when the wording clearly belongs to the proposed topic. Reject misleading or overly broad mappings.</>,
+                <>Only approved mappings can improve future question interpretation. The assistant never rewrites scoring, locking, leaderboard or other authoritative rules from user interactions.</>,
+                <>Support-learning records do not intentionally store user ID or IP address, and obvious email, card-like number and password/CVV patterns are redacted before storage.</>,
+                <>Review Not Helpful responses and recurring ambiguous questions as candidates for clearer approved help content.</>,
+              ]} />
+              <div className="mt-4">
+                <Link href="/admin/support-insights"><Button variant="secondary">Open Support Insights</Button></Link>
+              </div>
+            </Card>
         </div>
       </PageContainer>
     </main>
