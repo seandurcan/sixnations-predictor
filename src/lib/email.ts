@@ -18,8 +18,16 @@ function escapeHtml(value: string): string {
  * Falls back to the production domain if APP_URL is unavailable.
  */
 function getAppUrl(): string {
+  if (
+    process.env.VERCEL_PROJECT_ID === "prj_bw5EAJac45HfO2utXKKvENAKhBfE" &&
+    process.env.VERCEL_GIT_COMMIT_REF === "staging"
+  ) {
+    return "https://sixnations-predictor-vercel-ready-perfect-xv.vercel.app";
+  }
+
   return (
     process.env.APP_URL?.trim().replace(/\/+$/, "") ||
+    process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/+$/, "") ||
     "https://perfect-xv.org"
   );
 }
