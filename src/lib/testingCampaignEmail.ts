@@ -1,4 +1,4 @@
-const TEST_SITE = "https://sixnations-predictor-vercel-ready-perfect-xv.vercel.app";
+export const TEST_SITE = "https://sixnations-predictor-vercel-ready-perfect-xv.vercel.app";
 
 function escapeHtml(value: string) {
   return value
