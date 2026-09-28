@@ -41,8 +41,12 @@ describe("calculateMatchScore", () => {
     expect(calculateMatchScore(24, 18, 27, 16).errorValue).toBe(5);
   });
 
-  it("keeps signed prediction delta for display only", () => {
-    expect(calculateMatchScore(31, 10, 27, 20).differenceScore).toBe(14);
+  it("makes Prediction Delta negative when the predicted result is correct", () => {
+    expect(calculateMatchScore(31, 10, 27, 20).differenceScore).toBe(-14);
+  });
+
+  it("makes Prediction Delta positive when the predicted result is wrong", () => {
+    expect(calculateMatchScore(10, 31, 27, 20).differenceScore).toBe(14);
   });
 });
 
@@ -110,10 +114,10 @@ describe('agreed scoring contract', () => {
       }
     }
   });
-  it('gives correct results priority over every later tie-break', () => {
-    const a = { id: 1, totalPoints: 12, correctResults: 6, exactScores: 0, correctMargins: 0, cumulativeError: 100 };
-    const b = { id: 2, totalPoints: 12, correctResults: 5, exactScores: 3, correctMargins: 4, cumulativeError: 0 };
-    expect(compareLeaderboardEntries(a, b)).toBeLessThan(0);
+  it('gives lower aggregate score error priority over later tie-breaks', () => {
+    const a = { id: 1, totalPoints: 12, correctResults: 6, exactScores: 3, correctMargins: 4, cumulativeError: 100 };
+    const b = { id: 2, totalPoints: 12, correctResults: 5, exactScores: 0, correctMargins: 0, cumulativeError: 0 };
+    expect(compareLeaderboardEntries(b, a)).toBeLessThan(0);
     expect(compareLeaderboardEntries(a, {...a, differenceScore: -999})).toBe(0);
   });
 });
