@@ -171,28 +171,28 @@ export default function SupportChatbot() {
   }
 
   async function sendFeedback(messageId: number, interactionId: string, helpful: boolean) {
+    // Update the UI immediately. Helpdesk escalation must never depend on
+    // the optional feedback API succeeding.
+    setMessages((current) =>
+      current.map((message) =>
+        message.id === messageId
+          ? {
+              ...message,
+              feedback: helpful,
+              helpdeskError: undefined,
+            }
+          : message
+      )
+    );
+
     try {
-      const response = await fetch("/api/support/feedback", {
+      await fetch("/api/support/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ interactionId, helpful }),
       });
-
-      if (!response.ok) return;
-
-      setMessages((current) =>
-        current.map((message) =>
-          message.id === messageId
-            ? {
-                ...message,
-                feedback: helpful,
-                helpdeskError: undefined,
-              }
-            : message
-        )
-      );
     } catch {
-      // Feedback is optional; failure must not block support.
+      // Feedback is optional; failure must not block support or helpdesk escalation.
     }
   }
 
@@ -405,7 +405,7 @@ export default function SupportChatbot() {
                               }
                               className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                             >
-                              No
+                              No — Helpdesk
                             </button>
                           </div>
                         </div>
