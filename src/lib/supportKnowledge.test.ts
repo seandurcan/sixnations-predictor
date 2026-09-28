@@ -24,6 +24,21 @@ describe("Perfect XV support interpretation", () => {
     expect(result.action?.href).toBe("/leaderboard");
   });
 
+  it("uses an administrator-approved helpdesk clarification for the same wording", () => {
+    const result = answerSupportQuestion(
+      "how do i see my mini league spot",
+      [],
+      [{
+        phrase: "how do i see my mini league spot",
+        topicId: "leaderboard-position",
+        answer: "Use the Leaderboard page and choose the competition you entered.",
+      }]
+    );
+
+    expect(result.answer).toContain("Use the Leaderboard page");
+    expect(result.action?.href).toBe("/leaderboard");
+  });
+
   it("keeps authoritative leaderboard rules unchanged", () => {
     const result = answerSupportQuestion("How is the leaderboard ranking decided?");
 

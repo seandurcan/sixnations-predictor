@@ -574,3 +574,123 @@ export async function sendPerfectXvFriendInvitationEmail({
 
   return data;
 }
+
+
+export async function sendHelpdeskEscalationEmail({
+  ticketId,
+  requesterEmail,
+  question,
+  chatbotAnswer,
+}: {
+  ticketId: string;
+  requesterEmail: string;
+  question: string;
+  chatbotAnswer: string;
+}) {
+  const adminUrl = `${getAppUrl()}/admin/support-insights`;
+  const safeTicket = escapeHtml(ticketId);
+  const safeRequester = escapeHtml(requesterEmail);
+  const safeQuestion = escapeHtml(question);
+  const safeAnswer = escapeHtml(chatbotAnswer);
+  const safeAdminUrl = escapeHtml(adminUrl);
+
+  const html = `
+<!doctype html>
+<html lang="en">
+  <body style="font-family:Arial,Helvetica,sans-serif;color:#222;">
+    <h1 style="color:#012169;">Perfect XV Helpdesk Question</h1>
+    <p><strong>Ticket:</strong> ${safeTicket}</p>
+    <p><strong>Reply email:</strong> ${safeRequester}</p>
+    <p><strong>User question:</strong></p>
+    <p style="padding:12px;border-left:4px solid #012169;background:#f8fafc;">${safeQuestion}</p>
+    <p><strong>Chatbot answer the user was not satisfied with:</strong></p>
+    <p style="padding:12px;background:#f8fafc;">${safeAnswer}</p>
+    <p><a href="${safeAdminUrl}">Open Support Insights / Helpdesk</a></p>
+  </body>
+</html>`.trim();
+
+  const text = [
+    "Perfect XV Helpdesk Question",
+    `Ticket: ${ticketId}`,
+    `Reply email: ${requesterEmail}`,
+    "",
+    "User question:",
+    question,
+    "",
+    "Chatbot answer:",
+    chatbotAnswer,
+    "",
+    `Open Helpdesk: ${adminUrl}`,
+  ].join("\n");
+
+  const { data, error } = await resend.emails.send({
+    from: "Perfect XV Support <noreply@perfect-xv.org>",
+    to: "administrator@perfect-xv.org",
+    replyTo: requesterEmail,
+    subject: `Perfect XV Helpdesk: ${ticketId}`,
+    html,
+    text,
+  });
+
+  if (error) {
+    throw new Error(error.message || "The helpdesk email could not be sent.");
+  }
+  return data;
+}
+
+export async function sendHelpdeskReplyEmail({
+  requesterEmail,
+  ticketId,
+  question,
+  reply,
+}: {
+  requesterEmail: string;
+  ticketId: string;
+  question: string;
+  reply: string;
+}) {
+  const safeTicket = escapeHtml(ticketId);
+  const safeQuestion = escapeHtml(question);
+  const safeReply = escapeHtml(reply).replace(/\n/g, "<br>");
+
+  const html = `
+<!doctype html>
+<html lang="en">
+  <body style="font-family:Arial,Helvetica,sans-serif;color:#222;">
+    <h1 style="color:#012169;">Perfect XV Helpdesk Reply</h1>
+    <p><strong>Ticket:</strong> ${safeTicket}</p>
+    <p><strong>Your question:</strong></p>
+    <p style="padding:12px;background:#f8fafc;">${safeQuestion}</p>
+    <p><strong>Helpdesk reply:</strong></p>
+    <p style="padding:12px;border-left:4px solid #012169;background:#f8fafc;">${safeReply}</p>
+    <p>Perfect XV</p>
+  </body>
+</html>`.trim();
+
+  const text = [
+    "Perfect XV Helpdesk Reply",
+    `Ticket: ${ticketId}`,
+    "",
+    "Your question:",
+    question,
+    "",
+    "Helpdesk reply:",
+    reply,
+    "",
+    "Perfect XV",
+  ].join("\n");
+
+  const { data, error } = await resend.emails.send({
+    from: "Perfect XV Support <noreply@perfect-xv.org>",
+    to: requesterEmail,
+    replyTo: "administrator@perfect-xv.org",
+    subject: `Re: Perfect XV Helpdesk ${ticketId}`,
+    html,
+    text,
+  });
+
+  if (error) {
+    throw new Error(error.message || "The helpdesk reply could not be sent.");
+  }
+  return data;
+}

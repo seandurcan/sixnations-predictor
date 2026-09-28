@@ -19,6 +19,12 @@ export type SupportApprovedMapping = {
   topicId: string;
 };
 
+export type SupportApprovedClarification = {
+  phrase: string;
+  topicId: string;
+  answer: string;
+};
+
 export type SupportAnswer = {
   answer: string;
   sources: SupportSource[];
@@ -303,6 +309,13 @@ const topicActions: Record<string, SupportAction> = {
   heritage: { label: "Open Heritage & History", href: "/heritage" },
 };
 
+export function getSupportTopicOptions() {
+  return topics.map((topic) => ({
+    id: topic.id,
+    label: topic.title,
+  }));
+}
+
 function normalise(value: string) {
   return value
     .toLowerCase()
@@ -409,7 +422,8 @@ export function answerSupportTopic(topicId: string): SupportAnswer {
 
 export function answerSupportQuestion(
   message: string,
-  approvedMappings: SupportApprovedMapping[] = []
+  approvedMappings: SupportApprovedMapping[] = [],
+  approvedClarifications: SupportApprovedClarification[] = []
 ): SupportAnswer {
   const query = normalise(message);
 
@@ -422,6 +436,34 @@ export function answerSupportQuestion(
       needsChoice: false,
       action: null,
     };
+  }
+
+  const clarification = approvedClarifications
+    .map((item) => {
+      const phrase = normalise(item.phrase);
+      const similarity = tokenSimilarity(tokens(query), tokens(phrase));
+      const exact = query === phrase;
+      const contained = Boolean(phrase) && (query.includes(phrase) || phrase.includes(query));
+      return {
+        item,
+        score: exact ? 100 : contained ? 80 : similarity >= 0.72 ? Math.round(similarity * 70) : 0,
+      };
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)[0];
+
+  if (clarification) {
+    const topic = topics.find((item) => item.id === clarification.item.topicId);
+    if (topic) {
+      return {
+        answer: clarification.item.answer,
+        sources: topic.sources,
+        matchedTopic: topic.title,
+        options: [],
+        needsChoice: false,
+        action: topicActions[topic.id] ?? null,
+      };
+    }
   }
 
   const ranked = rankTopics(query, approvedMappings);

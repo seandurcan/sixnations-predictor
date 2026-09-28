@@ -4,8 +4,12 @@ import {
   answerSupportQuestion,
   answerSupportTopic,
 } from "@/lib/supportKnowledge";
-import type { SupportApprovedMapping } from "@/lib/supportKnowledge";
+import type {
+  SupportApprovedClarification,
+  SupportApprovedMapping,
+} from "@/lib/supportKnowledge";
 import {
+  getApprovedSupportClarifications,
   getApprovedSupportMappings,
   logSupportInteraction,
   recordSupportSelection,
@@ -51,13 +55,21 @@ export async function POST(request: Request) {
     }
 
     let approvedMappings: SupportApprovedMapping[] = [];
+    let approvedClarifications: SupportApprovedClarification[] = [];
     try {
-      approvedMappings = await getApprovedSupportMappings();
+      [approvedMappings, approvedClarifications] = await Promise.all([
+        getApprovedSupportMappings(),
+        getApprovedSupportClarifications(),
+      ]);
     } catch (error) {
-      console.error("Approved support mapping load failed", error);
+      console.error("Approved support learning load failed", error);
     }
 
-    const answer = answerSupportQuestion(message, approvedMappings);
+    const answer = answerSupportQuestion(
+      message,
+      approvedMappings,
+      approvedClarifications
+    );
     let newInteractionId: string | null = null;
 
     try {
