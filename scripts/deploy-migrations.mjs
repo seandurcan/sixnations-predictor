@@ -1,6 +1,4 @@
 import { spawnSync } from "node:child_process";
-import "./repair-staging-scoring.mjs";
-
 if (
   (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production") ||
   process.env.VERCEL_GIT_COMMIT_REF === "staging"
