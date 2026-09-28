@@ -130,14 +130,19 @@ const adminLinks: NavItem[] = [
     icon: ICONS.audit,
   },
   {
-    label: "Operational Docs",
-    href: "/admin/docs",
+    label: "User Manual",
+    href: "/user-manual",
     icon: ICONS.docs,
   },
   {
     label: "Administration Manual",
     href: "/admin/manual",
     icon: "\u{1F4D8}",
+  },
+  {
+    label: "Operational Docs",
+    href: "/admin/docs",
+    icon: ICONS.docs,
   },
 ];
 
