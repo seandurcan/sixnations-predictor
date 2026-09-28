@@ -13,6 +13,11 @@ type SupportOption = {
   prompt: string;
 };
 
+type SupportAction = {
+  label: string;
+  href: string;
+};
+
 type Message = {
   id: number;
   role: "assistant" | "user";
@@ -20,6 +25,7 @@ type Message = {
   sources?: Source[];
   options?: SupportOption[];
   needsChoice?: boolean;
+  action?: SupportAction | null;
 };
 
 const suggestedQuestions = [
@@ -91,6 +97,13 @@ export default function SupportChatbot() {
         sources: response.ok && Array.isArray(result.sources) ? result.sources : undefined,
         options: response.ok && Array.isArray(result.options) ? result.options : undefined,
         needsChoice: response.ok && result.needsChoice === true,
+        action:
+          response.ok &&
+          result.action &&
+          typeof result.action.label === "string" &&
+          typeof result.action.href === "string"
+            ? result.action
+            : null,
       };
 
       setMessages((current) => [...current, assistantMessage]);
@@ -202,6 +215,18 @@ export default function SupportChatbot() {
                         </a>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {message.action && message.role === "assistant" && (
+                  <div className="mt-3 border-t border-slate-200 pt-3">
+                    <a
+                      href={message.action.href}
+                      onClick={() => setOpen(false)}
+                      className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700"
+                    >
+                      {message.action.label}
+                    </a>
                   </div>
                 )}
               </div>

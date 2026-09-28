@@ -11,6 +11,18 @@ function request(body: unknown) {
 }
 
 describe("POST /api/support/chat", () => {
+  it("recognises league position and links to the leaderboard", async () => {
+    const response = await POST(request({ message: "how do I find my position in the league" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.matchedTopic).toBe("Finding your leaderboard position");
+    expect(body.action).toEqual({
+      label: "Open Leaderboard",
+      href: "/leaderboard",
+    });
+  });
+
   it("answers a clear question from approved support knowledge", async () => {
     const response = await POST(request({ message: "When do predictions lock?" }));
     const body = await response.json();
@@ -18,6 +30,7 @@ describe("POST /api/support/chat", () => {
     expect(response.status).toBe(200);
     expect(body.answer).toContain("one minute before");
     expect(body.sources.length).toBeGreaterThan(0);
+    expect(body.action.href).toBe("/predictions");
   });
 
   it("returns interpretation options for an ambiguous question", async () => {
@@ -27,9 +40,10 @@ describe("POST /api/support/chat", () => {
     expect(response.status).toBe(200);
     expect(body.needsChoice).toBe(true);
     expect(body.options.length).toBeGreaterThan(1);
+    expect(body.action).toBeNull();
   });
 
-  it("returns the selected option answer", async () => {
+  it("returns the selected option answer with a quick destination", async () => {
     const response = await POST(request({ topicId: "scoring" }));
     const body = await response.json();
 

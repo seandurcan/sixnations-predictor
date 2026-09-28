@@ -9,12 +9,18 @@ export type SupportOption = {
   prompt: string;
 };
 
+export type SupportAction = {
+  label: string;
+  href: string;
+};
+
 export type SupportAnswer = {
   answer: string;
   sources: SupportSource[];
   matchedTopic: string | null;
   options: SupportOption[];
   needsChoice: boolean;
+  action: SupportAction | null;
 };
 
 type SupportTopic = {
@@ -30,11 +36,36 @@ type SupportTopic = {
 
 const topics: SupportTopic[] = [
   {
+    id: "leaderboard-position",
+    title: "Finding your leaderboard position",
+    optionLabel: "Find my leaderboard position",
+    optionPrompt: "Show me how to find my position in the league",
+    phrases: [
+      "position in the league",
+      "league position",
+      "where am i in the league",
+      "where am i ranked",
+      "find my position",
+      "my position in the table",
+      "table position",
+      "where do i stand",
+      "current position",
+      "current rank"
+    ],
+    keywords: ["position", "league", "standings", "standing", "table", "rank", "ranked", "place"],
+    answer:
+      "Open the Leaderboard to see your current position in the selected competition. Your position changes as completed-match results and scoring update. If entrants are tied, Perfect XV applies the agreed leaderboard hierarchy to determine the order.",
+    sources: [
+      { label: "User Manual - Leaderboard and Ranking", href: "/user-manual#leaderboard" },
+      { label: "Leaderboard", href: "/leaderboard" },
+    ],
+  },
+  {
     id: "leaderboard",
     title: "Leaderboard and ranking",
     optionLabel: "Leaderboard ranking",
     optionPrompt: "Explain the leaderboard ranking order",
-    phrases: ["leaderboard ranking", "ranking order", "tie break", "tiebreak", "why am i ranked"],
+    phrases: ["leaderboard ranking", "ranking order", "tie break", "tiebreak", "why am i ranked below", "how are rankings decided"],
     keywords: ["leaderboard", "rank", "ranking", "tie", "wins", "perfect", "margins", "delta", "points"],
     answer:
       "Perfect XV ranks entrants in this exact order: 1) Points Total, 2) Correct Wins (correctly predicted draws count as correct outcomes), 3) Perfect Scores, 4) Correct Margins, and 5) Prediction Delta, where the lowest cumulative Prediction Delta ranks higher. If entrants are still equal after all five criteria, they remain jointly ranked.",
@@ -248,6 +279,25 @@ const topics: SupportTopic[] = [
   },
 ];
 
+const topicActions: Record<string, SupportAction> = {
+  "leaderboard-position": { label: "Open Leaderboard", href: "/leaderboard" },
+  leaderboard: { label: "Open Leaderboard", href: "/leaderboard" },
+  "prediction-delta": { label: "Open My Predictions", href: "/predictions" },
+  locking: { label: "Open My Predictions", href: "/predictions" },
+  predictions: { label: "Open My Predictions", href: "/predictions" },
+  "quick-pick": { label: "Open My Predictions", href: "/predictions" },
+  "verification-password": { label: "Open Login", href: "/login" },
+  "completed-results": { label: "Open My Predictions", href: "/predictions" },
+  competitions: { label: "Open Dashboard", href: "/dashboard" },
+  "entry-payment": { label: "Open My Predictions", href: "/predictions" },
+  "prediction-record": { label: "Open Dashboard", href: "/dashboard" },
+  invite: { label: "Invite Friends", href: "/invite-friends" },
+  "account-details": { label: "Open My Account", href: "/account" },
+  "email-preferences": { label: "Open Email Preferences", href: "/email-preferences" },
+  fixtures: { label: "Open Fixtures", href: "/fixtures" },
+  heritage: { label: "Open Heritage & History", href: "/heritage" },
+};
+
 function normalise(value: string) {
   return value
     .toLowerCase()
@@ -307,6 +357,7 @@ export function answerSupportTopic(topicId: string): SupportAnswer {
       matchedTopic: null,
       options: [],
       needsChoice: false,
+      action: null,
     };
   }
 
@@ -316,6 +367,7 @@ export function answerSupportTopic(topicId: string): SupportAnswer {
     matchedTopic: topic.title,
     options: [],
     needsChoice: false,
+    action: topicActions[topic.id] ?? null,
   };
 }
 
@@ -329,6 +381,7 @@ export function answerSupportQuestion(message: string): SupportAnswer {
       matchedTopic: null,
       options: [],
       needsChoice: false,
+      action: null,
     };
   }
 
@@ -347,11 +400,12 @@ export function answerSupportQuestion(message: string): SupportAnswer {
       ],
       matchedTopic: null,
       options: [
+        asOption(topics.find((topic) => topic.id === "leaderboard-position")!),
         asOption(topics.find((topic) => topic.id === "predictions")!),
-        asOption(topics.find((topic) => topic.id === "scoring")!),
         asOption(topics.find((topic) => topic.id === "verification-password")!),
       ],
       needsChoice: true,
+      action: null,
     };
   }
 
@@ -370,6 +424,7 @@ export function answerSupportQuestion(message: string): SupportAnswer {
       matchedTopic: best.topic.title,
       options: related,
       needsChoice: false,
+      action: topicActions[best.topic.id] ?? null,
     };
   }
 
@@ -385,6 +440,7 @@ export function answerSupportQuestion(message: string): SupportAnswer {
       matchedTopic: best.topic.title,
       options: [],
       needsChoice: false,
+      action: topicActions[best.topic.id] ?? null,
     };
   }
 
@@ -395,5 +451,6 @@ export function answerSupportQuestion(message: string): SupportAnswer {
     matchedTopic: null,
     options: likelyOptions,
     needsChoice: true,
+    action: null,
   };
 }
