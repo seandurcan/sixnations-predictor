@@ -206,36 +206,19 @@ export default function UserManualPage() {
           <section id="leaderboard" className="scroll-mt-28">
             <Card title="11. Leaderboard and Ranking">
               <p className="mb-3 text-[var(--brand-muted)]">
-                Entrants are ranked by <strong>Total Points</strong>. If two or more entrants have the same
-                Points Total, Perfect XV works through the following tie-break criteria in order until the tie
-                is separated:
+                Perfect XV uses the following ranking criteria in this exact order:
               </p>
               <ol className="list-decimal space-y-3 pl-6">
-                <li>
-                  <strong>Total Points</strong> — the entrant with the most points is ranked highest.
-                </li>
-                <li>
-                  <strong>Lowest Cumulative Prediction Delta</strong> — if Points Total is tied, the entrant
-                  with the lower signed total of Prediction Delta across completed matches ranks higher.
-                </li>
-                <li>
-                  <strong>Most Exact Scores</strong> — if still tied, the entrant with more exact score
-                  predictions ranks higher.
-                </li>
-                <li>
-                  <strong>Most Correct Winning Margins</strong> — if still tied, the entrant with more
-                  correctly predicted winning margins ranks higher.
-                </li>
-                <li>
-                  <strong>Most Correct Results</strong> — if still tied, the entrant with more correctly
-                  predicted match outcomes ranks higher.
-                </li>
+                <li><strong>Points Total</strong> — highest total ranks first.</li>
+                <li><strong>Correct Wins</strong> — most correctly predicted match outcomes ranks higher. Correctly predicted draws count as correct outcomes.</li>
+                <li><strong>Perfect Scores</strong> — most exact score predictions ranks higher.</li>
+                <li><strong>Correct Margins</strong> — most correctly predicted winning margins ranks higher.</li>
+                <li><strong>Prediction Delta</strong> — lowest cumulative Prediction Delta ranks higher.</li>
               </ol>
               <p className="mt-4 text-[var(--brand-muted)]">
                 Prediction Delta is negative when the predicted result is correct and positive when it is
-                wrong. The cumulative figure keeps those signs, so a lower cumulative Prediction Delta ranks
-                ahead when the Points Total is tied. Entrants still equal after all ranking criteria remain
-                jointly ranked.
+                wrong. The cumulative total keeps those signs. If entrants are still equal after all five
+                criteria, they remain jointly ranked.
               </p>
             </Card>
           </section>

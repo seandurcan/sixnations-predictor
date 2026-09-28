@@ -58,12 +58,18 @@ describe("GET /api/leaderboard", () => {
     } as never);
   });
 
-  it("uses lowest cumulative Prediction Delta immediately after total points", async () => {
+  it("uses Correct Wins immediately after Points Total", async () => {
     vi.mocked(prisma.user.findMany).mockResolvedValue([
-      user(1, { predictions: [prediction({ errorValue: 50, differenceScore: -5 })] }),
+      user(1, {
+        predictions: [
+          prediction({ pointsAwarded: 1, correctResult: true, differenceScore: 50 }),
+          prediction({ pointsAwarded: 0, correctResult: true, differenceScore: 50 }),
+        ],
+      }),
       user(2, {
         predictions: [
-          prediction({ errorValue: 1, differenceScore: 10, exactScore: true, pointsAwarded: 1 }),
+          prediction({ pointsAwarded: 1, correctResult: true, differenceScore: -999 }),
+          prediction({ pointsAwarded: 0, correctResult: false, differenceScore: -999 }),
         ],
       }),
     ] as any);
@@ -72,16 +78,16 @@ describe("GET /api/leaderboard", () => {
     expect(body.data[0].id).toBe(1);
   });
 
-  it("uses exact scores before correct margins", async () => {
+  it("uses Perfect Scores after Correct Wins", async () => {
     vi.mocked(prisma.user.findMany).mockResolvedValue([
       user(1, {
         predictions: [
-          prediction({ errorValue: 10, exactScore: false, correctMargin: true }),
+          prediction({ pointsAwarded: 1, correctResult: true, exactScore: false, correctMargin: true }),
         ],
       }),
       user(2, {
         predictions: [
-          prediction({ errorValue: 10, exactScore: true, correctMargin: false }),
+          prediction({ pointsAwarded: 1, correctResult: true, exactScore: true, correctMargin: false }),
         ],
       }),
     ] as any);
@@ -90,18 +96,16 @@ describe("GET /api/leaderboard", () => {
     expect(body.data[0].id).toBe(2);
   });
 
-  it("uses correct margins before correct results", async () => {
+  it("uses Correct Margins after Perfect Scores", async () => {
     vi.mocked(prisma.user.findMany).mockResolvedValue([
       user(1, {
         predictions: [
-          prediction({ errorValue: 10, correctMargin: false, correctResult: true }),
-          prediction({ errorValue: 0, pointsAwarded: 0, correctResult: true }),
+          prediction({ pointsAwarded: 1, correctResult: true, exactScore: false, correctMargin: false, differenceScore: -999 }),
         ],
       }),
       user(2, {
         predictions: [
-          prediction({ errorValue: 10, correctMargin: true, correctResult: true }),
-          prediction({ errorValue: 0, pointsAwarded: 0, correctResult: false }),
+          prediction({ pointsAwarded: 1, correctResult: true, exactScore: false, correctMargin: true, differenceScore: 999 }),
         ],
       }),
     ] as any);
@@ -110,41 +114,22 @@ describe("GET /api/leaderboard", () => {
     expect(body.data[0].id).toBe(2);
   });
 
-  it("uses correct results before the final total-points guess tie-break", async () => {
+  it("uses lowest Prediction Delta as the final tie-break", async () => {
     vi.mocked(prisma.user.findMany).mockResolvedValue([
       user(1, {
-        competitionEntries: [{ tournamentPointsGuess: 500 }],
         predictions: [
-          prediction({ errorValue: 10, correctResult: true }),
-          prediction({ errorValue: 0, pointsAwarded: 0, correctResult: true }),
+          prediction({ pointsAwarded: 1, correctResult: true, exactScore: false, correctMargin: false, differenceScore: 8 }),
         ],
       }),
       user(2, {
-        competitionEntries: [{ tournamentPointsGuess: 100 }],
         predictions: [
-          prediction({ errorValue: 10, correctResult: true }),
-          prediction({ errorValue: 0, pointsAwarded: 0, correctResult: false }),
+          prediction({ pointsAwarded: 1, correctResult: true, exactScore: false, correctMargin: false, differenceScore: -4 }),
         ],
       }),
     ] as any);
 
     const body = await (await GET(request())).json();
-    expect(body.data[0].id).toBe(1);
-  });
-
-  it("uses closest total-points guess only when the competition is complete", async () => {
-    vi.mocked(prisma.match.findMany).mockResolvedValue([
-      { actualHomeScore: 20, actualAwayScore: 10 },
-    ] as any);
-    vi.mocked(prisma.match.count).mockResolvedValue(1);
-
-    vi.mocked(prisma.user.findMany).mockResolvedValue([
-      user(1, { competitionEntries: [{ tournamentPointsGuess: 31 }] }),
-      user(2, { competitionEntries: [{ tournamentPointsGuess: 40 }] }),
-    ] as any);
-
-    const body = await (await GET(request())).json();
-    expect(body.data[0].id).toBe(1);
+    expect(body.data[0].id).toBe(2);
   });
 
   it("keeps fully tied entrants joint", async () => {

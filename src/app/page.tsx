@@ -367,7 +367,7 @@ export default function HomePage() {
                   </li>
 
                   <li>
-                    Cumulative Prediction Delta is the first leaderboard tie-break after Points Total. Lower is better.
+                    Leaderboard ties are decided by Correct Wins, then Perfect Scores, Correct Margins, and finally the lowest Prediction Delta.
                   </li>
                 </ul>
               </div>

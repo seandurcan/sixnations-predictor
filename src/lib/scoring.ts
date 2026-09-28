@@ -80,16 +80,16 @@ export function compareLeaderboardEntries(
 ) {
   return (
     // Locked Perfect XV leaderboard hierarchy:
-    // 1 Total points
-    // 2 Lowest cumulative Prediction Delta
-    // 3 Most exact scores
-    // 4 Most correct winning margins
-    // 5 Most correct results
+    // 1 Points Total
+    // 2 Correct Wins (including correctly predicted draws)
+    // 3 Perfect Scores
+    // 4 Correct Margins
+    // 5 Prediction Delta (lowest cumulative value wins)
     b.totalPoints - a.totalPoints ||
-    normalisedError(a.differenceScore) - normalisedError(b.differenceScore) ||
+    b.correctResults - a.correctResults ||
     b.exactScores - a.exactScores ||
     b.correctMargins - a.correctMargins ||
-    b.correctResults - a.correctResults
+    normalisedError(a.differenceScore) - normalisedError(b.differenceScore)
   );
 }
 

@@ -59,29 +59,25 @@ describe("leaderboard ranking", () => {
     exactScores: 2,
     correctMargins: 3,
     correctResults: 5,
-    tournamentPointsGuessError: 12,
   };
 
   it.each([
-    ["total points", { totalPoints: 21 }],
-    ["lowest cumulative Prediction Delta", { differenceScore: -5 }],
-    ["exact scores", { exactScores: 3 }],
-    ["correct winning margins", { correctMargins: 4 }],
-    ["correct results", { correctResults: 6 }],
+    ["Points Total", { totalPoints: 21 }],
+    ["Correct Wins", { correctResults: 6 }],
+    ["Perfect Scores", { exactScores: 3 }],
+    ["Correct Margins", { correctMargins: 4 }],
+    ["Prediction Delta", { differenceScore: -5 }],
   ])("uses %s in the locked order", (_label, improvement) => {
     const better = { ...base, id: 2, ...improvement };
 
     expect([base, better].sort(compareLeaderboardEntries)[0].id).toBe(2);
   });
 
-  it("uses cumulative Prediction Delta ahead of later tie-breaks", () => {
+  it("uses Prediction Delta only after Correct Wins, Perfect Scores and Correct Margins are tied", () => {
     const better = {
       ...base,
       id: 2,
       differenceScore: -20,
-      exactScores: 0,
-      correctMargins: 0,
-      correctResults: 0,
     };
 
     expect([base, better].sort(compareLeaderboardEntries)[0].id).toBe(2);
@@ -114,9 +110,14 @@ describe('agreed scoring contract', () => {
       }
     }
   });
-  it('gives lower cumulative Prediction Delta priority over later tie-breaks', () => {
-    const a = { id: 1, totalPoints: 12, correctResults: 6, exactScores: 3, correctMargins: 4, cumulativeError: 0, differenceScore: 10 };
-    const b = { id: 2, totalPoints: 12, correctResults: 5, exactScores: 0, correctMargins: 0, cumulativeError: 100, differenceScore: -10 };
+  it('keeps Correct Wins ahead of Prediction Delta', () => {
+    const a = { id: 1, totalPoints: 12, correctResults: 6, exactScores: 3, correctMargins: 4, cumulativeError: 100, differenceScore: 10 };
+    const b = { id: 2, totalPoints: 12, correctResults: 5, exactScores: 3, correctMargins: 4, cumulativeError: 0, differenceScore: -999 };
+    expect(compareLeaderboardEntries(a, b)).toBeLessThan(0);
+  });
+  it('uses lower Prediction Delta only when the first four ranking measures are tied', () => {
+    const a = { id: 1, totalPoints: 12, correctResults: 6, exactScores: 3, correctMargins: 4, cumulativeError: 100, differenceScore: 10 };
+    const b = { id: 2, totalPoints: 12, correctResults: 6, exactScores: 3, correctMargins: 4, cumulativeError: 0, differenceScore: -10 };
     expect(compareLeaderboardEntries(b, a)).toBeLessThan(0);
   });
 });

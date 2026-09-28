@@ -45,7 +45,7 @@ export default function RulesPage() {
           <Card title="Leaderboard Hierarchy">
             <div className="space-y-5">
               <p>
-                If two or more entrants have the same Points Total, Perfect XV works through the following criteria in order until the tie is separated.
+                Perfect XV uses the following ranking criteria in this exact order.
               </p>
 
               <ol className="list-decimal space-y-4 pl-5">
@@ -54,20 +54,20 @@ export default function RulesPage() {
                   <p className="mt-1">The entrant with the most points is ranked highest.</p>
                 </li>
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Lowest Cumulative Prediction Delta</strong>
-                  <p className="mt-1">If Points Total is tied, the entrant with the lower signed cumulative Prediction Delta across completed matches ranks higher.</p>
+                  <strong className="text-[var(--brand-navy)]">Correct Wins</strong>
+                  <p className="mt-1">If Points Total is tied, the entrant with more correctly predicted match outcomes ranks higher. Correctly predicted draws count as correct outcomes.</p>
                 </li>
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Exact Scores</strong>
+                  <strong className="text-[var(--brand-navy)]">Perfect Scores</strong>
                   <p className="mt-1">If still tied, the entrant with more exact score predictions ranks higher.</p>
                 </li>
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Correct Winning Margins</strong>
+                  <strong className="text-[var(--brand-navy)]">Correct Margins</strong>
                   <p className="mt-1">If still tied, the entrant with more correctly predicted winning margins ranks higher.</p>
                 </li>
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Correct Results</strong>
-                  <p className="mt-1">If still tied, the entrant with more correctly predicted match outcomes ranks higher.</p>
+                  <strong className="text-[var(--brand-navy)]">Prediction Delta</strong>
+                  <p className="mt-1">If still tied, the entrant with the lowest cumulative Prediction Delta ranks higher.</p>
                 </li>
               </ol>
 
