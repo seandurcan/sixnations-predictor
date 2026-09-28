@@ -322,6 +322,7 @@ export default function AdministrationManualPage() {
                 <Link href="/admin/support-insights"><Button variant="secondary">Open Support Insights</Button></Link>
               </div>
             </Card>
+          </section>
         </div>
       </PageContainer>
     </main>

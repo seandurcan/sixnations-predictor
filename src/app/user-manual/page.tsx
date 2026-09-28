@@ -301,6 +301,7 @@ export default function UserManualPage() {
                 <>Do not enter passwords, payment-card details or unnecessary sensitive information into the Support Assistant.</>,
               ]} />
             </Card>
+          </section>
         </div>
       </PageContainer>
     </main>
