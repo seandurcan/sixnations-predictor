@@ -55,6 +55,7 @@ describe("leaderboard ranking", () => {
     id: 1,
     totalPoints: 20,
     cumulativeError: 30,
+    differenceScore: 4,
     exactScores: 2,
     correctMargins: 3,
     correctResults: 5,
@@ -63,7 +64,7 @@ describe("leaderboard ranking", () => {
 
   it.each([
     ["total points", { totalPoints: 21 }],
-    ["lowest aggregate score error", { cumulativeError: 29 }],
+    ["lowest cumulative Prediction Delta", { differenceScore: -5 }],
     ["exact scores", { exactScores: 3 }],
     ["correct winning margins", { correctMargins: 4 }],
     ["correct results", { correctResults: 6 }],
@@ -73,18 +74,17 @@ describe("leaderboard ranking", () => {
     expect([base, better].sort(compareLeaderboardEntries)[0].id).toBe(2);
   });
 
-  it("does not use signed prediction delta as a ranking criterion", () => {
-    const second = {
+  it("uses cumulative Prediction Delta ahead of later tie-breaks", () => {
+    const better = {
       ...base,
       id: 2,
-      differenceScore: -999,
-    };
-    const first = {
-      ...base,
-      differenceScore: 999,
+      differenceScore: -20,
+      exactScores: 0,
+      correctMargins: 0,
+      correctResults: 0,
     };
 
-    expect(compareLeaderboardEntries(first, second)).toBe(0);
+    expect([base, better].sort(compareLeaderboardEntries)[0].id).toBe(2);
   });
 
   it("keeps a complete tie joint with competition ranking", () => {
@@ -114,10 +114,9 @@ describe('agreed scoring contract', () => {
       }
     }
   });
-  it('gives lower aggregate score error priority over later tie-breaks', () => {
-    const a = { id: 1, totalPoints: 12, correctResults: 6, exactScores: 3, correctMargins: 4, cumulativeError: 100 };
-    const b = { id: 2, totalPoints: 12, correctResults: 5, exactScores: 0, correctMargins: 0, cumulativeError: 0 };
+  it('gives lower cumulative Prediction Delta priority over later tie-breaks', () => {
+    const a = { id: 1, totalPoints: 12, correctResults: 6, exactScores: 3, correctMargins: 4, cumulativeError: 0, differenceScore: 10 };
+    const b = { id: 2, totalPoints: 12, correctResults: 5, exactScores: 0, correctMargins: 0, cumulativeError: 100, differenceScore: -10 };
     expect(compareLeaderboardEntries(b, a)).toBeLessThan(0);
-    expect(compareLeaderboardEntries(a, {...a, differenceScore: -999})).toBe(0);
   });
 });
