@@ -345,13 +345,13 @@ function buildFallbackArticle(factPack: {
   if (hardest) {
     const missed = Math.max(0, hardest.predictionCount - hardest.correctResultCount);
     paragraphs.push(
-      hardest.awayTeam +
-        "'s " +
-        hardest.awayScore +
-        "-" +
+      hardest.homeTeam +
+        " " +
         hardest.homeScore +
-        " result against " +
-        hardest.homeTeam +
+        "-" +
+        hardest.awayScore +
+        " " +
+        hardest.awayTeam +
         " proved the round's biggest obstacle for the field. Only " +
         hardest.correctResultCount +
         " of " +
@@ -690,9 +690,6 @@ export async function generateCompletedRoundStory(
       currentLeaderName: currentLeader?.name ?? null,
       topGap,
     },
-    competition: title,
-    round,
-    entrantCount: entries.length,
     matches: roundMatches,
     leaderboard: leaderboard.slice(0, 10),
     roundPerformers: roundPerformers.slice(0, 10),
