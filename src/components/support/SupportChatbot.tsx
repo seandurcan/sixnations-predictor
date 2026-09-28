@@ -380,8 +380,7 @@ export default function SupportChatbot() {
                 )}
 
                 {message.role === "assistant" &&
-                  message.interactionId &&
-                  !message.needsChoice && (
+                  message.interactionId && (
                     <div className="mt-3 border-t border-slate-200 pt-3">
                       {message.feedback === null || message.feedback === undefined ? (
                         <div className="flex items-center justify-between gap-3">
