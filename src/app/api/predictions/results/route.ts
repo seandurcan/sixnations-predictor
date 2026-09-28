@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { assignCompetitionRanks } from "@/lib/scoring";
+import { assignCompetitionRanks, calculateMatchScore } from "@/lib/scoring";
 import { VIEWABLE_TOURNAMENT_STATUSES } from "@/lib/currentTournament";
 
 export const dynamic = "force-dynamic";
@@ -161,6 +161,25 @@ export async function GET(request: Request) {
       0
     );
 
+    const displayDeltaByMatch = new Map<number, number>();
+    for (const match of completedMatches) {
+      const prediction = predictionByMatch.get(match.id);
+      if (!prediction || match.actualHomeScore === null || match.actualAwayScore === null) continue;
+      displayDeltaByMatch.set(
+        match.id,
+        calculateMatchScore(
+          prediction.predictedHomeScore,
+          prediction.predictedAwayScore,
+          match.actualHomeScore,
+          match.actualAwayScore
+        ).differenceScore
+      );
+    }
+    const cumulativePredictionDelta = [...displayDeltaByMatch.values()].reduce(
+      (sum, value) => sum + value,
+      0
+    );
+
     return NextResponse.json({
       success: true,
       tournament,
@@ -169,6 +188,7 @@ export async function GET(request: Request) {
       exactScores: currentUserResults?.exactScores ?? 0,
       correctMargins: currentUserResults?.correctMargins ?? 0,
       cumulativeError: currentUserResults?.cumulativeError ?? 0,
+      cumulativePredictionDelta,
       leaderboardPosition: currentUserRank,
       previousLeaderboardPosition: previousRank,
       rankMovement:
@@ -196,7 +216,7 @@ export async function GET(request: Request) {
                 correctMargin: prediction.correctMargin,
                 exactScore: prediction.exactScore,
                 errorValue: prediction.errorValue,
-                differenceScore: prediction.differenceScore,
+                differenceScore: displayDeltaByMatch.get(match.id) ?? prediction.differenceScore,
               }
             : null,
         };
