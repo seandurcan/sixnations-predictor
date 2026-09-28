@@ -26,6 +26,14 @@ export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized) return auth.response;
 
+  const adminUserId = auth.user?.id;
+  if (!adminUserId) {
+    return NextResponse.json(
+      { success: false, error: "Administrator identity unavailable." },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json();
     const key = typeof body?.key === "string" ? body.key : "";
@@ -38,7 +46,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const updated = await reviewSupportMapping(key, status, auth.user.id);
+    const updated = await reviewSupportMapping(key, status, adminUserId);
 
     if (!updated) {
       return NextResponse.json(

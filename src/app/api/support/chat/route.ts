@@ -4,6 +4,7 @@ import {
   answerSupportQuestion,
   answerSupportTopic,
 } from "@/lib/supportKnowledge";
+import type { SupportApprovedMapping } from "@/lib/supportKnowledge";
 import {
   getApprovedSupportMappings,
   logSupportInteraction,
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
       );
     }
 
-    let approvedMappings = [];
+    let approvedMappings: SupportApprovedMapping[] = [];
     try {
       approvedMappings = await getApprovedSupportMappings();
     } catch (error) {
