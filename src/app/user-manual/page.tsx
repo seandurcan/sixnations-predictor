@@ -23,7 +23,7 @@ const sections = [
   ["account-details", "15. Update your details"],
   ["email", "16. Email preferences"],
   ["heritage", "17. Heritage & History"],
-  ["support", "18. Support Assistant"],
+  ["support", "18. Perfect XV Support Chatbot"],
 ] as const;
 
 function BulletList({ items }: { items: React.ReactNode[] }) {
