@@ -58,12 +58,12 @@ describe("GET /api/leaderboard", () => {
     } as never);
   });
 
-  it("uses lowest aggregate score error immediately after total points", async () => {
+  it("uses lowest cumulative Prediction Delta immediately after total points", async () => {
     vi.mocked(prisma.user.findMany).mockResolvedValue([
-      user(1, { predictions: [prediction({ errorValue: 5 })] }),
+      user(1, { predictions: [prediction({ errorValue: 50, differenceScore: -5 })] }),
       user(2, {
         predictions: [
-          prediction({ errorValue: 20, exactScore: true, pointsAwarded: 1 }),
+          prediction({ errorValue: 1, differenceScore: 10, exactScore: true, pointsAwarded: 1 }),
         ],
       }),
     ] as any);
