@@ -205,6 +205,41 @@ export default function AdminDashboardPage() {
           </Button>
         </div>
 
+        <Card title="Help & Manuals" className="mb-8">
+          <p className="mb-4 text-sm text-[var(--brand-muted)]">
+            Administrator help is grouped here so the entrant guide, administration guide and operational procedures are all one tap away.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={() => {
+                window.location.href = "/user-manual";
+              }}
+            >
+              User Manual
+            </Button>
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={() => {
+                window.location.href = "/admin/manual";
+              }}
+            >
+              Administration Manual
+            </Button>
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={() => {
+                window.location.href = "/admin/docs";
+              }}
+            >
+              Operational Docs
+            </Button>
+          </div>
+        </Card>
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Users"
