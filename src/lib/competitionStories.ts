@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { formatCompetitionTitle } from "@/lib/competitionTitle";
 import { assignCompetitionRanks } from "@/lib/scoring";
+import { headers } from "next/headers";
 
 export const COMPETITION_STORY_PREFIX = "COMPETITION_STORY_";
 
-const STORY_VERSION = 2;
+const STORY_VERSION = 3;
 const FALLBACK_RETRY_MS = 6 * 60 * 60 * 1000;
 
 export type StoryPayload = {
@@ -114,13 +115,30 @@ function parseAiArticle(raw: string) {
   }
 }
 
+async function getGatewayToken() {
+  if (process.env.AI_GATEWAY_API_KEY) return process.env.AI_GATEWAY_API_KEY;
+
+  try {
+    const requestHeaders = await headers();
+    const requestToken = requestHeaders.get("x-vercel-oidc-token");
+    if (requestToken) return requestToken;
+  } catch {
+    // Story generation can still use an environment token outside request scope.
+  }
+
+  return process.env.VERCEL_OIDC_TOKEN ?? null;
+}
+
 async function writeAiArticle(factPack: unknown) {
-  const gatewayToken = process.env.AI_GATEWAY_API_KEY ?? process.env.VERCEL_OIDC_TOKEN;
+  const gatewayToken = await getGatewayToken();
   const openAiToken = process.env.OPENAI_API_KEY;
 
   const gateway = Boolean(gatewayToken);
   const token = gatewayToken ?? openAiToken;
-  if (!token) return null;
+  if (!token) {
+    console.warn("AI competition story generation skipped: no AI credential available");
+    return null;
+  }
 
   const endpoint = gateway
     ? "https://ai-gateway.vercel.sh/v1/chat/completions"
