@@ -139,11 +139,21 @@ export async function GET() {
     },
   });
 
+  const migrationEmailAttempts = await prisma.emailPreferenceToken.count({
+    where: {
+      createdAt: {
+        gte: new Date("2026-09-28T20:16:00.000Z"),
+        lte: new Date("2026-09-28T20:19:00.000Z"),
+      },
+    },
+  });
+
   return NextResponse.json({
     totalActive,
     protectedAliases,
     ordinaryActive,
     unverifiedOrdinary,
+    migrationEmailAttempts,
   });
 }
 
