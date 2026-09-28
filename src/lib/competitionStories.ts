@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 
 export const COMPETITION_STORY_PREFIX = "COMPETITION_STORY_";
 
-const STORY_VERSION = 3;
+const STORY_VERSION = 4;
 const FALLBACK_RETRY_MS = 6 * 60 * 60 * 1000;
 
 export type StoryPayload = {
@@ -106,13 +106,57 @@ function parseAiArticle(raw: string) {
 
     const headline = parsed.headline.trim();
     const standfirst = parsed.standfirst.trim();
-    const body = parsed.body.trim();
+    const body = parsed.body.trim().replace(/\\n\\n/g, "\n\n");
 
     if (headline.length < 8 || standfirst.length < 20 || body.length < 180) return null;
     return { headline, standfirst, body };
   } catch {
     return null;
   }
+}
+
+function articleQualityIssues(article: {
+  headline: string;
+  standfirst: string;
+  body: string;
+}) {
+  const issues: string[] = [];
+  const paragraphs = article.body.split(/\n{2,}/).filter(Boolean);
+  const words = article.body.trim().split(/\s+/).filter(Boolean);
+  const numericTokens = article.body.match(/\b\d+(?:[.-]\d+)?(?:\/\d+)?\b/g) ?? [];
+  const parentheticalPredictionDumps =
+    article.body.match(/\(\d+\/\d+[^)]*(?:predict|exact)[^)]*\)/gi) ?? [];
+  const semicolons = article.body.match(/;/g) ?? [];
+
+  if (paragraphs.length < 4) {
+    issues.push("Use at least four genuine paragraphs.");
+  }
+  if (parentheticalPredictionDumps.length > 1) {
+    issues.push(
+      "Do not list several fixtures as parenthetical prediction statistics. Select the meaningful result and explain why it mattered."
+    );
+  }
+  if (semicolons.length > 2) {
+    issues.push("Avoid semicolon-separated statistic lists.");
+  }
+  if (words.length > 0 && numericTokens.length / words.length > 0.09) {
+    issues.push("The article is too number-heavy. Keep only statistics that advance the story.");
+  }
+
+  const mechanicalPhrases = [
+    "the rugby behind the numbers told its own story",
+    "those calls separated the field",
+    "the latest results kept the perfect xv race moving",
+    "there is still plenty of rugby to come",
+    "the race is heating up",
+  ];
+  for (const phrase of mechanicalPhrases) {
+    if (article.body.toLowerCase().includes(phrase)) {
+      issues.push('Avoid mechanical or generic filler such as "' + phrase + '".');
+    }
+  }
+
+  return issues;
 }
 
 async function getGatewayToken() {
@@ -147,55 +191,84 @@ async function writeAiArticle(factPack: unknown) {
 
   const systemInstruction = [
     "You are the Perfect XV Sports Desk: an experienced professional rugby and sports journalist.",
-    "Write a lively round report about the prediction competition, not a mechanical leaderboard summary.",
+    "Your first job is editorial judgement. Decide what is genuinely newsworthy from the supplied editorial brief and verified fact pack before you start writing.",
+    "Write a lively round report about the prediction competition, not a database summary or a statistical roundup.",
+    "Lead with the strongest development: for example a change of leader, a standout round, a difficult result that caught most entrants, an exact-score achievement, a dramatic rise or fall, or a very tight battle at the top.",
     "Use natural British/Irish English, strong narrative flow, human warmth, tension and restrained humour where the facts support it.",
-    "Entrants are the characters in the story. Explain who had a great round, who moved, who leads, and what changed.",
-    "Weave statistics into prose instead of listing them. Mention rugby results when they help explain the prediction contest.",
-    "Never invent quotes, motives, incidents, relationships, rivalries, nicknames or facts. Do not claim somebody was confident, devastated, lucky or careless unless the supplied facts establish it.",
-    "Do not use generic filler such as 'the race is heating up' unless you immediately support it with a specific fact.",
-    "Do not explain the scoring rules unless they are directly relevant to a notable event.",
+    "Entrants are the characters in the story, but never invent emotions, motives, rivalries, relationships, nicknames, incidents or quotations.",
+    "Select statistics; do not recite them. Every number included should help explain why something mattered.",
+    "Do not mechanically mention every fixture. If several matches produced similar statistics, focus on the most significant one and summarise the rest naturally.",
+    "Never write a chain such as '(17/41 predicted...); (22/41 predicted...); (20/41 predicted...)'. Avoid semicolon-separated or bracket-heavy stat dumps.",
+    "Explain consequences: connect the important rugby result or prediction performance to what changed for entrants and the leaderboard.",
+    "Do not use generic filler such as 'the race is heating up', 'plenty of rugby to come', or 'those calls separated the field' unless a specific supplied fact immediately justifies the point.",
+    "Do not explain scoring rules unless they are directly relevant to a notable event.",
     "Aim for 350-500 words in 5-7 short paragraphs.",
     "Return JSON only with exactly three string fields: headline, standfirst, body.",
-    "The body must contain paragraph breaks as \\n\\n and no Markdown."
+    "The body must use real paragraph breaks and no Markdown."
   ].join(" ");
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer " + token,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: systemInstruction },
-        {
-          role: "user",
-          content:
-            "Write the Round report using only this verified Perfect XV fact pack:\\n\\n" +
-            JSON.stringify(factPack),
-        },
-      ],
-      response_format: { type: "json_object" },
-      max_completion_tokens: 1100,
-    }),
-  });
+  let qualityFeedback = "";
 
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new Error(
-      "AI story request failed (" +
-        response.status +
-        ")" +
-        (detail ? ": " + detail.slice(0, 300) : "")
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: systemInstruction },
+          {
+            role: "user",
+            content:
+              "Write the round report using only this verified Perfect XV material. " +
+              "The editorialBrief has already identified the potentially newsworthy angles; use editorial judgement rather than trying to mention everything.\n\n" +
+              JSON.stringify(factPack) +
+              (qualityFeedback
+                ? "\n\nThe previous draft was rejected by the News Desk. Rewrite it and fix these problems: " +
+                  qualityFeedback
+                : ""),
+          },
+        ],
+        response_format: { type: "json_object" },
+        max_completion_tokens: 1200,
+      }),
+    });
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => "");
+      throw new Error(
+        "AI story request failed (" +
+          response.status +
+          ")" +
+          (detail ? ": " + detail.slice(0, 300) : "")
+      );
+    }
+
+    const data = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string | null } }>;
+    };
+    const raw = data.choices?.[0]?.message?.content;
+    const article = raw ? parseAiArticle(raw) : null;
+    if (!article) {
+      qualityFeedback =
+        "Return valid JSON with a substantial headline, standfirst and 350-500 word body.";
+      continue;
+    }
+
+    const issues = articleQualityIssues(article);
+    if (issues.length === 0) return article;
+
+    qualityFeedback = issues.join(" ");
+    console.warn(
+      "AI competition story draft rejected by editorial quality gate",
+      qualityFeedback
     );
   }
 
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string | null } }>;
-  };
-  const raw = data.choices?.[0]?.message?.content;
-  return raw ? parseAiArticle(raw) : null;
+  return null;
 }
 
 function buildFallbackArticle(factPack: {
