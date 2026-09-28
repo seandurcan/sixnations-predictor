@@ -30,7 +30,9 @@ export function calculateMatchScore(
   const exactScore =
     predictedHome === actualHome &&
     predictedAway === actualAway;
-  const marginDelta = predictedMargin - actualMargin;
+  const predictionDeltaMagnitude = Math.abs(
+    Math.abs(predictedMargin) - Math.abs(actualMargin)
+  );
 
   return {
     // Perfect XV scoring:
@@ -48,8 +50,12 @@ export function calculateMatchScore(
     errorValue:
       Math.abs(predictedHome - actualHome) +
       Math.abs(predictedAway - actualAway),
-    // Signed prediction delta is retained for display/audit only.
-    differenceScore: marginDelta,
+    // Prediction Delta is the absolute difference between the actual and
+    // predicted winning margins. It is negative when the predicted result
+    // (winner or draw) is correct, otherwise positive.
+    differenceScore: correctResult
+      ? -predictionDeltaMagnitude
+      : predictionDeltaMagnitude,
   };
 }
 
@@ -75,15 +81,15 @@ export function compareLeaderboardEntries(
   return (
     // Locked Perfect XV leaderboard hierarchy:
     // 1 Total points
-    // 2 Most correct results
+    // 2 Lowest aggregate score error
     // 3 Most exact scores
     // 4 Most correct winning margins
-    // 5 Lowest aggregate score error
+    // 5 Most correct results
     b.totalPoints - a.totalPoints ||
-    b.correctResults - a.correctResults ||
+    normalisedError(a.cumulativeError) - normalisedError(b.cumulativeError) ||
     b.exactScores - a.exactScores ||
     b.correctMargins - a.correctMargins ||
-    normalisedError(a.cumulativeError) - normalisedError(b.cumulativeError)
+    b.correctResults - a.correctResults
   );
 }
 
