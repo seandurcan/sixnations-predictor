@@ -69,6 +69,7 @@ type PersonalResults = {
   exactScores: number;
   correctMargins: number;
   cumulativeError: number;
+  cumulativePredictionDelta: number;
   leaderboardPosition: number | null;
   previousLeaderboardPosition: number | null;
   rankMovement: number | null;
@@ -164,11 +165,11 @@ export default function PredictionsPage() {
         return;
       }
 
-      const lockedOrStarted =
-        ["LOCKED", "IN_PROGRESS", "COMPLETED", "ARCHIVED"].includes(selectedCompetition.status) ||
+      const competitionStarted =
+        ["IN_PROGRESS", "COMPLETED", "ARCHIVED"].includes(selectedCompetition.status) ||
         Boolean(
-          selectedCompetition.predictionLockAt &&
-          new Date(selectedCompetition.predictionLockAt).getTime() <= Date.now()
+          selectedCompetition.firstKickoff &&
+          new Date(selectedCompetition.firstKickoff).getTime() <= Date.now()
         );
 
       const resultsResponse = await fetch(
@@ -182,7 +183,7 @@ export default function PredictionsPage() {
       }
 
       if (
-        lockedOrStarted ||
+        competitionStarted ||
         (resultsResponse.ok && Array.isArray(resultsData.matches) && resultsData.matches.length > 0)
       ) {
         if (!resultsResponse.ok) {
@@ -594,7 +595,7 @@ export default function PredictionsPage() {
                   ["Correct Results", personalResults?.correctResults ?? 0],
                   ["Perfect Scores", personalResults?.exactScores ?? 0],
                   ["Correct Margins", personalResults?.correctMargins ?? 0],
-                  ["Aggregate Score Error", personalResults?.cumulativeError ?? 0],
+                  ["Cumulative Prediction Delta", personalResults?.cumulativePredictionDelta ?? 0],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-lg bg-slate-50 p-3">
                     <dt className="text-xs font-semibold uppercase text-[var(--brand-muted)]">
@@ -682,6 +683,7 @@ export default function PredictionsPage() {
         );
 
   const nextPredictionDeadline =
+    selectedCompetition?.predictionLockAt ??
     currentMatch?.predictionLockAt ??
     matches.find((match) => !isMatchLocked(match))?.predictionLockAt ??
     null;
@@ -822,7 +824,7 @@ export default function PredictionsPage() {
               <Card>
                 <CountdownTimer
                   targetDate={nextPredictionDeadline}
-                  label="Time until this prediction locks"
+                  label="Time until all predictions lock"
                 />
               </Card>
             )}
