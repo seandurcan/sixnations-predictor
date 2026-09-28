@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && node scripts/deploy-migrations.mjs && next build",
-    "vercel-build": "prisma generate && node scripts/deploy-migrations.mjs && next build",
+    "vercel-build": "prisma generate && node scripts/deploy-migrations.mjs && node scripts/verify-resend-staging.mjs && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
