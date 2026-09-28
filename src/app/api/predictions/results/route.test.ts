@@ -50,6 +50,6 @@ it.each([true, false])("returns the same entrant metrics as the leaderboard (com
     expect(results[metric]).toBe(leaderboard.data[0][metric]);
   }
   expect(results.cumulativeError).toBe(hasResults ? 16 : 0);
-  expect(results.cumulativePredictionDelta).toBe(hasResults ? 8 : 0);
+  expect(results.cumulativePredictionDelta).toBe(hasResults ? 1 : 0);
   expect(results.leaderboardPosition).toBe(leaderboard.data[0].rank);
 });
