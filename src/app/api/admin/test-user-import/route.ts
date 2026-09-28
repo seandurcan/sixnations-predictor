@@ -139,11 +139,56 @@ export async function GET() {
     },
   });
 
+  const migrationWindow = {
+    gte: new Date("2026-09-28T20:14:00.000Z"),
+    lte: new Date("2026-09-28T20:19:00.000Z"),
+  };
+
   const migrationEmailAttempts = await prisma.emailPreferenceToken.count({
+    where: { createdAt: migrationWindow },
+  });
+
+  const migrationTokenUsers = await prisma.emailPreferenceToken.findMany({
+    where: { createdAt: migrationWindow },
+    distinct: ["userId"],
+    select: { userId: true },
+  });
+
+  const ordinaryCreatedBeforeMigration = await prisma.user.count({
     where: {
-      createdAt: {
-        gte: new Date("2026-09-28T20:14:00.000Z"),
-        lte: new Date("2026-09-28T20:19:00.000Z"),
+      deletedAt: null,
+      createdAt: { lt: migrationWindow.gte },
+      NOT: {
+        email: {
+          startsWith: "seandurcan+",
+          mode: "insensitive",
+        },
+      },
+    },
+  });
+
+  const ordinaryCreatedDuringMigration = await prisma.user.count({
+    where: {
+      deletedAt: null,
+      createdAt: migrationWindow,
+      NOT: {
+        email: {
+          startsWith: "seandurcan+",
+          mode: "insensitive",
+        },
+      },
+    },
+  });
+
+  const ordinaryUpdatedDuringMigration = await prisma.user.count({
+    where: {
+      deletedAt: null,
+      updatedAt: migrationWindow,
+      NOT: {
+        email: {
+          startsWith: "seandurcan+",
+          mode: "insensitive",
+        },
       },
     },
   });
@@ -154,6 +199,10 @@ export async function GET() {
     ordinaryActive,
     unverifiedOrdinary,
     migrationEmailAttempts,
+    migrationTokenUsers: migrationTokenUsers.length,
+    ordinaryCreatedBeforeMigration,
+    ordinaryCreatedDuringMigration,
+    ordinaryUpdatedDuringMigration,
   });
 }
 
