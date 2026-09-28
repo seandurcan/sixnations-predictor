@@ -54,8 +54,8 @@ export default function RulesPage() {
                   <p className="mt-1">The entrant with the most points is ranked highest.</p>
                 </li>
                 <li>
-                  <strong className="text-[var(--brand-navy)]">Lowest Aggregate Score Error</strong>
-                  <p className="mt-1">If Points Total is tied, the entrant whose predicted team scores are closest overall ranks higher.</p>
+                  <strong className="text-[var(--brand-navy)]">Lowest Cumulative Prediction Delta</strong>
+                  <p className="mt-1">If Points Total is tied, the entrant with the lower signed cumulative Prediction Delta across completed matches ranks higher.</p>
                 </li>
                 <li>
                   <strong className="text-[var(--brand-navy)]">Exact Scores</strong>
@@ -68,10 +68,6 @@ export default function RulesPage() {
                 <li>
                   <strong className="text-[var(--brand-navy)]">Correct Results</strong>
                   <p className="mt-1">If still tied, the entrant with more correctly predicted match outcomes ranks higher.</p>
-                </li>
-                <li>
-                  <strong className="text-[var(--brand-navy)]">Total Tournament Points Guess</strong>
-                  <p className="mt-1">If the competition is complete and the tie remains, the entrant whose pre-tournament guess is closest to the total points scored across all fixtures ranks higher.</p>
                 </li>
               </ol>
 
