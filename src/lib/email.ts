@@ -624,7 +624,7 @@ export async function sendHelpdeskEscalationEmail({
   ].join("\n");
 
   const { data, error } = await resend.emails.send({
-    from: "Perfect XV Support <noreply@perfect-xv.org>",
+    from: "Perfect XV Helpdesk <administrator@perfect-xv.org>",
     to: "administrator@perfect-xv.org",
     replyTo: requesterEmail,
     subject: `Perfect XV Helpdesk: ${ticketId}`,
@@ -681,7 +681,7 @@ export async function sendHelpdeskReplyEmail({
   ].join("\n");
 
   const { data, error } = await resend.emails.send({
-    from: "Perfect XV Support <noreply@perfect-xv.org>",
+    from: "Perfect XV Helpdesk <administrator@perfect-xv.org>",
     to: requesterEmail,
     replyTo: "administrator@perfect-xv.org",
     subject: `Re: Perfect XV Helpdesk ${ticketId}`,
