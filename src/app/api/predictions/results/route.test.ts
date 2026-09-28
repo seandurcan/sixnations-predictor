@@ -26,12 +26,20 @@ beforeEach(() => {
 
 it.each([true, false])("returns the same entrant metrics as the leaderboard (completed results: %s)", async (hasResults) => {
   const predictions = hasResults ? [
-    { matchId: 10, pointsAwarded: 6, correctResult: true, exactScore: true, correctMargin: true, errorValue: 0, differenceScore: 0 },
-    { matchId: 11, pointsAwarded: 1, correctResult: true, exactScore: false, correctMargin: false, errorValue: 9, differenceScore: -3 },
-    { matchId: 12, pointsAwarded: 0, correctResult: false, exactScore: false, correctMargin: false, errorValue: 7, differenceScore: 3 },
+    { matchId: 10, predictedHomeScore: 24, predictedAwayScore: 17, pointsAwarded: 6, correctResult: true, exactScore: true, correctMargin: true, errorValue: 0, differenceScore: 0 },
+    { matchId: 11, predictedHomeScore: 20, predictedAwayScore: 13, pointsAwarded: 1, correctResult: true, exactScore: false, correctMargin: false, errorValue: 9, differenceScore: -3 },
+    { matchId: 12, predictedHomeScore: 10, predictedAwayScore: 18, pointsAwarded: 0, correctResult: false, exactScore: false, correctMargin: false, errorValue: 7, differenceScore: 3 },
   ] : [];
-  vi.mocked(prisma.match.findMany).mockResolvedValue(predictions.map((p) => ({
-    id: p.matchId, updatedAt: new Date("2027-02-01"),
+  vi.mocked(prisma.match.findMany).mockResolvedValue(predictions.map((p, index) => ({
+    id: p.matchId,
+    matchNumber: index + 1,
+    round: 1,
+    kickoffTime: new Date("2027-02-01"),
+    updatedAt: new Date("2027-02-01"),
+    actualHomeScore: index === 0 ? 24 : index === 1 ? 24 : 24,
+    actualAwayScore: index === 0 ? 17 : index === 1 ? 17 : 17,
+    homeTeam: { name: "Home", shortCode: "HOM" },
+    awayTeam: { name: "Away", shortCode: "AWY" },
   })) as never);
   vi.mocked(prisma.prediction.findMany).mockResolvedValue(predictions as never);
   vi.mocked(prisma.user.findMany).mockResolvedValue([{ id: 1, predictions }] as never);
@@ -42,5 +50,6 @@ it.each([true, false])("returns the same entrant metrics as the leaderboard (com
     expect(results[metric]).toBe(leaderboard.data[0][metric]);
   }
   expect(results.cumulativeError).toBe(hasResults ? 16 : 0);
+  expect(results.cumulativePredictionDelta).toBe(hasResults ? 8 : 0);
   expect(results.leaderboardPosition).toBe(leaderboard.data[0].rank);
 });
