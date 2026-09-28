@@ -134,9 +134,22 @@ const adminLinks: NavItem[] = [
     href: "/admin/support-insights",
     icon: ICONS.audit,
   },
+];
+
+const helpManualLinks: NavItem[] = [
   {
-    label: "Help & Manuals",
-    href: "/admin/help",
+    label: "User Manual",
+    href: "/user-manual",
+    icon: ICONS.docs,
+  },
+  {
+    label: "Administration Manual",
+    href: "/admin/manual",
+    icon: ICONS.adminManual,
+  },
+  {
+    label: "Operational Docs",
+    href: "/admin/docs",
     icon: ICONS.docs,
   },
 ];
@@ -173,6 +186,9 @@ export default function NavBar() {
     useState(false);
 
   const [adminOpen, setAdminOpen] =
+    useState(false);
+
+  const [helpManualsOpen, setHelpManualsOpen] =
     useState(false);
 
   const [loading, setLoading] =
@@ -309,6 +325,7 @@ export default function NavBar() {
       setMenuOpen(false);
       setProfileOpen(false);
       setAdminOpen(false);
+      setHelpManualsOpen(false);
     }, 0);
     return () => window.clearTimeout(closeTask);
   }, [pathname]);
@@ -358,6 +375,7 @@ export default function NavBar() {
     setMenuOpen(false);
     setProfileOpen(false);
     setAdminOpen(false);
+    setHelpManualsOpen(false);
   }
 
   function openConnect() {
@@ -677,6 +695,52 @@ export default function NavBar() {
                       <span>{item.label}</span>
                     </Link>
                   ))}
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() =>
+                      setHelpManualsOpen(
+                        (current) => !current
+                      )
+                    }
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-lime-50 hover:text-slate-900"
+                    aria-expanded={helpManualsOpen}
+                  >
+                    <span aria-hidden="true">
+                      {ICONS.docs}
+                    </span>
+                    <span className="flex-1">
+                      Help &amp; Manuals
+                    </span>
+                    <span
+                      className="text-lg font-bold leading-none text-slate-500"
+                      aria-hidden="true"
+                    >
+                      {helpManualsOpen ? "−" : "+"}
+                    </span>
+                  </button>
+
+                  {helpManualsOpen && (
+                    <div className="ml-5 border-l border-slate-200 pl-2">
+                      {helpManualLinks.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          role="menuitem"
+                          className={dropdownLinkClasses(
+                            item.href
+                          )}
+                          onClick={closeMenus}
+                        >
+                          <span aria-hidden="true">
+                            {item.icon}
+                          </span>
+                          <span>{item.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -957,6 +1021,50 @@ export default function NavBar() {
                     <span>{item.label}</span>
                   </Link>
                 ))}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHelpManualsOpen(
+                      (current) => !current
+                    )
+                  }
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base font-medium text-slate-700 transition-colors duration-200 hover:bg-lime-50 hover:text-slate-900"
+                  aria-expanded={helpManualsOpen}
+                >
+                  <span aria-hidden="true">
+                    {ICONS.docs}
+                  </span>
+                  <span className="flex-1">
+                    Help &amp; Manuals
+                  </span>
+                  <span
+                    className="text-xl font-bold leading-none text-slate-500"
+                    aria-hidden="true"
+                  >
+                    {helpManualsOpen ? "−" : "+"}
+                  </span>
+                </button>
+
+                {helpManualsOpen && (
+                  <div className="ml-6 border-l border-slate-200 pl-2">
+                    {helpManualLinks.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={mobileLinkClasses(
+                          item.href
+                        )}
+                        onClick={closeMenus}
+                      >
+                        <span aria-hidden="true">
+                          {item.icon}
+                        </span>
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
