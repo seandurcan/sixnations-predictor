@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import NavBar from "@/components/layout/Navbar";
+import SupportChatbot from "@/components/support/SupportChatbot";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body className="flex flex-col min-h-screen">
         <NavBar />
         <main className="flex-grow">{children}</main>
+        <SupportChatbot />
         
         {/* Global footer links for legal information and optional email preferences. */}
         <footer className="bg-white text-slate-500 border-t border-slate-200 px-6 py-8 text-center">

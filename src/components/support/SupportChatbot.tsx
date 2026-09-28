@@ -1,0 +1,231 @@
+"use client";
+
+import { FormEvent, useEffect, useRef, useState } from "react";
+
+type Source = {
+  label: string;
+  href: string;
+};
+
+type Message = {
+  id: number;
+  role: "assistant" | "user";
+  text: string;
+  sources?: Source[];
+};
+
+const suggestedQuestions = [
+  "How is the leaderboard ranked?",
+  "How is Prediction Delta calculated?",
+  "When do predictions lock?",
+  "How do I reset my password?",
+];
+
+const welcomeMessage: Message = {
+  id: 1,
+  role: "assistant",
+  text:
+    "I can help with Perfect XV rules and site features using the approved User Manual and Competition Rules. I cannot view or change your account, predictions or payment details.",
+  sources: [
+    { label: "User Manual", href: "/user-manual" },
+    { label: "Competition Rules", href: "/legal/rules" },
+  ],
+};
+
+export default function SupportChatbot() {
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
+  const [sending, setSending] = useState(false);
+  const nextId = useRef(2);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, open]);
+
+  async function ask(question: string) {
+    const trimmed = question.trim();
+    if (!trimmed || sending) return;
+
+    const userMessage: Message = {
+      id: nextId.current++,
+      role: "user",
+      text: trimmed,
+    };
+
+    setMessages((current) => [...current, userMessage]);
+    setInput("");
+    setSending(true);
+
+    try {
+      const response = await fetch("/api/support/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed }),
+      });
+
+      const result = await response.json();
+
+      const assistantMessage: Message = {
+        id: nextId.current++,
+        role: "assistant",
+        text:
+          response.ok && typeof result.answer === "string"
+            ? result.answer
+            : result.error || "Perfect XV Support could not answer that question.",
+        sources: response.ok && Array.isArray(result.sources) ? result.sources : undefined,
+      };
+
+      setMessages((current) => [...current, assistantMessage]);
+    } catch {
+      setMessages((current) => [
+        ...current,
+        {
+          id: nextId.current++,
+          role: "assistant",
+          text:
+            "Perfect XV Support is temporarily unavailable. Please use the User Manual or Competition Rules.",
+          sources: [
+            { label: "User Manual", href: "/user-manual" },
+            { label: "Competition Rules", href: "/legal/rules" },
+          ],
+        },
+      ]);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void ask(input);
+  }
+
+  return (
+    <div className="fixed bottom-4 right-4 z-[70] sm:bottom-6 sm:right-6">
+      {open && (
+        <section
+          className="mb-3 flex h-[min(36rem,calc(100vh-7rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+          aria-label="Perfect XV Support"
+        >
+          <header className="flex items-start justify-between border-b border-slate-200 bg-slate-950 px-4 py-3 text-white">
+            <div>
+              <h2 className="font-bold">Perfect XV Support</h2>
+              <p className="mt-1 text-xs text-slate-300">Answers from approved help content</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded-lg px-2 py-1 text-sm font-semibold text-white hover:bg-white/10"
+              aria-label="Close Perfect XV Support"
+            >
+              Close
+            </button>
+          </header>
+
+          <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={
+                  message.role === "user"
+                    ? "ml-8 rounded-2xl rounded-br-md bg-blue-600 px-4 py-3 text-sm text-white"
+                    : "mr-5 rounded-2xl rounded-bl-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800"
+                }
+              >
+                <p className="whitespace-pre-wrap">{message.text}</p>
+
+                {message.sources && message.sources.length > 0 && (
+                  <div className="mt-3 border-t border-slate-200 pt-2">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Sources
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {message.sources.map((source) => (
+                        <a
+                          key={source.href}
+                          href={source.href}
+                          className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-blue-700 underline hover:bg-slate-200"
+                        >
+                          {source.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {messages.length === 1 && (
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Try asking
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {suggestedQuestions.map((question) => (
+                    <button
+                      key={question}
+                      type="button"
+                      onClick={() => void ask(question)}
+                      className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-left text-xs font-medium text-slate-700 hover:bg-lime-50"
+                    >
+                      {question}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {sending && (
+              <p className="text-xs font-medium text-slate-500" role="status">
+                Checking approved support material...
+              </p>
+            )}
+          </div>
+
+          <form onSubmit={submit} className="border-t border-slate-200 bg-white p-3">
+            <label htmlFor="perfect-xv-support-question" className="sr-only">
+              Ask Perfect XV Support
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="perfect-xv-support-question"
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                maxLength={600}
+                placeholder="Ask about Perfect XV..."
+                className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                disabled={sending}
+              />
+              <button
+                type="submit"
+                disabled={sending || !input.trim()}
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Send
+              </button>
+            </div>
+            <p className="mt-2 text-[11px] text-slate-500">
+              This assistant does not access account data and does not save this conversation.
+            </p>
+          </form>
+        </section>
+      )}
+
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="ml-auto block rounded-full bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-xl transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-200"
+        aria-expanded={open}
+        aria-label={open ? "Close Perfect XV Support" : "Open Perfect XV Support"}
+      >
+        {open ? "Close Support" : "Ask Perfect XV"}
+      </button>
+    </div>
+  );
+}
