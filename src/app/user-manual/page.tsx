@@ -241,7 +241,7 @@ export default function UserManualPage() {
                       <td className="border p-3"><strong>−7</strong></td>
                     </tr>
                     <tr>
-                      <td className="border p-3">Wrong winner</td>
+                      <td className="border p-3">Winner not predicted correctly</td>
                       <td className="border p-3">Wales 14–20 Ireland — margin 6</td>
                       <td className="border p-3">Wales 18–15 Ireland — margin 3</td>
                       <td className="border p-3">|6 − 3| = 3</td>
