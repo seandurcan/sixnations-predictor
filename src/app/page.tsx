@@ -367,7 +367,7 @@ export default function HomePage() {
                   </li>
 
                   <li>
-                    Aggregate score error tracks how close your predicted team scores are overall and is the first leaderboard tie-break.
+                    Cumulative Prediction Delta is the first leaderboard tie-break after Points Total. Lower is better.
                   </li>
                 </ul>
               </div>
