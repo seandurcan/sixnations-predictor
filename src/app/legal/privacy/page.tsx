@@ -7,26 +7,63 @@ export default function PrivacyPolicyPage() {
       <main className="mx-auto max-w-4xl px-6 py-12 text-[var(--brand-navy)]">
         <PageHeader
           title="Privacy Policy"
-          subtitle="Last updated: August 2026"
+          subtitle="Last updated: September 2026"
           className="mb-8"
         />
 
         <div className="space-y-6 text-[var(--brand-muted)]">
           <Card title="1. Information We Collect">
             <p>
-              We collect information you provide directly when registering an account, making match predictions, or interacting with the Perfect XV platform. This includes your name, email address, and authentication credentials.
+              We collect information you provide directly when registering an account, making match
+              predictions, entering competitions, managing email preferences or otherwise interacting
+              with the Perfect XV platform. This includes account details such as your name, email
+              address and authentication information, together with competition and prediction data.
             </p>
           </Card>
 
           <Card title="2. How We Use Your Information">
             <p>
-              Your data is used strictly to manage your competition entries, calculate scores, update the live leaderboards, and communicate important platform updates regarding matches.
+              Your data is used to operate Perfect XV, manage competition entries, calculate scores,
+              update leaderboards, provide account support and send relevant platform communications.
             </p>
           </Card>
 
-          <Card title="3. Data Security">
+          <Card title="3. Support Assistant Learning">
+            <div className="space-y-3">
+              <p>
+                Perfect XV may retain questions submitted to the Support Assistant, the likely-help
+                option selected and optional helpful/not-helpful feedback so that common wording can
+                be interpreted more accurately.
+              </p>
+              <p>
+                Support-learning records are not intentionally linked to your Perfect XV user account
+                and do not store a user ID or IP address. Obvious email addresses, long card-like
+                numbers and password/CVV-style values are redacted before the question is stored.
+                Please do not enter passwords, payment-card information or other unnecessary sensitive
+                information into the Support Assistant.
+              </p>
+              <p>
+                Suggested wording-to-topic mappings are reviewed by an administrator before they can
+                influence future responses. The Support Assistant cannot automatically change
+                competition rules, scoring, prediction locking, leaderboard rules or other approved
+                help content.
+              </p>
+            </div>
+          </Card>
+
+          <Card title="4. Retention">
             <p>
-              We implement appropriate technical and organizational measures to secure your personal data against unauthorized access, loss, or alteration.
+              The Support Assistant keeps a limited rolling set of recent interactions for quality
+              review. Older support-learning interactions are removed as newer ones are recorded.
+              Other Perfect XV records are retained only as required for operating, administering and
+              auditing the service.
+            </p>
+          </Card>
+
+          <Card title="5. Data Security">
+            <p>
+              We implement appropriate technical and organisational measures to protect personal data
+              and platform records against unauthorised access, loss or alteration.
             </p>
           </Card>
         </div>

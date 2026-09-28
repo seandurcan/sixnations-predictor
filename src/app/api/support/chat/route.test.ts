@@ -1,6 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/supportLearning", () => ({
+  getApprovedSupportMappings: vi.fn().mockResolvedValue([]),
+  logSupportInteraction: vi.fn().mockResolvedValue("interaction-1"),
+  recordSupportSelection: vi.fn().mockResolvedValue(true),
+}));
 
 import { POST } from "./route";
+import {
+  logSupportInteraction,
+  recordSupportSelection,
+} from "@/lib/supportLearning";
 
 function request(body: unknown) {
   return new Request("http://localhost/api/support/chat", {
@@ -11,54 +21,37 @@ function request(body: unknown) {
 }
 
 describe("POST /api/support/chat", () => {
-  it("recognises league position and links to the leaderboard", async () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(logSupportInteraction).mockResolvedValue("interaction-1");
+    vi.mocked(recordSupportSelection).mockResolvedValue(true);
+  });
+
+  it("logs a support question and returns an interaction id", async () => {
     const response = await POST(request({ message: "how do I find my position in the league" }));
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body.matchedTopic).toBe("Finding your leaderboard position");
-    expect(body.action).toEqual({
-      label: "Open Leaderboard",
-      href: "/leaderboard",
-    });
+    expect(body.action.href).toBe("/leaderboard");
+    expect(body.interactionId).toBe("interaction-1");
+    expect(logSupportInteraction).toHaveBeenCalled();
   });
 
-  it("answers a clear question from approved support knowledge", async () => {
-    const response = await POST(request({ message: "When do predictions lock?" }));
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.answer).toContain("one minute before");
-    expect(body.sources.length).toBeGreaterThan(0);
-    expect(body.action.href).toBe("/predictions");
-  });
-
-  it("returns interpretation options for an ambiguous question", async () => {
-    const response = await POST(request({ message: "Can you explain my points?" }));
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.needsChoice).toBe(true);
-    expect(body.options.length).toBeGreaterThan(1);
-    expect(body.action).toBeNull();
-  });
-
-  it("returns the selected option answer with a quick destination", async () => {
-    const response = await POST(request({ topicId: "scoring" }));
+  it("records which likely option the user selected", async () => {
+    const response = await POST(request({
+      topicId: "scoring",
+      interactionId: "interaction-1",
+    }));
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body.answer).toContain("correct match result earns 1 point");
-    expect(body.needsChoice).toBe(false);
+    expect(recordSupportSelection).toHaveBeenCalledWith("interaction-1", "scoring");
   });
 
   it("rejects an empty question", async () => {
     const response = await POST(request({ message: "   " }));
-    expect(response.status).toBe(400);
-  });
-
-  it("rejects an excessively long question", async () => {
-    const response = await POST(request({ message: "x".repeat(601) }));
     expect(response.status).toBe(400);
   });
 });

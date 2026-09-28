@@ -14,6 +14,11 @@ export type SupportAction = {
   href: string;
 };
 
+export type SupportApprovedMapping = {
+  phrase: string;
+  topicId: string;
+};
+
 export type SupportAnswer = {
   answer: string;
   sources: SupportSource[];
@@ -314,7 +319,16 @@ function tokens(value: string) {
   );
 }
 
-function rankTopics(message: string) {
+function tokenSimilarity(left: Set<string>, right: Set<string>) {
+  if (!left.size || !right.size) return 0;
+  let intersection = 0;
+  for (const token of left) {
+    if (right.has(token)) intersection += 1;
+  }
+  return intersection / Math.max(left.size, right.size);
+}
+
+function rankTopics(message: string, approvedMappings: SupportApprovedMapping[] = []) {
   const query = normalise(message);
   const queryTokens = tokens(query);
 
@@ -331,6 +345,28 @@ function rankTopics(message: string) {
         const normalisedKeyword = normalise(keyword);
         if (queryTokens.has(normalisedKeyword)) score += 3;
         else if (query.includes(normalisedKeyword)) score += 1;
+      }
+
+      for (const mapping of approvedMappings) {
+        if (mapping.topicId !== topic.id) continue;
+
+        const learnedPhrase = normalise(mapping.phrase);
+        if (!learnedPhrase) continue;
+
+        if (query === learnedPhrase) {
+          score += 30;
+          continue;
+        }
+
+        if (query.includes(learnedPhrase) || learnedPhrase.includes(query)) {
+          score += 18;
+          continue;
+        }
+
+        const similarity = tokenSimilarity(queryTokens, tokens(learnedPhrase));
+        if (similarity >= 0.6) {
+          score += Math.round(similarity * 14);
+        }
       }
 
       return { topic, score };
@@ -371,7 +407,10 @@ export function answerSupportTopic(topicId: string): SupportAnswer {
   };
 }
 
-export function answerSupportQuestion(message: string): SupportAnswer {
+export function answerSupportQuestion(
+  message: string,
+  approvedMappings: SupportApprovedMapping[] = []
+): SupportAnswer {
   const query = normalise(message);
 
   if (!query) {
@@ -385,7 +424,7 @@ export function answerSupportQuestion(message: string): SupportAnswer {
     };
   }
 
-  const ranked = rankTopics(query);
+  const ranked = rankTopics(query, approvedMappings);
   const positive = ranked.filter((item) => item.score > 0);
   const best = positive[0];
   const second = positive[1];

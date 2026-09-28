@@ -26,6 +26,8 @@ type Message = {
   options?: SupportOption[];
   needsChoice?: boolean;
   action?: SupportAction | null;
+  interactionId?: string | null;
+  feedback?: boolean | null;
 };
 
 const suggestedQuestions = [
@@ -62,7 +64,10 @@ export default function SupportChatbot() {
     });
   }, [messages, open]);
 
-  async function requestSupport(payload: { message?: string; topicId?: string }, userText?: string) {
+  async function requestSupport(
+    payload: { message?: string; topicId?: string; interactionId?: string },
+    userText?: string
+  ) {
     if (sending) return;
 
     if (userText) {
@@ -104,6 +109,11 @@ export default function SupportChatbot() {
           typeof result.action.href === "string"
             ? result.action
             : null,
+        interactionId:
+          response.ok && typeof result.interactionId === "string"
+            ? result.interactionId
+            : null,
+        feedback: null,
       };
 
       setMessages((current) => [...current, assistantMessage]);
@@ -134,9 +144,35 @@ export default function SupportChatbot() {
     await requestSupport({ message: trimmed }, trimmed);
   }
 
-  async function chooseOption(option: SupportOption) {
+  async function chooseOption(option: SupportOption, interactionId?: string | null) {
     if (sending) return;
-    await requestSupport({ topicId: option.id }, option.label);
+    await requestSupport(
+      {
+        topicId: option.id,
+        ...(interactionId ? { interactionId } : {}),
+      },
+      option.label
+    );
+  }
+
+  async function sendFeedback(messageId: number, interactionId: string, helpful: boolean) {
+    try {
+      const response = await fetch("/api/support/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interactionId, helpful }),
+      });
+
+      if (!response.ok) return;
+
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === messageId ? { ...message, feedback: helpful } : message
+        )
+      );
+    } catch {
+      // Feedback is optional; a failed feedback request should not interrupt support.
+    }
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -188,7 +224,7 @@ export default function SupportChatbot() {
                         <button
                           key={option.id}
                           type="button"
-                          onClick={() => void chooseOption(option)}
+                          onClick={() => void chooseOption(option, message.interactionId)}
                           disabled={sending}
                           className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-left text-xs font-semibold text-blue-800 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -229,6 +265,44 @@ export default function SupportChatbot() {
                     </a>
                   </div>
                 )}
+
+                {message.role === "assistant" &&
+                  message.interactionId &&
+                  !message.needsChoice && (
+                    <div className="mt-3 border-t border-slate-200 pt-3">
+                      {message.feedback === null || message.feedback === undefined ? (
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-xs font-semibold text-slate-600">
+                            Was this helpful?
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void sendFeedback(message.id, message.interactionId!, true)
+                              }
+                              className="rounded-lg border border-lime-300 bg-lime-50 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-lime-100"
+                            >
+                              Yes
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void sendFeedback(message.id, message.interactionId!, false)
+                              }
+                              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                            >
+                              No
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs font-semibold text-slate-500">
+                          Thanks for the feedback.
+                        </p>
+                      )}
+                    </div>
+                  )}
               </div>
             ))}
 
@@ -282,7 +356,9 @@ export default function SupportChatbot() {
               </button>
             </div>
             <p className="mt-2 text-[11px] text-slate-500">
-              This assistant does not access account data and does not save this conversation.
+              Support questions, option choices and feedback may be retained without your account identity
+              to improve question matching. Do not enter passwords or payment details.{" "}
+              <a href="/legal/privacy" className="font-semibold underline">Privacy</a>
             </p>
           </form>
         </section>
