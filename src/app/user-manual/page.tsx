@@ -194,12 +194,86 @@ export default function UserManualPage() {
 
           <section id="delta" className="scroll-mt-28">
             <Card title="10. Prediction Delta">
-              <p className="text-[var(--brand-muted)]">
-                Prediction Delta measures how far your predicted points difference was from the actual points
-                difference. The magnitude is the absolute difference between those two margins. It is shown
-                as a <strong>negative value when you predicted the correct result</strong> and as a
-                <strong> positive value when you predicted the wrong result</strong>. Cumulative Prediction
-                Delta is the signed total across completed matches.
+              <p className="mb-3 text-[var(--brand-muted)]">
+                Prediction Delta compares the <strong>points difference (winning margin)</strong> in your
+                prediction with the points difference in the actual result. First calculate the size of the
+                difference between those two margins. Perfect XV then gives that number a sign:
+                <strong> negative when you predicted the correct result</strong> and
+                <strong> positive when you predicted the wrong result</strong>.
+              </p>
+
+              <p className="mb-4 text-[var(--brand-muted)]">
+                In simple terms: <strong>Delta magnitude = |actual margin − predicted margin|</strong>.
+                The sign is then applied according to whether the predicted winner, loser or draw was correct.
+              </p>
+
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-left">
+                  <thead>
+                    <tr>
+                      <th className="border p-3">Situation</th>
+                      <th className="border p-3">Actual Result</th>
+                      <th className="border p-3">Prediction</th>
+                      <th className="border p-3">Calculation</th>
+                      <th className="border p-3">Prediction Delta</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border p-3">Correct winner, close margin</td>
+                      <td className="border p-3">Ireland 27–20 England — margin 7</td>
+                      <td className="border p-3">Ireland 24–20 England — margin 4</td>
+                      <td className="border p-3">|7 − 4| = 3</td>
+                      <td className="border p-3"><strong>−3</strong></td>
+                    </tr>
+                    <tr>
+                      <td className="border p-3">Correct winner, exact margin</td>
+                      <td className="border p-3">France 30–23 Wales — margin 7</td>
+                      <td className="border p-3">France 24–17 Wales — margin 7</td>
+                      <td className="border p-3">|7 − 7| = 0</td>
+                      <td className="border p-3"><strong>0</strong></td>
+                    </tr>
+                    <tr>
+                      <td className="border p-3">Correct winner, larger margin difference</td>
+                      <td className="border p-3">Scotland 21–18 Italy — margin 3</td>
+                      <td className="border p-3">Scotland 30–20 Italy — margin 10</td>
+                      <td className="border p-3">|3 − 10| = 7</td>
+                      <td className="border p-3"><strong>−7</strong></td>
+                    </tr>
+                    <tr>
+                      <td className="border p-3">Wrong winner</td>
+                      <td className="border p-3">Wales 14–20 Ireland — margin 6</td>
+                      <td className="border p-3">Wales 18–15 Ireland — margin 3</td>
+                      <td className="border p-3">|6 − 3| = 3</td>
+                      <td className="border p-3"><strong>+3</strong></td>
+                    </tr>
+                    <tr>
+                      <td className="border p-3">Correctly predicted draw</td>
+                      <td className="border p-3">England 17–17 France — margin 0</td>
+                      <td className="border p-3">England 20–20 France — margin 0</td>
+                      <td className="border p-3">|0 − 0| = 0</td>
+                      <td className="border p-3"><strong>0</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 className="mt-5 text-lg font-bold text-[var(--brand-navy)]">How Cumulative Prediction Delta is calculated</h3>
+              <p className="mt-2 text-[var(--brand-muted)]">
+                Perfect XV adds the signed Prediction Delta from every completed match. For example, if your
+                first four completed matches produce <strong>−3, −7, +3 and 0</strong>, your Cumulative
+                Prediction Delta is <strong>−3 + −7 + 3 + 0 = −7</strong>. It is a running total, so every
+                completed result can change it.
+              </p>
+
+              <h3 className="mt-5 text-lg font-bold text-[var(--brand-navy)]">Why Prediction Delta matters</h3>
+              <p className="mt-2 text-[var(--brand-muted)]">
+                Prediction Delta does not replace Match Points. It is used as the <strong>fifth leaderboard
+                tie-break</strong>, after Points Total, Correct Wins, Perfect Scores and Correct Margins. If
+                entrants are still tied after those four measures, the entrant with the
+                <strong> lower Cumulative Prediction Delta</strong> ranks higher. It therefore provides an
+                additional signed comparison of how the entrants&apos; predicted margins differed from the
+                actual completed-match margins.
               </p>
             </Card>
           </section>
@@ -226,11 +300,18 @@ export default function UserManualPage() {
 
           <section id="fixtures" className="scroll-mt-28">
             <Card title="12. Fixtures and Live Results">
+              <p className="mb-3 text-[var(--brand-muted)]">
+                Fixtures show the teams, round, kick-off time and available venue information. Once a match
+                reaches kick-off, Perfect XV can use its live-score provider to follow the match automatically
+                where provider coverage is available.
+              </p>
               <BulletList items={[
-                <>Fixtures show teams, rounds, kick-off times and available venue information.</>,
-                <>Live-score integration can update an in-play fixture automatically where provider coverage is available.</>,
-                <>A fixture is added to completed results only after it is final.</>,
-                <>Administrators can correct an official result if a provider result is wrong.</>,
+                <>After kick-off, Perfect XV checks the live-score feed periodically for the current score and match status.</>,
+                <>While the match is in progress, the displayed score may change as the provider reports new scoring events. An in-play score does <strong>not</strong> yet count as a completed result for competition scoring.</>,
+                <>When the provider marks the match as finished, Perfect XV records the final score, marks the fixture complete and recalculates the affected predictions and leaderboard information.</>,
+                <>The completed fixture then appears in the completed-matches results shown to entrants.</>,
+                <>Live scores depend on provider coverage and may be slightly behind events at the ground.</>,
+                <>If the provider is unavailable or reports an incorrect score, an administrator can enter or correct the result manually. A manual override prevents an automatic provider update from immediately overwriting the correction; automatic updates can later be resumed by an administrator.</>,
               ]} />
             </Card>
           </section>
@@ -267,11 +348,17 @@ export default function UserManualPage() {
 
           <section id="email" className="scroll-mt-28">
             <Card title="16. Email Preferences">
-              <p className="text-[var(--brand-muted)]">
-                Email Preferences controls optional communications and provides unsubscribe choices. Essential
-                transactional messages such as verification, password reset or competition-critical notices may
-                be treated separately from optional announcements.
+              <p className="mb-3 text-[var(--brand-muted)]">
+                Email Preferences controls optional Perfect XV announcements. Account-security and essential
+                service messages, such as verification and password-reset emails, are not controlled by the
+                optional-announcement preference.
               </p>
+              <BulletList items={[
+                <>Optional announcement emails contain an <strong>Unsubscribe from optional announcements</strong> link near the bottom of the email.</>,
+                <>Select that link to open the Perfect XV unsubscribe page, then select <strong>Confirm unsubscribe</strong>.</>,
+                <>After confirmation, optional announcement emails are switched off for your account. Essential account-security and service emails are not affected.</>,
+                <>If you later change your mind, open <strong>Email Preferences</strong> while signed in and select <strong>Opt Back In</strong>.</>,
+              ]} />
             </Card>
           </section>
 
@@ -291,16 +378,23 @@ export default function UserManualPage() {
           </section>
 
           <section id="support" className="scroll-mt-28">
-            <Card title="18. Support Assistant">
+            <Card title="18. Perfect XV Support Chatbot">
+              <p className="mb-3 text-[var(--brand-muted)]">
+                The Perfect XV chatbot is the built-in first point of contact for questions about using the
+                site. Look for the <strong>Ask Perfect XV</strong> button, normally displayed at the
+                <strong> bottom-right of the page</strong>. Select it to open the support window, type your
+                question and press <strong>Send</strong>.
+              </p>
               <BulletList items={[
-                <>Use <strong>Ask Perfect XV</strong> for help with site features, scoring, predictions, leaderboard questions, account help and other approved support topics.</>,
-                <>If a question could mean more than one thing, the assistant offers likely choices instead of guessing.</>,
-                <>Where appropriate, an answer includes a direct button such as <strong>Open Leaderboard</strong>, <strong>Open My Predictions</strong> or <strong>Open My Account</strong>.</>,
-                <>You can mark an answer Helpful or Not Helpful. Questions, selected options and feedback may be retained without your account identity to improve question matching.</>,
-                <>If an answer is not helpful, select <strong>No</strong> and use <strong>Send Question to Helpdesk</strong>. Provide the email address where you want the reply sent.</>,
-                <>The helpdesk receives the original question and chatbot answer. An administrator can reply by email and, where the clarification is reusable, approve it as future chatbot guidance.</>,
-                <>Suggested wording improvements and helpdesk clarifications require administrator approval before they can influence future interpretation. They cannot be changed automatically by user interactions.</>,
-                <>Do not enter passwords, payment-card details or unnecessary sensitive information into the Support Assistant.</>,
+                <>The chatbot interprets the wording of your question and compares it with the approved Perfect XV help content and support knowledge.</>,
+                <>If your question could mean more than one thing, it shows <strong>Likely Matches</strong> so that you can choose what you actually meant rather than receiving a guessed answer.</>,
+                <>Where appropriate, the reply contains a shortcut to the relevant part of the site, such as the Leaderboard, Predictions or Account page.</>,
+                <>After an answer, you can indicate whether it was helpful. Questions, choices and feedback provide learning signals that help identify wording users actually use and where the current support material is weak or ambiguous.</>,
+                <>The chatbot does <strong>not</strong> blindly rewrite itself after one conversation. Reusable improvements are controlled: feedback and recurring question patterns can be reviewed, and an administrator can approve better wording or guidance before it becomes part of future support answers.</>,
+                <>If the answer is not satisfactory, select <strong>No — Helpdesk</strong>, enter the email address where you want the reply sent and choose <strong>Send Question to Helpdesk</strong>.</>,
+                <>The Helpdesk receives the original question together with the chatbot answer. An administrator can reply to you by email. If that reply resolves a reusable gap in the chatbot&apos;s knowledge, the clarification can be approved as future chatbot guidance.</>,
+                <>In this way, every engagement can contribute to improvement: successful matches confirm useful wording, ambiguous questions reveal where more interpretation choices are needed, and unsuccessful answers or Helpdesk clarifications identify material that should be improved.</>,
+                <>Do not enter passwords, payment-card details or unnecessary sensitive information into the chatbot.</>,
               ]} />
             </Card>
           </section>
