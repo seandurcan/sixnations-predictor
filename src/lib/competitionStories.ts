@@ -126,17 +126,18 @@ function articleQualityIssues(article: {
   const numericTokens = article.body.match(/\b\d+(?:[.-]\d+)?(?:\/\d+)?\b/g) ?? [];
   const parentheticalPredictionDumps =
     article.body.match(/\(\d+\/\d+[^)]*(?:predict|exact)[^)]*\)/gi) ?? [];
+  const predictionFractions = article.body.match(/\b\d+\/\d+\b/g) ?? [];
   const semicolons = article.body.match(/;/g) ?? [];
 
   if (paragraphs.length < 4) {
     issues.push("Use at least four genuine paragraphs.");
   }
-  if (parentheticalPredictionDumps.length > 1) {
+  if (parentheticalPredictionDumps.length > 1 || predictionFractions.length > 2) {
     issues.push(
-      "Do not list several fixtures as parenthetical prediction statistics. Select the meaningful result and explain why it mattered."
+      "Do not list several fixtures as prediction-count statistics. Select the meaningful result and explain why it mattered."
     );
   }
-  if (semicolons.length > 2) {
+  if (semicolons.length > 1) {
     issues.push("Avoid semicolon-separated statistic lists.");
   }
   if (words.length > 0 && numericTokens.length / words.length > 0.09) {
@@ -285,6 +286,7 @@ function buildFallbackArticle(factPack: {
       predictionCount: number;
     } | null;
     exactScoreCount: number;
+    hardestResultNotable: boolean;
     leadChanged: boolean;
     previousLeaderName: string | null;
     currentLeaderName: string | null;
@@ -342,7 +344,7 @@ function buildFallbackArticle(factPack: {
     );
   }
 
-  if (hardest) {
+  if (hardest && factPack.editorialBrief.hardestResultNotable) {
     const missed = Math.max(0, hardest.predictionCount - hardest.correctResultCount);
     paragraphs.push(
       hardest.homeTeam +
@@ -597,6 +599,18 @@ export async function generateCompletedRoundStory(
     (sum, match) => sum + match.exactScoreCount,
     0
   );
+  const hardestAccuracy =
+    hardestResult && hardestResult.predictionCount > 0
+      ? hardestResult.correctResultCount / hardestResult.predictionCount
+      : null;
+  const easiestAccuracy =
+    easiestResult && easiestResult.predictionCount > 0
+      ? easiestResult.correctResultCount / easiestResult.predictionCount
+      : null;
+  const hardestResultNotable =
+    hardestAccuracy !== null &&
+    (hardestAccuracy < 0.5 ||
+      (easiestAccuracy !== null && easiestAccuracy - hardestAccuracy >= 0.15));
   const currentLeader = leaderboard[0] ?? null;
   const previousLeader = leaderboard.find((entry) => entry.previousRank === 1) ?? null;
   const leadChanged = Boolean(
@@ -629,7 +643,7 @@ export async function generateCompletedRoundStory(
         " points."
     );
   }
-  if (hardestResult) {
+  if (hardestResult && hardestResultNotable) {
     primaryAngles.push(
       hardestResult.homeTeam +
         " v " +
@@ -685,6 +699,7 @@ export async function generateCompletedRoundStory(
       hardestResult,
       easiestResult,
       exactScoreCount,
+      hardestResultNotable,
       leadChanged,
       previousLeaderName: previousLeader?.name ?? null,
       currentLeaderName: currentLeader?.name ?? null,
