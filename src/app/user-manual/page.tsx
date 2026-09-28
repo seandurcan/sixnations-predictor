@@ -205,17 +205,41 @@ export default function UserManualPage() {
 
           <section id="leaderboard" className="scroll-mt-28">
             <Card title="11. Leaderboard and Ranking">
-              <p className="mb-3 text-[var(--brand-muted)]">The current ranking order is:</p>
-              <ol className="list-decimal space-y-2 pl-6 font-semibold">
-                <li>Total Points</li>
-                <li>Lowest Aggregate Score Error</li>
-                <li>Most Exact Scores</li>
-                <li>Most Correct Winning Margins</li>
-                <li>Most Correct Results</li>
+              <p className="mb-3 text-[var(--brand-muted)]">
+                Entrants are ranked by <strong>Total Points</strong>. If two or more entrants have the same
+                Points Total, Perfect XV works through the following tie-break criteria in order until the tie
+                is separated:
+              </p>
+              <ol className="list-decimal space-y-3 pl-6">
+                <li>
+                  <strong>Total Points</strong> — the entrant with the most points is ranked highest.
+                </li>
+                <li>
+                  <strong>Lowest Aggregate Score Error</strong> — if Points Total is tied, the entrant whose
+                  predicted team scores are closest overall ranks higher.
+                </li>
+                <li>
+                  <strong>Most Exact Scores</strong> — if still tied, the entrant with more exact score
+                  predictions ranks higher.
+                </li>
+                <li>
+                  <strong>Most Correct Winning Margins</strong> — if still tied, the entrant with more
+                  correctly predicted winning margins ranks higher.
+                </li>
+                <li>
+                  <strong>Most Correct Results</strong> — if still tied, the entrant with more correctly
+                  predicted match outcomes ranks higher.
+                </li>
+                <li>
+                  <strong>Closest Total Tournament Points Guess</strong> — once the competition is complete,
+                  if the tie remains, the entrant whose pre-tournament guess is closest to the total points
+                  scored across all fixtures ranks higher.
+                </li>
               </ol>
               <p className="mt-4 text-[var(--brand-muted)]">
-                Cumulative Prediction Delta is displayed for information and audit purposes; it is separate
-                from Aggregate Score Error used by the current leaderboard comparator.
+                If entrants are still tied after every applicable criterion, they remain jointly ranked.
+                Cumulative Prediction Delta is displayed as a separate performance measure and is not the
+                Aggregate Score Error tie-break used for leaderboard ranking.
               </p>
             </Card>
           </section>
