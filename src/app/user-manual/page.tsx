@@ -215,8 +215,8 @@ export default function UserManualPage() {
                   <strong>Total Points</strong> — the entrant with the most points is ranked highest.
                 </li>
                 <li>
-                  <strong>Lowest Aggregate Score Error</strong> — if Points Total is tied, the entrant whose
-                  predicted team scores are closest overall ranks higher.
+                  <strong>Lowest Cumulative Prediction Delta</strong> — if Points Total is tied, the entrant
+                  with the lower signed total of Prediction Delta across completed matches ranks higher.
                 </li>
                 <li>
                   <strong>Most Exact Scores</strong> — if still tied, the entrant with more exact score
@@ -230,16 +230,12 @@ export default function UserManualPage() {
                   <strong>Most Correct Results</strong> — if still tied, the entrant with more correctly
                   predicted match outcomes ranks higher.
                 </li>
-                <li>
-                  <strong>Closest Total Tournament Points Guess</strong> — once the competition is complete,
-                  if the tie remains, the entrant whose pre-tournament guess is closest to the total points
-                  scored across all fixtures ranks higher.
-                </li>
               </ol>
               <p className="mt-4 text-[var(--brand-muted)]">
-                If entrants are still tied after every applicable criterion, they remain jointly ranked.
-                Cumulative Prediction Delta is displayed as a separate performance measure and is not the
-                Aggregate Score Error tie-break used for leaderboard ranking.
+                Prediction Delta is negative when the predicted result is correct and positive when it is
+                wrong. The cumulative figure keeps those signs, so a lower cumulative Prediction Delta ranks
+                ahead when the Points Total is tied. Entrants still equal after all ranking criteria remain
+                jointly ranked.
               </p>
             </Card>
           </section>
