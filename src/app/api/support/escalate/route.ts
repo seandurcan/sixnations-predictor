@@ -5,7 +5,6 @@ import {
   createHelpdeskTicket,
   updateHelpdeskTicket,
 } from "@/lib/supportLearning";
-import { sendAdminWhatsAppAlert } from "@/lib/whatsapp";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -49,26 +48,12 @@ export async function POST(request: Request) {
       emailError = error instanceof Error ? error.message : "Helpdesk email failed.";
     }
 
-    const alert = await sendAdminWhatsAppAlert(
-      [
-        "Perfect XV helpdesk question",
-        `Ticket: ${ticket.id}`,
-        `Question: ${ticket.question}`,
-        "Open Support Insights to reply.",
-      ].join("\n")
-    );
-
-    const whatsappStatus = alert.sent
-      ? "SENT"
-      : alert.configured
-        ? "FAILED"
-        : "NOT_CONFIGURED";
+    const whatsappStatus = "NOT_CONFIGURED" as const;
 
     await updateHelpdeskTicket(ticket.id, {
       emailStatus,
       whatsappStatus,
       ...(emailError ? { emailError } : {}),
-      ...(alert.error ? { whatsappError: alert.error } : {}),
     });
 
     return NextResponse.json({
