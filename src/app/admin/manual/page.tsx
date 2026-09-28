@@ -9,84 +9,29 @@ import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
 
 const sections = [
-  ["role", "1. Administrator role and access"],
-  ["overview", "2. Admin area overview"],
-  ["dashboard", "3. Admin Dashboard"],
-  ["results", "4. Entering match results"],
-  ["corrections", "5. Correcting a result"],
-  ["testing", "6. Tournament testing controls"],
-  ["reset", "7. Reset All Game Scores"],
-  ["communications", "8. Communications"],
-  ["reminders", "9. Reminder administration"],
-  ["verification", "10. Verification email problems"],
-  ["payments", "11. Payments and prediction access"],
+  ["access", "1. Access and responsibilities"],
+  ["dashboard", "2. Admin Dashboard"],
+  ["competitions", "3. Competition Manager"],
+  ["fixtures", "4. Fixture discovery and import"],
+  ["entrants", "5. Competition entrants"],
+  ["users", "6. User management"],
+  ["duplicates", "7. Duplicate-account review"],
+  ["corrections", "8. Controlled account corrections"],
+  ["communications", "9. Communications and delivery"],
+  ["reminders", "10. Verification and prediction reminders"],
+  ["results", "11. Match results and live scoring"],
   ["scoring", "12. Scoring and leaderboard checks"],
-  ["completion", "13. Tournament completion and winners"],
+  ["completion", "13. Competition completion and prizes"],
   ["audit", "14. Audit History"],
-  ["data", "15. Tournament and fixture data"],
-  ["operations", "16. Deployment, backups and recovery"],
-  ["production", "17. Production versus testing"],
-  ["troubleshooting", "18. Troubleshooting checklist"],
-  ["eventday", "19. Match-day administration"],
-  ["support", "20. Supporting entrants"],
-  ["entrants", "21. Competition Entrant Management"],
+  ["testing", "15. Testing controls"],
+  ["operations", "16. Deployment and operations"],
+  ["matchday", "17. Match-day checklist"],
 ] as const;
 
-function SectionLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <a
-      href={href}
-      className="rounded-lg border border-[var(--brand-border)] px-3 py-2 font-semibold text-[var(--brand-blue)] transition-colors hover:bg-[var(--brand-soft-lime)]"
-    >
-      {children}
-    </a>
-  );
-}
-
-function Note({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-lg border border-[var(--brand-border)] bg-[var(--brand-soft-blue)] p-4">
-      <p className="font-bold text-[var(--brand-navy)]">{title}</p>
-      <div className="mt-2 text-[var(--brand-muted)]">{children}</div>
-    </div>
-  );
-}
-
-function Warning({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-slate-800">
-      <strong>Important: </strong>
-      {children}
-    </div>
-  );
-}
-
-function Checklist({
-  items,
-}: {
-  items: string[];
-}) {
+function Checklist({ items }: { items: React.ReactNode[] }) {
   return (
     <ul className="list-disc space-y-2 pl-6 text-[var(--brand-muted)]">
-      {items.map((item) => (
-        <li key={item}>{item}</li>
-      ))}
+      {items.map((item, index) => <li key={index}>{item}</li>)}
     </ul>
   );
 }
@@ -97,66 +42,38 @@ export default function AdministrationManualPage() {
 
   useEffect(() => {
     let active = true;
-
     async function checkAdmin() {
       try {
-        const response = await fetch("/api/auth/me", {
-          credentials: "include",
-          cache: "no-store",
-        });
-
-        if (!active) {
-          return;
-        }
-
+        const response = await fetch("/api/auth/me", { credentials: "include", cache: "no-store" });
+        if (!active) return;
         if (!response.ok) {
           window.location.href = "/login";
           return;
         }
-
         const result = await response.json();
-
-        if (
-          result.authenticated &&
-          result.user?.role?.toUpperCase() === "ADMIN"
-        ) {
+        if (result.authenticated && result.user?.role?.toUpperCase() === "ADMIN") {
           setIsAdmin(true);
-          return;
         }
-
-        window.location.href = "/dashboard";
-      } catch (error) {
-        console.error(
-          "Administration Manual access check failed:",
-          error
-        );
-        window.location.href = "/login";
       } finally {
-        if (active) {
-          setLoading(false);
-        }
+        if (active) setLoading(false);
       }
     }
-
     void checkAdmin();
-
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, []);
 
   if (loading) {
-    return (
-      <main className="bg-white p-8 text-[var(--brand-navy)]">
-        <PageContainer>
-          <Card>Checking administrator access...</Card>
-        </PageContainer>
-      </main>
-    );
+    return <div className="min-h-screen flex items-center justify-center bg-white text-slate-500">Loading Administration Manual...</div>;
   }
 
   if (!isAdmin) {
-    return null;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-slate-900">
+        <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
+        <p className="text-slate-500 mb-4">Administrator access is required.</p>
+        <a href="/" className="text-blue-600 underline font-medium">Return to Home</a>
+      </div>
+    );
   }
 
   return (
@@ -164,789 +81,225 @@ export default function AdministrationManualPage() {
       <PageContainer>
         <PageHeader
           title="Perfect XV Administration Manual"
-          subtitle="Operational guide for site administrators"
+          subtitle="Current operating guide for competition, entrant, result, communication and account administration"
           className="mb-6"
         />
-
-        <Card className="mb-6">
-          <p className="text-lg">
-            This manual covers the routine tasks required to operate
-            Perfect XV safely during testing and during the Six Nations
-            competition. It should be read together with the normal
-            User Manual so that an administrator understands the site
-            exactly as entrants see it.
-          </p>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <Link href="/admin/dashboard">
-              <Button fullWidth>Admin Dashboard</Button>
-            </Link>
-            <Link href="/admin">
-              <Button fullWidth>Admin Results</Button>
-            </Link>
-            <Link href="/admin/communications">
-              <Button fullWidth>Communications</Button>
-            </Link>
-            <Link href="/admin/audit">
-              <Button fullWidth>Audit</Button>
-            </Link>
-            <Link href="/user-manual">
-              <Button fullWidth variant="secondary">
-                User Manual
-              </Button>
-            </Link>
-          </div>
-        </Card>
 
         <Card title="Contents" className="mb-6">
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {sections.map(([id, label]) => (
-              <SectionLink key={id} href={`#${id}`}>
+              <a key={id} href={`#${id}`} className="rounded-lg border border-[var(--brand-border)] px-3 py-2 font-semibold text-[var(--brand-blue)] hover:bg-[var(--brand-soft-lime)]">
                 {label}
-              </SectionLink>
+              </a>
             ))}
           </div>
         </Card>
 
         <div className="space-y-6">
-          <section id="role" className="scroll-mt-28">
-            <Card title="1. Administrator Role and Access">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  An administrator has access to tournament operations
-                  that normal entrants do not have. Admin access is
-                  determined by the account role. Admin-only pages
-                  redirect a non-admin user away from the protected
-                  area.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Use an administrator account only for administration work.",
-                    "Do not share administrator login details.",
-                    "Use the normal User Manual when checking the entrant experience.",
-                    "Use the Admin menu for operational work.",
-                    "Confirm which environment you are working in before making changes.",
-                  ]}
-                />
-
-                <Warning>
-                  Result entry, score reset and reminder controls can
-                  affect every entrant. Check the page and environment
-                  before pressing an administrative action.
-                </Warning>
-              </div>
-            </Card>
-          </section>
-
-          <section id="overview" className="scroll-mt-28">
-            <Card title="2. Admin Area Overview">
-              <div className="grid gap-4 md:grid-cols-2">
-                <Note title="Admin Dashboard">
-                  Overview of users, matches remaining, completed
-                  matches and players with predictions.
-                </Note>
-
-                <Note title="Admin Results">
-                  Select fixtures, enter official results, recalculate
-                  entrant scoring and use the testing controls.
-                </Note>
-
-                <Note title="Communications">
-                  Send verification and prediction reminders, preview
-                  reminder emails and manage automatic reminders.
-                </Note>
-
-                <Note title="User Manager">
-                  Search and filter active accounts, verification,
-                  current competition entry and announcement status.
-                  Open Account Support to correct a name, mobile number
-                  or email address, resend verification, send a secure
-                  password-reset link or delete a non-admin account
-                  after explicit confirmation.
-                </Note>
-
-                <Note title="Duplicate Account Review">
-                  Compare possible duplicate accounts side by side and
-                  record whether they belong to the same person. Pairs
-                  classified as the same person can then be merged only
-                  after a dry-run preview, survivor selection, conflict
-                  rule and exact-email confirmation. Administrator
-                  accounts cannot be merged.
-                </Note>
-
-                <Note title="Audit History">
-                  Review result changes, including previous score, new
-                  score and the administrator responsible.
-                </Note>
-
-                <Note title="Operational Docs">
-                  Internal deployment, backup and disaster-recovery
-                  notes.
-                </Note>
-
-                <Note title="Administration Manual">
-                  This guide. It is available from the Admin menu only
-                  to administrator accounts.
-                </Note>
-              </div>
+          <section id="access" className="scroll-mt-28">
+            <Card title="1. Access and Responsibilities">
+              <Checklist items={[
+                <>Use administrator tools only for authorised Perfect XV administration.</>,
+                <>Do not ask users for passwords or alter a user&apos;s prediction to solve a support issue.</>,
+                <>Use the controlled account-correction and duplicate-review workflows instead of direct database editing wherever possible.</>,
+                <>Treat destructive actions, account deletion, result corrections and resets as deliberate audited operations.</>,
+              ]} />
             </Card>
           </section>
 
           <section id="dashboard" className="scroll-mt-28">
-            <Card title="3. Admin Dashboard">
-              <p className="mb-4 text-[var(--brand-muted)]">
-                The Admin Dashboard is the first operational health
-                check. Review it before entering scores or sending
-                communications.
-              </p>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <Note title="Total Users">
-                  Number of active users counted by the dashboard.
-                </Note>
-                <Note title="Matches Remaining">
-                  Fixtures still remaining for the active tournament.
-                </Note>
-                <Note title="Completed Matches">
-                  Matches the system currently regards as completed.
-                </Note>
-                <Note title="Players with Predictions">
-                  Number of active players who have predictions in the
-                  tournament.
-                </Note>
-              </div>
-
-              <p className="mt-4 text-[var(--brand-muted)]">
-                If a dashboard figure is obviously inconsistent with
-                the known tournament state, investigate it before
-                using the figure for decisions. Do not manually alter
-                production data merely to make a dashboard number look
-                correct.
-              </p>
-
-              <p className="mt-4 text-[var(--brand-muted)]">
-                Open <strong>User Manager</strong> for the detailed
-                account list. It never exposes passwords or permits an
-                administrator to set one. Account deletion removes
-                identifying and login details while retaining anonymous
-                competition history, and administrator accounts are
-                protected from deletion. Account corrections never
-                alter roles, payments, entries, predictions or results.
-                Changing an email address requires the current address
-                as confirmation, invalidates existing security links and
-                sends a fresh verification email to the new address.
-              </p>
-
-              <p className="mt-4 text-[var(--brand-muted)]">
-                Open <strong>Duplicate Account Review</strong> to inspect
-                matches suggested by email address, mobile number or
-                name. Review decisions are recorded in Audit History.
-                A controlled merge transfers compatible competition
-                records, payments and predictions to the selected
-                survivor. Conflicting records follow the administrator&apos;s
-                confirmed choice. The redundant login is revoked and
-                anonymised, and the merge is recorded in Audit History.
+            <Card title="2. Admin Dashboard">
+              <p className="text-[var(--brand-muted)]">
+                The Admin area links to competition management, entrants, users, communications, results,
+                audit history, documentation and testing controls. Confirm the selected competition before
+                taking any competition-specific action.
               </p>
             </Card>
           </section>
 
-          <section id="results" className="scroll-mt-28">
-            <Card title="4. Entering Match Results">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  Use <strong>Admin Results</strong> to record the
-                  official final score for a fixture.
-                </p>
+          <section id="competitions" className="scroll-mt-28">
+            <Card title="3. Competition Manager">
+              <Checklist items={[
+                <>Create and maintain annual competitions independently rather than assuming one fixed tournament.</>,
+                <>The competition name should not include the year; the year is stored separately.</>,
+                <>When creating a new annual competition, the year defaults to the next appropriate year and remains editable.</>,
+                <>Check status, entry fee, currency, first kick-off and prediction-lock timing before opening entry.</>,
+                <>Do not make a competition live until fixtures and readiness checks are complete.</>,
+              ]} />
+            </Card>
+          </section>
 
-                <Checklist
-                  items={[
-                    "Confirm the correct fixture before entering a score.",
-                    "Confirm the match is final and the official score is known.",
-                    "Enter the home-team score and away-team score in the correct fields.",
-                    "Save the result once only and wait for the success message.",
-                    "Check the fixture now shows the saved result.",
-                    "Check the leaderboard and entrant dashboards after scoring.",
-                  ]}
-                />
+          <section id="fixtures" className="scroll-mt-28">
+            <Card title="4. Fixture Discovery and Import">
+              <Checklist items={[
+                <>Use official/provider fixture discovery where coverage is available.</>,
+                <>Use CSV/manual import when provider discovery is incomplete or unavailable.</>,
+                <>Always review the preview before import and validate each fixture&apos;s teams, date, kick-off time, round, venue and ordering.</>,
+                <>Reject duplicate or obviously incomplete fixtures rather than repairing them after launch.</>,
+                <>After import, verify the full fixture count and chronological sequence on the public Fixtures page.</>,
+              ]} />
+            </Card>
+          </section>
 
-                <p>
-                  Saving a result marks the fixture completed, records
-                  an audit entry, calculates every prediction for that
-                  match, refreshes user totals and creates a new
-                  leaderboard snapshot.
-                </p>
+          <section id="entrants" className="scroll-mt-28">
+            <Card title="5. Competition Entrants">
+              <Checklist items={[
+                <>Entrant membership is competition-specific.</>,
+                <>Add an existing account directly where appropriate, or send an invitation to a new participant.</>,
+                <>Imported entrant lists must be normalised and deduplicated.</>,
+                <>Withdraw removes participation from the active entrant list without deleting account history; Restore reverses a withdrawal where permitted.</>,
+                <>Use entrant status to review verification, payment and prediction progress.</>,
+              ]} />
+            </Card>
+          </section>
 
-                <Warning>
-                  Never use a provisional score, half-time score or
-                  score taken from an unconfirmed source as the final
-                  result.
-                </Warning>
-              </div>
+          <section id="users" className="scroll-mt-28">
+            <Card title="6. User Management">
+              <Checklist items={[
+                <>Use the user manager for account support, status review and controlled administration.</>,
+                <>Read-only administrative access must remain read-only where that role is assigned.</>,
+                <>Account deletion is currently permitted for genuine administrative cases such as deceased users; confirm the account carefully before deletion.</>,
+                <>Users can update supported account details themselves from their account page.</>,
+              ]} />
+            </Card>
+          </section>
+
+          <section id="duplicates" className="scroll-mt-28">
+            <Card title="7. Controlled Duplicate-Account Review">
+              <p className="text-[var(--brand-muted)]">
+                Review suspected duplicate accounts using the dedicated workflow. Record the classification
+                decision in Audit History. A duplicate classification is not the same thing as an automatic
+                merge and must not silently discard competition, payment or prediction history.
+              </p>
             </Card>
           </section>
 
           <section id="corrections" className="scroll-mt-28">
-            <Card title="5. Correcting a Result">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  If an incorrect result was entered, select the same
-                  fixture in Admin Results and enter the correct final
-                  score. Saving it creates another audit record and
-                  recalculates scoring from the corrected result.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Record what was wrong before changing it.",
-                    "Verify the corrected official result.",
-                    "Save the corrected home and away scores.",
-                    "Open Audit History and confirm the old and new scores are recorded.",
-                    "Check leaderboard order and affected entrant totals.",
-                  ]}
-                />
-
-                <Warning>
-                  Do not use Reset All Game Scores to correct one
-                  fixture. Reset is a tournament testing/recovery
-                  operation, not a normal result-correction tool.
-                </Warning>
-              </div>
-            </Card>
-          </section>
-
-          <section id="testing" className="scroll-mt-28">
-            <Card title="6. Tournament Testing Controls">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  Admin Results contains testing controls for
-                  Tournament 1. <strong>Complete Next Test Game</strong>
-                  applies one fixed test result at a time, allowing the
-                  full scoring and leaderboard flow to be exercised.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Use test scoring only when intentionally testing tournament behaviour.",
-                    "Watch the Test Games Scored counter as each fixture is completed.",
-                    "After each test score, verify leaderboard movement and entrant statistics.",
-                    "Use all 15 test games only when an end-to-end tournament completion test is intended.",
-                  ]}
-                />
-
-                <Warning>
-                  Do not use the test-game controls during the live
-                  competition.
-                </Warning>
-              </div>
-            </Card>
-          </section>
-
-          <section id="reset" className="scroll-mt-28">
-            <Card title="7. Reset All Game Scores">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  <strong>Reset All Game Scores</strong> resets the
-                  scoring state for Tournament 1 while retaining
-                  entrants and their saved predictions.
-                </p>
-
-                <p>The reset currently clears or resets:</p>
-
-                <Checklist
-                  items={[
-                    "actual match scores and completed flags",
-                    "calculated prediction scoring fields",
-                    "user scoring totals",
-                    "leaderboard snapshots",
-                    "TournamentWinner records",
-                    "score audit history for Tournament 1",
-                    "the admin test-scoring-active setting",
-                    "tournament status back to OPEN",
-                  ]}
-                />
-
-                <Warning>
-                  This is a destructive administrative action. During
-                  a real competition, do not run it merely to fix an
-                  isolated mistake.
-                </Warning>
-              </div>
+            <Card title="8. Controlled Account Corrections">
+              <p className="text-[var(--brand-muted)]">
+                Use Controlled User Account Corrections for administrator-assisted changes. Confirm the user,
+                the old value and the requested replacement before saving. Account-support changes should be
+                auditable and should never expose passwords, reset tokens or verification tokens.
+              </p>
             </Card>
           </section>
 
           <section id="communications" className="scroll-mt-28">
-            <Card title="8. Communications">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  Open Communications from Admin Results. The page
-                  manages verification and prediction reminder
-                  messages.
-                </p>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Note title="Send Verification Reminders">
-                    Sends a manual reminder campaign to eligible
-                    unverified entrants.
-                  </Note>
-                  <Note title="Send Prediction Reminders">
-                    Sends a manual reminder campaign to eligible
-                    entrants who still require prediction reminders.
-                  </Note>
-                  <Note title="Preview Verification Email">
-                    Review the verification-reminder presentation
-                    before a live send.
-                  </Note>
-                  <Note title="Preview Prediction Email">
-                    Review the prediction-reminder presentation before
-                    a live send.
-                  </Note>
-                </div>
-
-                <p>
-                  The page also displays the number of verification
-                  and prediction reminders currently due and provides
-                  the automatic-reminder control.
-                </p>
-                <p>
-                  <strong>Locked Prediction Confirmations</strong> records
-                  the final prediction email sent to each eligible entrant
-                  when the competition-wide deadline passes. Each message
-                  lists every fixture and the score held at lock time. A
-                  failed or missing delivery can be resent individually;
-                  every administrator resend is audited.
-                </p>
-              </div>
+            <Card title="9. Communications and Delivery">
+              <Checklist items={[
+                <>Use Competition Communications for announcements and controlled bulk delivery.</>,
+                <>Review the target competition, audience, subject and message before sending.</>,
+                <>Respect unsubscribe and email-preference settings for optional communications.</>,
+                <>Do not treat provider acceptance as proof of mailbox delivery; investigate delivery separately where needed.</>,
+                <>Historic contact lists must be handled as legacy data and should not be confused with active registered entrants.</>,
+              ]} />
             </Card>
           </section>
 
           <section id="reminders" className="scroll-mt-28">
-            <Card title="9. Reminder Administration">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  The Communications page currently presents automatic
-                  reminders as a weekly Saturday 09:00 process and
-                  allows the feature to be turned ON or OFF.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Preview email content before important campaigns.",
-                    "Check the due counts before a manual send.",
-                    "After sending, confirm the operation reports how many emails were sent.",
-                    "Check actual delivery when testing; an API success does not guarantee the message appears in the Inbox.",
-                    "Keep temporary reminder-testing controls separate from normal automatic reminders.",
-                  ]}
-                />
-
-                <Warning>
-                  Repeated manual sends can cause duplicate messages or
-                  harm deliverability. Use repeated-send testing only
-                  inside the temporary testing window.
-                </Warning>
-              </div>
+            <Card title="10. Verification and Prediction Reminders">
+              <Checklist items={[
+                <>Verification reminders are for registered accounts that still require email verification.</>,
+                <>Prediction reminders are based on outstanding predictions and stop once predictions lock.</>,
+                <>The planned reminder sequence begins in advance of lock, becomes more frequent near the deadline and includes a final near-lock reminder.</>,
+                <>After lock, entrants who submitted predictions can receive an email copy of their locked predictions.</>,
+              ]} />
             </Card>
           </section>
 
-          <section id="verification" className="scroll-mt-28">
-            <Card title="10. Verification Email Problems">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  When an entrant says a verification message was not
-                  received, separate <strong>sending</strong> from
-                  <strong>delivery</strong>.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Confirm the entrant registered with the intended email address.",
-                    "Ask the entrant to check Spam, Junk, Updates and Trash as well as Inbox.",
-                    "Use Resend Verification Email from the Login page when appropriate.",
-                    "Check application logs for a successful Resend message ID or an email-send error.",
-                    "If Resend accepted the message but the user cannot see it, investigate mailbox filtering and sender reputation rather than repeatedly changing the registration code.",
-                  ]}
-                />
-
-                <p>
-                  The production sender is
-                  <strong> noreply@perfect-xv.org</strong>. Delivery
-                  testing should include at least one external mailbox
-                  provider before launch.
-                </p>
-              </div>
-            </Card>
-          </section>
-
-          <section id="payments" className="scroll-mt-28">
-            <Card title="11. Payments and Prediction Access">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  Entrants may register, verify, log in and browse the
-                  site without paying. Payment is enforced when they
-                  open Predictions. An unpaid entrant sees the
-                  Competition Entry Required notice and chooses
-                  <strong> Continue to Payment</strong>.
-                </p>
-
-                <Note title="Real competition fee">
-                  The intended live competition entry fee is
-                  <strong> &euro;20</strong>.
-                </Note>
-
-                <Note title="Current Stripe testing fee">
-                  The current Stripe checkout amount is
-                  <strong> &euro;5</strong> for testing. Do not treat
-                  that as the live competition price.
-                </Note>
-
-                <p>
-                  Prediction writes are protected server-side. An
-                  unpaid account must not be able to bypass the payment
-                  page by calling the prediction API directly.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Before going live, change the Stripe charge from the test amount to the real EUR 20 entry fee.",
-                    "Confirm Stripe is in the intended test or live mode.",
-                    "Confirm checkout success and cancel URLs use https://perfect-xv.org.",
-                    "Confirm the Stripe webhook sends checkout.session.completed to /api/stripe/webhook.",
-                    "Confirm STRIPE_WEBHOOK_SECRET in production matches the active Stripe webhook destination.",
-                    "Complete a real end-to-end test before accepting entrants.",
-                  ]}
-                />
-
-                <Warning>
-                  A successful card screen is not enough. Perfect XV
-                  unlocks Predictions only after the payment status is
-                  confirmed in the application.
-                </Warning>
-              </div>
+          <section id="results" className="scroll-mt-28">
+            <Card title="11. Match Results and Live Scoring">
+              <Checklist items={[
+                <>Where live-score coverage is available, scores can update automatically.</>,
+                <>A match must not be treated as completed until the result is final.</>,
+                <>Use Admin Results to enter or correct an official result manually when required.</>,
+                <>After a result change, verify the Predictions results view, leaderboard totals, ranking movement and Audit History.</>,
+                <>Correct only the affected fixture; do not use a full reset to repair one score.</>,
+              ]} />
             </Card>
           </section>
 
           <section id="scoring" className="scroll-mt-28">
             <Card title="12. Scoring and Leaderboard Checks">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>The scoring rule is:</p>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse border border-[var(--brand-border)]">
-                    <thead>
-                      <tr className="bg-[var(--brand-soft-blue)]">
-                        <th className="border border-[var(--brand-border)] p-3 text-left">
-                          Outcome
-                        </th>
-                        <th className="border border-[var(--brand-border)] p-3 text-left">
-                          Points
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="border border-[var(--brand-border)] p-3">
-                          Correct result/winner
-                        </td>
-                        <td className="border border-[var(--brand-border)] p-3">
-                          1
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[var(--brand-border)] p-3">
-                          Exact score
-                        </td>
-                        <td className="border border-[var(--brand-border)] p-3">
-                          4 total: 1 correct-result point plus 3 exact-score bonus
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="border border-[var(--brand-border)] p-3">
-                          Incorrect result
-                        </td>
-                        <td className="border border-[var(--brand-border)] p-3">
-                          0
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <p>
-                  Correct Winning Margin is a ranking statistic, not an
-                  additional point. Aggregate Score Error is the sum
-                  of the absolute prediction error for both teams over
-                  completed matches.
-                </p>
-
-                <p>The ranking hierarchy is:</p>
-                <ol className="list-decimal space-y-1 pl-6 font-semibold text-[var(--brand-navy)]">
-                  <li>Total Points</li>
-                  <li>Correct Results</li>
-                  <li>Exact Scores</li>
-                  <li>Correct Winning Margins</li>
-                  <li>Lowest Aggregate Score Error</li>
-                </ol>
-
-                <p>
-                  Entrants still tied after all five criteria remain
-                  joint-ranked.
-                </p>
-              </div>
+              <p className="mb-3 text-[var(--brand-muted)]">Current scoring is fixed at:</p>
+              <Checklist items={[
+                <>1 point for the correct match result.</>,
+                <>+2 bonus points for the correct winning margin.</>,
+                <>+3 bonus points for an exact score.</>,
+                <>Maximum 6 points for one exact-score prediction.</>,
+                <>Cumulative Prediction Delta is the signed sum of match Prediction Delta values and is displayed for entrant feedback/audit.</>,
+              ]} />
+              <p className="mt-4 text-[var(--brand-muted)]">Current leaderboard comparator:</p>
+              <ol className="list-decimal space-y-1 pl-6 font-semibold">
+                <li>Total Points</li>
+                <li>Lowest Aggregate Score Error</li>
+                <li>Most Exact Scores</li>
+                <li>Most Correct Winning Margins</li>
+                <li>Most Correct Results</li>
+              </ol>
             </Card>
           </section>
 
           <section id="completion" className="scroll-mt-28">
-            <Card title="13. Tournament Completion and Winners">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  When all tournament fixtures are completed, the
-                  result-processing route marks the tournament
-                  COMPLETED and stores all rank-1 entrants as
-                  TournamentWinner records.
-                </p>
-
-                <p>
-                  Prize positions use the 3:2:1 ratio. If two entrants
-                  are joint winners, first and second prize are pooled
-                  and divided equally. If three or more entrants are
-                  joint winners, the first three prizes are pooled and
-                  divided equally between those joint winners.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Confirm all 15 official results are present.",
-                    "Confirm the leaderboard has recalculated after the final result.",
-                    "Confirm any joint rank is genuine under all five ranking criteria.",
-                    "Confirm winner records and prize calculation before publishing or paying prizes.",
-                  ]}
-                />
-              </div>
+            <Card title="13. Competition Completion and Prizes">
+              <Checklist items={[
+                <>Confirm every fixture is final before closing a competition.</>,
+                <>Verify the final leaderboard and any joint positions before publishing winners.</>,
+                <>Prize allocation uses the 3:2:1 split.</>,
+                <>Two joint winners share first and second prize; three or more joint winners share the top three prizes equally.</>,
+                <>Keep winner and historical leaderboard records available for later reference/download.</>,
+              ]} />
             </Card>
           </section>
 
           <section id="audit" className="scroll-mt-28">
             <Card title="14. Audit History">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  Audit History records administrative changes to match
-                  results and controlled account-support actions. Each
-                  entry shows the date, action, subject, outcome and
-                  administrator responsible.
-                </p>
-
-                <p>
-                  Duplicate-account classifications also appear here.
-                  They record only the two account numbers and the
-                  decision; they do not perform a merge.
-                </p>
-
-                <p>
-                  Search by administrator, user, account number, match or
-                  team. Filters are available for category, action,
-                  success or failure and date range. The page is
-                  read-only and paginated.
-                </p>
-
-                <Note title="Privacy protection">
-                  Passwords, verification links, reset tokens and deleted
-                  email addresses are never displayed in Audit History.
-                </Note>
-
-                <Warning>
-                  The Tournament 1 test reset intentionally clears the
-                  Tournament 1 score audit history. Do not rely on test
-                  audit records as permanent production evidence.
-                </Warning>
-              </div>
+              <p className="text-[var(--brand-muted)]">
+                Audit History is the read-only record of important administrative actions, including result
+                changes and controlled account-support actions. Use filters to investigate who changed what
+                and when. Sensitive secrets such as passwords and tokens must never be exposed there.
+              </p>
             </Card>
           </section>
 
-          <section id="data" className="scroll-mt-28">
-            <Card title="15. Tournament and Fixture Data">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  The active Six Nations tournament depends on
-                  Tournament ID 1 and 15 fixtures in correct
-                  chronological order. The current admin interface
-                  does not provide a general fixture/tournament master
-                  data editor.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Before launch, verify Tournament 1 is the intended championship.",
-                    "Verify exactly 15 fixtures exist for Tournament 1.",
-                    "Verify teams, dates, kick-off times, rounds and ordering.",
-                    "Treat direct production-database edits as controlled maintenance, not routine admin work.",
-                    "Back up before any manual data repair.",
-                  ]}
-                />
-              </div>
+          <section id="testing" className="scroll-mt-28">
+            <Card title="15. Testing Controls">
+              <Checklist items={[
+                <>Use testing controls only against staging/test data.</>,
+                <>Quick Pick and fictitious Stripe payments may be used during testing.</>,
+                <>A score reset must restore the pre-match prediction-entry state and must never be run against live production unintentionally.</>,
+                <>After a reset, verify Quick Pick, countdown and prediction entry return as expected.</>,
+              ]} />
             </Card>
           </section>
 
           <section id="operations" className="scroll-mt-28">
-            <Card title="16. Deployment, Backups and Recovery">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  Operational Docs contains the existing deployment,
-                  backup and disaster-recovery notes. Use it alongside
-                  this manual.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Keep production and test databases separate.",
-                    "Back up the production PostgreSQL database regularly.",
-                    "Run database migrations before a production build when migrations are part of the release.",
-                    "After deployment, verify login, authentication, Predictions, leaderboard and admin pages.",
-                    "After a database restore, verify schema compatibility and scoring before reopening normal operation.",
-                  ]}
-                />
-
-                <div className="mt-4">
-                  <Link href="/admin/docs">
-                    <Button variant="secondary">
-                      Open Operational Docs
-                    </Button>
-                  </Link>
-                </div>
+            <Card title="16. Deployment and Operations">
+              <Checklist items={[
+                <>Deploy changes to staging first.</>,
+                <>Verify the affected workflow on staging before production promotion.</>,
+                <>Do not perform database-repair transactions as part of a normal Vercel build.</>,
+                <>Keep migrations, environment variables and database targets controlled and documented.</>,
+                <>After deployment, check authentication, Predictions, leaderboard, admin pages and runtime errors.</>,
+              ]} />
+              <div className="mt-4">
+                <Link href="/admin/docs"><Button variant="secondary">Open Operational Docs</Button></Link>
               </div>
             </Card>
           </section>
 
-          <section id="production" className="scroll-mt-28">
-            <Card title="17. Production Versus Testing">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  Perfect XV testing must not be allowed to contaminate
-                  the live competition.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Know whether the current deployment is production or a test/reference deployment.",
-                    "Know which database the deployment is using.",
-                    "Do not run Complete Next Test Game on live competition data.",
-                    "Do not leave test-only Quick Pick or payment assumptions undocumented when preparing for launch.",
-                    "Verify real Stripe pricing, live/test keys and webhook destination before accepting real payments.",
-                    "Run Reset All Game Scores only when the consequences are intended and understood.",
-                  ]}
-                />
-              </div>
-            </Card>
-          </section>
-
-          <section id="troubleshooting" className="scroll-mt-28">
-            <Card title="18. Troubleshooting Checklist">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  When something fails, identify the failing stage
-                  before changing code.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Reproduce the problem once and record the exact page, time and action.",
-                    "Check the browser-visible message and HTTP status where available.",
-                    "Check Vercel runtime logs for the relevant route and time.",
-                    "For email, distinguish API acceptance from mailbox delivery.",
-                    "For Stripe, distinguish checkout creation, card completion, webhook delivery and account-status update.",
-                    "For scoring, verify the stored official result before investigating the leaderboard.",
-                    "For access problems, verify authentication and role before changing page logic.",
-                    "Make one targeted correction, deploy it and retest the same path.",
-                  ]}
-                />
-              </div>
-            </Card>
-          </section>
-
-          <section id="eventday" className="scroll-mt-28">
-            <Card title="19. Match-Day Administration">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>For each live fixture:</p>
-
-                <Checklist
-                  items={[
-                    "Before kick-off, verify the fixture details and that entrant access behaves as expected.",
-                    "Do not alter predictions on behalf of entrants.",
-                    "After full time, obtain the confirmed official result.",
-                    "Enter the result once in Admin Results.",
-                    "Confirm Result Saved.",
-                    "Open the leaderboard and check the new snapshot/ranking behaviour.",
-                    "Check Audit History for the result entry.",
-                    "If a correction is required, correct that fixture only and verify the audit trail.",
-                  ]}
-                />
-              </div>
-            </Card>
-          </section>
-
-          <section id="support" className="scroll-mt-28">
-            <Card title="20. Supporting Entrants">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  Administrators also need to understand the entrant
-                  journey. The normal User Manual remains available to
-                  admin accounts from the profile menu.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Use the User Manual when answering registration, verification, payment and prediction-entry questions.",
-                    "Do not ask entrants for passwords.",
-                    "Do not manually alter a prediction to resolve a support issue.",
-                    "For payment problems, verify payment state and webhook processing rather than bypassing payment enforcement.",
-                    "For verification problems, use the resend flow and delivery checks.",
-                  ]}
-                />
-
-                <div className="mt-4">
-                  <Link href="/user-manual">
-                    <Button variant="secondary">
-                      Open User Manual
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </Card>
-          </section>
-
-          <section id="entrants" className="scroll-mt-28">
-            <Card title="21. Competition Entrant Management">
-              <div className="space-y-4 text-[var(--brand-muted)]">
-                <p>
-                  Competition Entrants manages participation separately
-                  for each annual competition. Select the competition
-                  before taking any action.
-                </p>
-
-                <Checklist
-                  items={[
-                    "Add Existing Account enters a registered user immediately.",
-                    "Send Invitation emails an existing user or creates a 14-day registration invitation for a new user.",
-                    "Withdraw removes the participant from the active entrant list without deleting their account, payment details, predictions or competition history.",
-                    "Restore returns a withdrawn participant to their previous invited or entered status.",
-                    "Use the filters to review verification, payment and prediction progress.",
-                    "Confirm the selected competition, participant and requested action before accepting the confirmation prompt.",
-                    "Review entrant-management actions in Audit History.",
-                  ]}
-                />
-
-                <Note title="No prediction or payment editing">
-                  Entrant Manager reports payment and prediction status,
-                  but it does not alter payment records or edit a user&apos;s
-                  predictions.
-                </Note>
-
-                <div className="mt-4">
-                  <Link href="/admin/entrants">
-                    <Button variant="secondary">
-                      Open Competition Entrants
-                    </Button>
-                  </Link>
-                </div>
+          <section id="matchday" className="scroll-mt-28">
+            <Card title="17. Match-Day Checklist">
+              <Checklist items={[
+                <>Before kick-off, confirm fixture time, teams and live-score readiness.</>,
+                <>Confirm predictions are locked at the competition deadline.</>,
+                <>During play, monitor provider updates and only intervene if data is clearly wrong.</>,
+                <>At full time, verify the final score and completion status.</>,
+                <>Check entrant Match Points, Cumulative Prediction Delta and leaderboard movement.</>,
+                <>If a correction is required, correct the single fixture and recheck the audit trail.</>,
+              ]} />
+              <div className="mt-4">
+                <Link href="/user-manual"><Button variant="secondary">Open User Manual</Button></Link>
               </div>
             </Card>
           </section>
