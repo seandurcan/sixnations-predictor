@@ -297,7 +297,9 @@ export default function UserManualPage() {
                 <>If a question could mean more than one thing, the assistant offers likely choices instead of guessing.</>,
                 <>Where appropriate, an answer includes a direct button such as <strong>Open Leaderboard</strong>, <strong>Open My Predictions</strong> or <strong>Open My Account</strong>.</>,
                 <>You can mark an answer Helpful or Not Helpful. Questions, selected options and feedback may be retained without your account identity to improve question matching.</>,
-                <>Suggested wording improvements require administrator approval before they can influence future interpretation. They cannot change competition rules or scoring.</>,
+                <>If an answer is not helpful, select <strong>No</strong> and use <strong>Send Question to Helpdesk</strong>. Provide the email address where you want the reply sent.</>,
+                <>The helpdesk receives the original question and chatbot answer. An administrator can reply by email and, where the clarification is reusable, approve it as future chatbot guidance.</>,
+                <>Suggested wording improvements and helpdesk clarifications require administrator approval before they can influence future interpretation. They cannot be changed automatically by user interactions.</>,
                 <>Do not enter passwords, payment-card details or unnecessary sensitive information into the Support Assistant.</>,
               ]} />
             </Card>

@@ -48,6 +48,18 @@ export default function PrivacyPolicyPage() {
                 competition rules, scoring, prediction locking, leaderboard rules or other approved
                 help content.
               </p>
+              <p>
+                If you mark an answer as not helpful, you may choose to send the question to the
+                Perfect XV Helpdesk. In that case, the reply email address you provide, the question
+                and the chatbot answer are stored with a helpdesk ticket so an administrator can reply.
+                The question is emailed to administrator@perfect-xv.org and the system may also send an
+                administrative WhatsApp alert where the WhatsApp Business integration is configured.
+              </p>
+              <p>
+                A helpdesk administrator may approve the clarified reply as future chatbot guidance for
+                similar questions. This is a deliberate administrator action and is recorded separately
+                from automatic question matching.
+              </p>
             </div>
           </Card>
 

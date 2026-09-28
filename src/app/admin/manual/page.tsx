@@ -317,6 +317,9 @@ export default function AdministrationManualPage() {
                 <>Only approved mappings can improve future question interpretation. The assistant never rewrites scoring, locking, leaderboard or other authoritative rules from user interactions.</>,
                 <>Support-learning records do not intentionally store user ID or IP address, and obvious email, card-like number and password/CVV patterns are redacted before storage.</>,
                 <>Review Not Helpful responses and recurring ambiguous questions as candidates for clearer approved help content.</>,
+                <>Escalated questions appear as Helpdesk tickets. The initial alert is emailed to <strong>administrator@perfect-xv.org</strong>; a WhatsApp admin alert is also attempted when the WhatsApp Business environment variables are configured.</>,
+                <>Write the helpdesk reply in Support Insights and send it from there so the user receives the answer at the email address they supplied.</>,
+                <>If the reply resolves a reusable misunderstanding, select the appropriate chatbot topic and approve the reply for chatbot learning. The clarification then becomes available to future similar questions.</>,
               ]} />
               <div className="mt-4">
                 <Link href="/admin/support-insights"><Button variant="secondary">Open Support Insights</Button></Link>
