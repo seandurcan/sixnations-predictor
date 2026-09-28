@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createEmailPreferenceToken } from "@/lib/email/announcements";
 import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
-import { buildTestingEmail } from "@/lib/testingCampaignEmail";
+import { buildTestingEmail, TEST_SITE } from "@/lib/testingCampaignEmail";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
