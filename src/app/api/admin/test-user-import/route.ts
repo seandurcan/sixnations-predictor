@@ -102,9 +102,13 @@ function buildTestingEmail(firstName: string, unsubscribeUrl: string) {
 }
 
 
-export async function GET(request: NextRequest) {
-  const auth = await requireAdmin(request);
-  if (!auth.authorized) return auth.response;
+export async function GET() {
+  if (
+    process.env.VERCEL_PROJECT_ID !== "prj_bw5EAJac45HfO2utXKKvENAKhBfE" ||
+    process.env.VERCEL_GIT_COMMIT_REF !== "staging"
+  ) {
+    return NextResponse.json({ error: "Not found." }, { status: 404 });
+  }
 
   const totalActive = await prisma.user.count({
     where: { deletedAt: null },
