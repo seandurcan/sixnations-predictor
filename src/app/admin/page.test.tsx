@@ -26,6 +26,19 @@ const mockStandardUser = {
   role: "USER",
 };
 
+const mockCompetitionsResponse = {
+  currentTournamentId: 1,
+  competitions: [
+    {
+      id: 1,
+      year: 2027,
+      name: "Six Nations Championship",
+      status: "OPEN",
+      _count: { matches: 3, entries: 0 },
+    },
+  ],
+};
+
 const mockMatches = [
   {
     id: 101,
@@ -104,6 +117,11 @@ function mockSuccessfulInitialLoad(
         authenticated: true,
         user: mockAdminUser,
       }),
+    } as Response)
+    .mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => mockCompetitionsResponse,
     } as Response)
     .mockResolvedValueOnce({
       ok: true,
@@ -234,6 +252,11 @@ describe("AdminPage", () => {
         }),
       } as Response)
       .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockCompetitionsResponse,
+      } as Response)
+      .mockResolvedValueOnce({
         ok: false,
         status: 401,
         json: async () => [],
@@ -245,7 +268,10 @@ describe("AdminPage", () => {
       expect(window.location.href).toBe("/login");
     });
 
-    expect(global.fetch).toHaveBeenCalledWith("/api/admin/matches");
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/admin/matches?tournamentId=1",
+      { cache: "no-store" }
+    );
   });
 
   it("redirects to dashboard when admin matches API returns 403", async () => {
@@ -256,6 +282,11 @@ describe("AdminPage", () => {
           authenticated: true,
           user: mockAdminUser,
         }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockCompetitionsResponse,
       } as Response)
       .mockResolvedValueOnce({
         ok: false,
@@ -269,7 +300,10 @@ describe("AdminPage", () => {
       expect(window.location.href).toBe("/dashboard");
     });
 
-    expect(global.fetch).toHaveBeenCalledWith("/api/admin/matches");
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/admin/matches?tournamentId=1",
+      { cache: "no-store" }
+    );
   });
 
   it("loads and renders admin results page", async () => {
