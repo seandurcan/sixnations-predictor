@@ -8,6 +8,7 @@ import {
 } from "@/lib/currentTournament";
 import { validateCompetitionReadiness } from "@/lib/competitionReadiness";
 import { isSixNationsCompetition } from "@/lib/fixtureDiscovery";
+import { formatCompetitionTitle } from "@/lib/competitionTitle";
 
 const PERMANENT_TEAMS = [
   "England",
@@ -290,6 +291,171 @@ export async function PATCH(request: NextRequest) {
     const message = error instanceof Error ? error.message : "Competition update failed.";
     const notFound = message === "Competition not found.";
     console.error("Competition lifecycle update failed", error);
+    return NextResponse.json(
+      { success: false, error: message },
+      { status: notFound ? 404 : 409 }
+    );
+  }
+}
+
+
+export async function DELETE(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (!auth.authorized) return auth.response;
+  const adminUserId = auth.user?.id;
+  if (!adminUserId) {
+    return NextResponse.json(
+      { success: false, error: "Authenticated administrator could not be identified." },
+      { status: 500 }
+    );
+  }
+
+  const body = await request.json().catch(() => ({}));
+  const tournamentId = Number(body.tournamentId);
+  const confirmation = typeof body.confirmation === "string"
+    ? body.confirmation.trim()
+    : "";
+
+  if (!Number.isInteger(tournamentId) || tournamentId <= 0) {
+    return NextResponse.json(
+      { success: false, error: "Select a valid competition." },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const deletedAt = new Date();
+    const result = await prisma.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(82318)`;
+
+        const competition = await tx.tournament.findUnique({
+          where: { id: tournamentId },
+          include: {
+            _count: {
+              select: {
+                matches: true,
+                entries: true,
+                submissions: true,
+                snapshots: true,
+              },
+            },
+          },
+        });
+        if (!competition) throw new Error("Competition not found.");
+
+        const selected = await tx.systemSetting.findUnique({
+          where: { key: CURRENT_TOURNAMENT_SETTING },
+        });
+        if (Number(selected?.value) === tournamentId) {
+          throw new Error("The current competition cannot be removed. Activate another competition first.");
+        }
+
+        if (!["DRAFT", "READY"].includes(competition.status)) {
+          throw new Error(
+            "Only draft or ready competitions can be removed. Active, completed and archived competitions are protected."
+          );
+        }
+
+        const expectedConfirmation = formatCompetitionTitle(
+          competition.name,
+          competition.year
+        );
+        if (confirmation !== expectedConfirmation) {
+          throw new Error(`Type "${expectedConfirmation}" exactly to confirm removal.`);
+        }
+
+        const matchRows = await tx.match.findMany({
+          where: { tournamentId },
+          select: { id: true },
+        });
+        const matchIds = matchRows.map((match) => match.id);
+
+        const completedPayments = await tx.competitionEntry.count({
+          where: { tournamentId, paymentStatus: "COMPLETED" },
+        });
+        if (completedPayments > 0) {
+          throw new Error(
+            "This competition has completed payments and cannot be removed. Cancel/archive it instead."
+          );
+        }
+
+        const scoreAudits = matchIds.length
+          ? await tx.scoreAudit.findMany({
+              where: { matchId: { in: matchIds } },
+              select: { id: true },
+            })
+          : [];
+
+        if (matchIds.length) {
+          await tx.scoreAudit.deleteMany({
+            where: { matchId: { in: matchIds } },
+          });
+        }
+        await tx.leaderboardSnapshot.deleteMany({ where: { tournamentId } });
+        await tx.predictionSubmission.deleteMany({ where: { tournamentId } });
+        await tx.tournamentWinner.deleteMany({ where: { tournamentId } });
+        await tx.predictionConfirmationDelivery.deleteMany({ where: { tournamentId } });
+        await tx.competitionInvitation.deleteMany({ where: { tournamentId } });
+        await tx.competitionEntry.deleteMany({ where: { tournamentId } });
+        await tx.match.deleteMany({ where: { tournamentId } });
+
+        const exactSettingKeys = [
+          `FIXTURE_IMPORT_AUDIT_${tournamentId}`,
+          `COMPETITION_READY_AUDIT_${tournamentId}`,
+          `COMPETITION_ACTIVATION_AUDIT_${tournamentId}`,
+          `BRACKET_DEFINITION_${tournamentId}`,
+          `BRACKET_STATE_${tournamentId}`,
+          ...matchIds.flatMap((matchId) => [
+            `LIVE_SCORE_META_${matchId}`,
+            `LIVE_SCORE_OVERRIDE_${matchId}`,
+            `LIVE_SCORE_SLOT_${matchId}`,
+          ]),
+          ...scoreAudits.map((audit) => `LIVE_SCORE_AUDIT_${audit.id}`),
+        ];
+
+        await tx.systemSetting.deleteMany({
+          where: {
+            OR: [
+              { key: { in: exactSettingKeys } },
+              { key: { startsWith: `BRACKET_MATCH_MAP_${tournamentId}_` } },
+            ],
+          },
+        });
+
+        await tx.tournament.delete({ where: { id: tournamentId } });
+
+        await tx.systemSetting.create({
+          data: {
+            key: `COMPETITION_DELETION_AUDIT_${tournamentId}_${deletedAt.getTime()}`,
+            value: JSON.stringify({
+              tournamentId,
+              title: expectedConfirmation,
+              status: competition.status,
+              fixturesRemoved: competition._count.matches,
+              entriesRemoved: competition._count.entries,
+              submissionsRemoved: competition._count.submissions,
+              snapshotsRemoved: competition._count.snapshots,
+              deletedByUserId: adminUserId,
+              deletedAt: deletedAt.toISOString(),
+            }),
+          },
+        });
+
+        return {
+          title: expectedConfirmation,
+          fixturesRemoved: competition._count.matches,
+          entriesRemoved: competition._count.entries,
+        };
+      },
+      { isolationLevel: "Serializable", maxWait: 10_000, timeout: 30_000 }
+    );
+
+    return NextResponse.json({ success: true, ...result });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Competition removal failed.";
+    const notFound = message === "Competition not found.";
+    console.error("Competition removal failed", error);
     return NextResponse.json(
       { success: false, error: message },
       { status: notFound ? 404 : 409 }

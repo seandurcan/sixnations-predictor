@@ -76,16 +76,6 @@ function isCrossYear(name: string) {
   return key.includes("unitedrugbychampionship") || key.includes("challengecup");
 }
 
-function supportsOnlineFixtureSearch(name: string) {
-  const key = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-  return (
-    key.includes("unitedrugbychampionship") ||
-    key.includes("challengecup") ||
-    key.includes("rugbyworldcup") ||
-    key === "worldcup"
-  );
-}
-
 function fixtureValidationWarnings(
   fixture: PreviewFixture,
   index: number,
@@ -170,7 +160,7 @@ export default function CompetitionsPage() {
   const [saving, setSaving] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [discoveringId, setDiscoveringId] = useState<number | null>(null);
-  const [officialFindingId, setOfficialFindingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [importing, setImporting] = useState(false);
   const [previewCompetition, setPreviewCompetition] = useState<Competition | null>(null);
   const [fixturePreview, setFixturePreview] = useState<FixturePreview | null>(null);
@@ -178,7 +168,7 @@ export default function CompetitionsPage() {
   const [actionError, setActionError] = useState<{ id: number; message: string } | null>(null);
   const [success, setSuccess] = useState("");
   const [manualImportingId, setManualImportingId] = useState<number | null>(null);
-  const [fixtureSource, setFixtureSource] = useState<"API_SPORTS" | "OFFICIAL_SITE" | "MANUAL_FILE" | "MANUAL_ADMIN">("API_SPORTS");
+  const [fixtureSource, setFixtureSource] = useState<"AUTOMATIC" | "API_SPORTS" | "OFFICIAL_SITE" | "MANUAL_FILE" | "MANUAL_ADMIN">("AUTOMATIC");
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   const competitionWarnings = useMemo(
@@ -258,52 +248,81 @@ export default function CompetitionsPage() {
     await loadCompetitions();
   }
 
-  async function previewFixtures(competition: Competition) {
+  async function findFixturesAutomatically(competition: Competition) {
     setDiscoveringId(competition.id);
     setError("");
     setActionError(null);
     setSuccess("");
     setFixturePreview(null);
     setPreviewCompetition(null);
-    const response = await fetch("/api/admin/competitions/fixtures/preview", {
+
+    const response = await fetch("/api/admin/competitions/fixtures/auto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tournamentId: competition.id }),
     });
     const data = await response.json();
     setDiscoveringId(null);
-    if (!response.ok) {
-      setActionError({ id: competition.id, message: data.error ?? "Unable to discover fixtures." });
-      return;
-    }
-    setPreviewCompetition(competition);
-    setFixtureSource("API_SPORTS");
-    setFixturePreview(data.preview);
-  }
-  async function findOfficialFixtures(competition: Competition) {
-    setOfficialFindingId(competition.id);
-    setError("");
-    setActionError(null);
-    setSuccess("");
-    setFixturePreview(null);
-    setPreviewCompetition(null);
-    const response = await fetch("/api/admin/competitions/fixtures/official", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tournamentId: competition.id }),
-    });
-    const data = await response.json();
-    setOfficialFindingId(null);
+
     if (!response.ok) {
       setActionError({
         id: competition.id,
-        message: data.error ?? "Unable to find fixtures from the online competition source.",
+        message: data.error ?? "Unable to discover fixtures automatically.",
       });
       return;
     }
+
     setPreviewCompetition(competition);
-    setFixtureSource("OFFICIAL_SITE");
+    setFixtureSource("AUTOMATIC");
     setFixturePreview(data.preview);
+  }
+
+  async function removeCompetition(competition: Competition) {
+    const title = formatCompetitionTitle(competition.name, competition.year);
+    const confirmation = window.prompt(
+      `Remove ${title} permanently?\n\nThis is allowed only for DRAFT or READY competitions with no completed payments. Fixtures, test entries and related competition data will also be removed.\n\nType the full competition title exactly to confirm:\n${title}`
+    );
+    if (confirmation === null) return;
+    if (confirmation.trim() !== title) {
+      setActionError({
+        id: competition.id,
+        message: `Removal cancelled. Type "${title}" exactly to confirm.`,
+      });
+      return;
+    }
+
+    setDeletingId(competition.id);
+    setError("");
+    setActionError(null);
+    setSuccess("");
+
+    const response = await fetch("/api/admin/competitions", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tournamentId: competition.id,
+        confirmation: confirmation.trim(),
+      }),
+    });
+    const data = await response.json();
+    setDeletingId(null);
+
+    if (!response.ok) {
+      setActionError({
+        id: competition.id,
+        message: data.error ?? "Unable to remove competition.",
+      });
+      return;
+    }
+
+    if (previewCompetition?.id === competition.id) {
+      setFixturePreview(null);
+      setPreviewCompetition(null);
+    }
+    setSuccess(
+      `${data.title} was removed. ${data.fixturesRemoved ?? 0} fixtures and ${data.entriesRemoved ?? 0} competition entries were deleted with it.`
+    );
+    await loadCompetitions();
   }
 
   function downloadFoundFixturesCsv() {
@@ -553,25 +572,18 @@ export default function CompetitionsPage() {
                             <Button
                               type="button"
                               variant="secondary"
-                              disabled={discoveringId !== null || officialFindingId !== null || updatingId !== null || manualImportingId !== null}
-                              onClick={() => void previewFixtures(competition)}
+                              disabled={discoveringId !== null || updatingId !== null || manualImportingId !== null || deletingId !== null}
+                              onClick={() => void findFixturesAutomatically(competition)}
                             >
-                              {discoveringId === competition.id ? "Finding..." : "Find Fixture Preview"}
+                              {discoveringId === competition.id ? "Searching sources..." : "Find Fixtures Automatically"}
                             </Button>
-                            {supportsOnlineFixtureSearch(competition.name) && (
-                              <Button
-                                type="button"
-                                variant="secondary"
-                                disabled={discoveringId !== null || officialFindingId !== null || updatingId !== null || manualImportingId !== null}
-                                onClick={() => void findOfficialFixtures(competition)}
-                              >
-                                {officialFindingId === competition.id ? "Finding fixtures..." : "Find Fixtures Online"}
-                              </Button>
-                            )}
+                            <p className="max-w-xs text-right text-xs text-[var(--brand-muted)]">
+                              API-Sports first, then an official/published source, then AI-assisted web research if configured.
+                            </p>
                             <Button
                               type="button"
                               variant="secondary"
-                              disabled={discoveringId !== null || updatingId !== null || manualImportingId !== null}
+                              disabled={discoveringId !== null || updatingId !== null || manualImportingId !== null || deletingId !== null}
                               onClick={() => downloadFixtureTemplate(competition)}
                             >
                               Download Fixture Template
@@ -582,7 +594,7 @@ export default function CompetitionsPage() {
                                 className="hidden"
                                 type="file"
                                 accept=".csv,.tsv,.xlsx,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                disabled={discoveringId !== null || updatingId !== null || manualImportingId !== null}
+                                disabled={discoveringId !== null || updatingId !== null || manualImportingId !== null || deletingId !== null}
                                 onChange={(event) => {
                                   const file = event.target.files?.[0] ?? null;
                                   void importFixtureFile(competition, file);
@@ -591,6 +603,17 @@ export default function CompetitionsPage() {
                               />
                             </label>
                           </>
+                        )}
+                        {["DRAFT", "READY"].includes(competition.status) && competition.id !== currentTournamentId && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="border-red-300 text-red-800 hover:bg-red-50"
+                            disabled={deletingId !== null || discoveringId !== null || updatingId !== null || manualImportingId !== null}
+                            onClick={() => void removeCompetition(competition)}
+                          >
+                            {deletingId === competition.id ? "Removing..." : "Remove Competition"}
+                          </Button>
                         )}
                         {actionError?.id === competition.id && (
                           <div className="w-full max-w-md rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">
@@ -601,7 +624,7 @@ export default function CompetitionsPage() {
                           <Button
                             type="button"
                             variant="secondary"
-                            disabled={updatingId !== null}
+                            disabled={updatingId !== null || deletingId !== null}
                             onClick={() => void updateCompetitionLifecycle(competition, "mark_ready")}
                           >
                             {updatingId === competition.id ? "Validating..." : "Validate and Mark Ready"}
@@ -611,7 +634,7 @@ export default function CompetitionsPage() {
                           <>
                             <Button
                               type="button"
-                              disabled={updatingId !== null}
+                              disabled={updatingId !== null || deletingId !== null}
                               onClick={() => void updateCompetitionLifecycle(competition, "activate")}
                             >
                               {updatingId === competition.id ? "Activating..." : "Activate Competition"}
@@ -651,7 +674,7 @@ export default function CompetitionsPage() {
           <div ref={previewRef} className="mt-6 scroll-mt-6">
             <Card title={`Fixture Preview — ${formatCompetitionTitle(previewCompetition.name, previewCompetition.year)}`}>
               <div className="mb-3 flex flex-wrap gap-2">
-                {fixtureSource === "OFFICIAL_SITE" && (
+                {(fixtureSource === "OFFICIAL_SITE" || fixtureSource === "AUTOMATIC") && (
                   <Button type="button" variant="secondary" onClick={downloadFoundFixturesCsv}>
                     Download Found Fixtures CSV
                   </Button>
@@ -663,12 +686,19 @@ export default function CompetitionsPage() {
                     {fixturePreview.discoveredFixtureCount} of {fixturePreview.expectedFixtureCount} fixtures found through {fixturePreview.provider}
                   </p>
                   <p className="text-sm text-[var(--brand-muted)]">
-                    {fixtureSource === "API_SPORTS" ? "Provider competition" : "Fixture source"}: {fixturePreview.providerLeague.name}
+                    {fixtureSource === "API_SPORTS" ? "Provider competition" : "Selected fixture source"}: {fixturePreview.providerLeague.name}
                     {fixturePreview.providerLeague.id ? ` (ID ${fixturePreview.providerLeague.id})` : ""}
                     {fixturePreview.providerLeague.seasons?.length
                       ? ` · seasons: ${fixturePreview.providerLeague.seasons.join(", ")}`
                       : ""}. Review and correct every field before approval.
                   </p>
+                  {fixturePreview.warnings?.length ? (
+                    <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+                      {fixturePreview.warnings.map((warning) => (
+                        <div key={warning}>{warning}</div>
+                      ))}
+                    </div>
+                  ) : null}
                   {fixturePreview.queryDiagnostics?.length ? (
                     <div className="mt-2 text-xs text-[var(--brand-muted)]">
                       {fixturePreview.queryDiagnostics.map((diagnostic) => (
