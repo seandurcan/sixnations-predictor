@@ -244,8 +244,11 @@ export default function CompetitionsPage() {
       setError(data.error ?? "Unable to create the competition.");
       return;
     }
-    setSuccess(`${formatCompetitionTitle(data.competition.name, data.competition.year)} was created safely as a draft. No fixtures or entrants were copied.`);
+    setSuccess(
+      `${formatCompetitionTitle(data.competition.name, data.competition.year)} was created safely as a draft. Searching for fixtures now...`
+    );
     await loadCompetitions();
+    await findFixturesAutomatically(data.competition);
   }
 
   async function findFixturesAutomatically(competition: Competition) {
@@ -656,9 +659,13 @@ export default function CompetitionsPage() {
                 <label className="block text-sm font-semibold">Competition name<Input className="mt-1" value={name} maxLength={120} onChange={(event) => setName(event.target.value)} required /></label>
                 <p className="text-sm text-[var(--brand-muted)]">Enter the competition name without a year. The year is added automatically wherever the full title is needed.</p>
                 <label className="block text-sm font-semibold">Entry fee (€)<Input className="mt-1" type="number" min="0" max="10000" step="0.01" value={entryFee} onChange={(event) => setEntryFee(event.target.value)} required /></label>
-                <Button fullWidth disabled={saving} type="submit">{saving ? "Creating..." : "Create Safe Draft"}</Button>
+                <Button fullWidth disabled={saving || discoveringId !== null} type="submit">
+                  {saving ? "Creating..." : discoveringId !== null ? "Finding fixtures..." : "Create Competition & Find Fixtures"}
+                </Button>
               </form>
-              <p className="mt-4 text-sm text-[var(--brand-muted)]">This creates no fixtures, results, predictions, payments or copied entrants. Existing accounts remain unchanged.</p>
+              <p className="mt-4 text-sm text-[var(--brand-muted)]">
+                A new competition starts as a safe draft, then Perfect XV automatically tries API-Sports, an official/published source, and AI-assisted web research if required. Nothing is imported until you review and approve the fixture preview.
+              </p>
             </Card>
 
             <Card title="Six Nations Master Teams">
