@@ -50,6 +50,67 @@ const CHALLENGE_CUP_TEAMS = [
   "Castres Olympique", "Benetton", "Benetton Rugby",
 ];
 
+type RwcPoolFixtureSource = {
+  round: number;
+  day: number;
+  hour: number;
+  minute: number;
+  homeTeam: string;
+  awayTeam: string;
+  venue: string;
+  city: string;
+  timeZone: string;
+};
+
+const RWC_2027_OFFICIAL_MATCHES_URL =
+  "https://www.rugbyworldcup.com/2027/en/matches";
+const RWC_2027_OFFICIAL_SCHEDULE_PDF =
+  "https://resources.worldrugby-rims.pulselive.com/worldrugby/document/2026/02/02/d096842d-5029-42fc-9720-3eaa66d27134/RWC-2027_Match-Schedule_All.pdf";
+
+// The 36 pool fixtures published by Rugby World Cup / World Rugby.
+// Knockout dates and venues are published too, but the teams are not known yet,
+// so they are deliberately not imported as prediction fixtures.
+const RWC_2027_POOL_FIXTURES: RwcPoolFixtureSource[] = [
+  { round: 1, day: 1, hour: 18, minute: 45, homeTeam: "Australia", awayTeam: "Hong Kong China", venue: "Perth Stadium", city: "Perth", timeZone: "Australia/Perth" },
+  { round: 1, day: 2, hour: 12, minute: 15, homeTeam: "Wales", awayTeam: "Zimbabwe", venue: "Adelaide Oval", city: "Adelaide", timeZone: "Australia/Adelaide" },
+  { round: 1, day: 2, hour: 13, minute: 15, homeTeam: "New Zealand", awayTeam: "Chile", venue: "Perth Stadium", city: "Perth", timeZone: "Australia/Perth" },
+  { round: 1, day: 2, hour: 17, minute: 45, homeTeam: "France", awayTeam: "USA", venue: "Docklands Stadium", city: "Melbourne", timeZone: "Australia/Melbourne" },
+  { round: 1, day: 2, hour: 20, minute: 15, homeTeam: "England", awayTeam: "Tonga", venue: "Brisbane Stadium", city: "Brisbane", timeZone: "Australia/Brisbane" },
+  { round: 1, day: 3, hour: 12, minute: 15, homeTeam: "Japan", awayTeam: "Samoa", venue: "Newcastle Stadium", city: "Newcastle", timeZone: "Australia/Sydney" },
+  { round: 1, day: 3, hour: 14, minute: 15, homeTeam: "South Africa", awayTeam: "Italy", venue: "Adelaide Oval", city: "Adelaide", timeZone: "Australia/Adelaide" },
+  { round: 1, day: 3, hour: 17, minute: 15, homeTeam: "Scotland", awayTeam: "Uruguay", venue: "Docklands Stadium", city: "Melbourne", timeZone: "Australia/Melbourne" },
+  { round: 1, day: 3, hour: 20, minute: 15, homeTeam: "Georgia", awayTeam: "Romania", venue: "North Queensland Stadium", city: "Townsville", timeZone: "Australia/Brisbane" },
+  { round: 1, day: 4, hour: 14, minute: 15, homeTeam: "Fiji", awayTeam: "Spain", venue: "Newcastle Stadium", city: "Newcastle", timeZone: "Australia/Sydney" },
+  { round: 1, day: 4, hour: 17, minute: 15, homeTeam: "Ireland", awayTeam: "Portugal", venue: "Sydney Football Stadium", city: "Sydney", timeZone: "Australia/Sydney" },
+  { round: 1, day: 4, hour: 18, minute: 45, homeTeam: "Argentina", awayTeam: "Canada", venue: "Brisbane Stadium", city: "Brisbane", timeZone: "Australia/Brisbane" },
+
+  { round: 2, day: 8, hour: 18, minute: 15, homeTeam: "Wales", awayTeam: "Tonga", venue: "Docklands Stadium", city: "Melbourne", timeZone: "Australia/Melbourne" },
+  { round: 2, day: 8, hour: 20, minute: 15, homeTeam: "England", awayTeam: "Zimbabwe", venue: "Adelaide Oval", city: "Adelaide", timeZone: "Australia/Adelaide" },
+  { round: 2, day: 9, hour: 12, minute: 15, homeTeam: "USA", awayTeam: "Samoa", venue: "Perth Stadium", city: "Perth", timeZone: "Australia/Perth" },
+  { round: 2, day: 9, hour: 17, minute: 10, homeTeam: "New Zealand", awayTeam: "Australia", venue: "Stadium Australia", city: "Sydney", timeZone: "Australia/Sydney" },
+  { round: 2, day: 9, hour: 18, minute: 45, homeTeam: "France", awayTeam: "Japan", venue: "Brisbane Stadium", city: "Brisbane", timeZone: "Australia/Brisbane" },
+  { round: 2, day: 9, hour: 20, minute: 15, homeTeam: "Chile", awayTeam: "Hong Kong China", venue: "North Queensland Stadium", city: "Townsville", timeZone: "Australia/Brisbane" },
+  { round: 2, day: 10, hour: 12, minute: 15, homeTeam: "Fiji", awayTeam: "Canada", venue: "Adelaide Oval", city: "Adelaide", timeZone: "Australia/Adelaide" },
+  { round: 2, day: 10, hour: 15, minute: 15, homeTeam: "Argentina", awayTeam: "Spain", venue: "Docklands Stadium", city: "Melbourne", timeZone: "Australia/Melbourne" },
+  { round: 2, day: 10, hour: 16, minute: 45, homeTeam: "South Africa", awayTeam: "Georgia", venue: "Brisbane Stadium", city: "Brisbane", timeZone: "Australia/Brisbane" },
+  { round: 2, day: 10, hour: 17, minute: 45, homeTeam: "Ireland", awayTeam: "Scotland", venue: "Perth Stadium", city: "Perth", timeZone: "Australia/Perth" },
+  { round: 2, day: 11, hour: 17, minute: 15, homeTeam: "Uruguay", awayTeam: "Portugal", venue: "Newcastle Stadium", city: "Newcastle", timeZone: "Australia/Sydney" },
+  { round: 2, day: 11, hour: 19, minute: 45, homeTeam: "Italy", awayTeam: "Romania", venue: "Sydney Football Stadium", city: "Sydney", timeZone: "Australia/Sydney" },
+
+  { round: 3, day: 15, hour: 17, minute: 15, homeTeam: "New Zealand", awayTeam: "Hong Kong China", venue: "Docklands Stadium", city: "Melbourne", timeZone: "Australia/Melbourne" },
+  { round: 3, day: 15, hour: 20, minute: 0, homeTeam: "Japan", awayTeam: "USA", venue: "Adelaide Oval", city: "Adelaide", timeZone: "Australia/Adelaide" },
+  { round: 3, day: 15, hour: 20, minute: 15, homeTeam: "Tonga", awayTeam: "Zimbabwe", venue: "North Queensland Stadium", city: "Townsville", timeZone: "Australia/Brisbane" },
+  { round: 3, day: 16, hour: 13, minute: 15, homeTeam: "Argentina", awayTeam: "Fiji", venue: "Adelaide Oval", city: "Adelaide", timeZone: "Australia/Adelaide" },
+  { round: 3, day: 16, hour: 15, minute: 10, homeTeam: "Australia", awayTeam: "Chile", venue: "Brisbane Stadium", city: "Brisbane", timeZone: "Australia/Brisbane" },
+  { round: 3, day: 16, hour: 19, minute: 45, homeTeam: "England", awayTeam: "Wales", venue: "Stadium Australia", city: "Sydney", timeZone: "Australia/Sydney" },
+  { round: 3, day: 16, hour: 20, minute: 15, homeTeam: "Spain", awayTeam: "Canada", venue: "North Queensland Stadium", city: "Townsville", timeZone: "Australia/Brisbane" },
+  { round: 3, day: 17, hour: 12, minute: 15, homeTeam: "Italy", awayTeam: "Georgia", venue: "Newcastle Stadium", city: "Newcastle", timeZone: "Australia/Sydney" },
+  { round: 3, day: 17, hour: 14, minute: 45, homeTeam: "Ireland", awayTeam: "Uruguay", venue: "Docklands Stadium", city: "Melbourne", timeZone: "Australia/Melbourne" },
+  { round: 3, day: 17, hour: 16, minute: 15, homeTeam: "Scotland", awayTeam: "Portugal", venue: "Brisbane Stadium", city: "Brisbane", timeZone: "Australia/Brisbane" },
+  { round: 3, day: 17, hour: 19, minute: 45, homeTeam: "France", awayTeam: "Samoa", venue: "Sydney Football Stadium", city: "Sydney", timeZone: "Australia/Sydney" },
+  { round: 3, day: 17, hour: 19, minute: 15, homeTeam: "South Africa", awayTeam: "Romania", venue: "Perth Stadium", city: "Perth", timeZone: "Australia/Perth" },
+];
+
 function normalise(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
@@ -67,8 +128,13 @@ function isChallengeCup(name: string) {
   return key.includes("challengecup") || key.includes("epcrchallengecup");
 }
 
+function isRugbyWorldCup(name: string) {
+  const key = normalise(name);
+  return key.includes("rugbyworldcup") || key === "worldcup";
+}
+
 export function supportsOfficialFixtureDiscovery(name: string) {
-  return isUrc(name) || isChallengeCup(name);
+  return isUrc(name) || isChallengeCup(name) || isRugbyWorldCup(name);
 }
 
 function canonicalUrcTeam(value: string) {
@@ -180,6 +246,42 @@ function localDublinToIso(
     );
     candidate += Date.UTC(year, month, day, hour, minute) - represented;
   }
+  return new Date(candidate).toISOString();
+}
+
+function localTimeInZoneToIso(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  timeZone: string
+) {
+  let candidate = Date.UTC(year, month, day, hour, minute);
+  const target = Date.UTC(year, month, day, hour, minute);
+
+  for (let pass = 0; pass < 3; pass += 1) {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(new Date(candidate));
+    const get = (type: string) =>
+      Number(parts.find((part) => part.type === type)?.value ?? 0);
+    const represented = Date.UTC(
+      get("year"),
+      get("month") - 1,
+      get("day"),
+      get("hour"),
+      get("minute")
+    );
+    candidate += target - represented;
+  }
+
   return new Date(candidate).toISOString();
 }
 
@@ -527,6 +629,105 @@ async function discoverChallengeCup(
   };
 }
 
+export function buildRwc2027PoolFixtures(year: number): FixturePreview[] {
+  if (year !== 2027) return [];
+
+  return RWC_2027_POOL_FIXTURES.map((fixture) => ({
+    providerGameId: null,
+    round: fixture.round,
+    kickoffTime: localTimeInZoneToIso(
+      year,
+      9,
+      fixture.day,
+      fixture.hour,
+      fixture.minute,
+      fixture.timeZone
+    ),
+    homeTeam: fixture.homeTeam,
+    awayTeam: fixture.awayTeam,
+    providerHomeTeam: fixture.homeTeam,
+    providerAwayTeam: fixture.awayTeam,
+    venue: fixture.venue,
+    city: fixture.city,
+    country: "Australia",
+  })).sort((a, b) =>
+    String(a.kickoffTime).localeCompare(String(b.kickoffTime))
+  );
+}
+
+async function discoverRugbyWorldCup(
+  year: number
+): Promise<FixturePreviewResult> {
+  if (year !== 2027) {
+    throw new Error(
+      `The official Rugby World Cup fallback currently has a published schedule adapter for 2027 only; received ${year}.`
+    );
+  }
+
+  const diagnostics: string[] = [];
+  let officialPageReachable = false;
+
+  try {
+    const response = await fetch(RWC_2027_OFFICIAL_MATCHES_URL, {
+      cache: "no-store",
+      headers: {
+        "user-agent": "PerfectXV fixture importer/1.0",
+        accept: "text/html,application/xhtml+xml",
+      },
+      signal: AbortSignal.timeout(15000),
+    });
+    officialPageReachable = response.ok;
+    diagnostics.push(
+      response.ok
+        ? "Official Rugby World Cup 2027 matches page is reachable."
+        : `Official Rugby World Cup 2027 matches page returned HTTP ${response.status}.`
+    );
+  } catch (error) {
+    diagnostics.push(
+      `Official Rugby World Cup 2027 matches page check failed: ${
+        error instanceof Error ? error.message : "unknown error"
+      }.`
+    );
+  }
+
+  const fixtures = buildRwc2027PoolFixtures(year);
+  const participantTeams = Array.from(
+    new Set(
+      fixtures
+        .flatMap((fixture) => [fixture.homeTeam, fixture.awayTeam])
+        .filter((team): team is string => Boolean(team))
+    )
+  ).sort((a, b) => a.localeCompare(b));
+
+  return {
+    provider: "Official / Online",
+    providerLeague: {
+      id: 0,
+      name: "Men's Rugby World Cup 2027 - official published pool schedule",
+    },
+    fixtures,
+    participantTeams,
+    warnings: [
+      "The official 2027 schedule contains 52 matches. Perfect XV loads the 36 pool fixtures now because all participating teams are known; knockout participants are determined by pool results and are therefore not imported as fixed team fixtures yet.",
+      ...(officialPageReachable
+        ? []
+        : [
+            "The official matches page was not reachable during this check. The pool schedule below comes from the published World Rugby/Rugby World Cup schedule snapshot and must be reviewed before import.",
+          ]),
+    ],
+    valid: fixtures.length === 36 && participantTeams.length === 24,
+    expectedFixtureCount: 36,
+    discoveredFixtureCount: fixtures.length,
+    competitionKind: "LEAGUE",
+    queryDiagnostics: [
+      ...diagnostics,
+      `Official matches page: ${RWC_2027_OFFICIAL_MATCHES_URL}`,
+      `Official published match schedule PDF: ${RWC_2027_OFFICIAL_SCHEDULE_PDF}`,
+      `Published pool fixtures loaded: ${fixtures.length}; participating teams: ${participantTeams.length}.`,
+    ],
+  };
+}
+
 export async function discoverOfficialCompetitionFixtures(
   competitionName: string,
   year: number
@@ -537,6 +738,10 @@ export async function discoverOfficialCompetitionFixtures(
 
   if (isChallengeCup(competitionName)) {
     return discoverChallengeCup(year);
+  }
+
+  if (isRugbyWorldCup(competitionName)) {
+    return discoverRugbyWorldCup(year);
   }
 
   throw new Error(
