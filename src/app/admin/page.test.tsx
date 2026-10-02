@@ -318,8 +318,12 @@ describe("AdminPage", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText("Fixtures")
+      screen.getByText(/Fixtures — 2027 Six Nations Championship/i)
     ).toBeInTheDocument();
+
+    expect(
+      screen.getByLabelText("Select tournament")
+    ).toHaveValue("1");
 
     expect(
       screen.getByText("Result Entry")
