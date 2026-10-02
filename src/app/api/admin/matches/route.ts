@@ -6,10 +6,26 @@ import { requireCurrentViewableTournament } from "@/lib/currentTournament";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request?: Request) {
   try {
     await requireAdmin();
-    const tournament = await requireCurrentViewableTournament();
+
+    const requestedId = request
+      ? Number(new URL(request.url).searchParams.get("tournamentId"))
+      : NaN;
+
+    const tournament =
+      Number.isInteger(requestedId) && requestedId > 0
+        ? await prisma.tournament.findUnique({ where: { id: requestedId } })
+        : await requireCurrentViewableTournament();
+
+    if (!tournament) {
+      return NextResponse.json(
+        { success: false, error: "Competition not found" },
+        { status: 404 }
+      );
+    }
+
     await syncLiveScores();
 
     const matches = await prisma.match.findMany({
@@ -20,6 +36,10 @@ export async function GET() {
         awayTeam: true,
         tournament: {
           select: {
+            id: true,
+            name: true,
+            year: true,
+            status: true,
             firstKickoff: true,
           },
         },

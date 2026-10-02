@@ -13,6 +13,15 @@ import {
   formatIsoDate,
 } from "@/lib/formatIrishDate";
 import { useEffect, useState } from "react";
+import { formatCompetitionTitle } from "@/lib/competitionTitle";
+
+type AdminCompetition = {
+  id: number;
+  year: number;
+  name: string;
+  status: string;
+  _count: { matches: number; entries: number };
+};
 
 export default function AdminPage() {
   const [loading, setLoading] =
@@ -23,6 +32,12 @@ export default function AdminPage() {
 
   const [matches, setMatches] =
     useState<any[]>([]);
+
+  const [competitions, setCompetitions] =
+    useState<AdminCompetition[]>([]);
+
+  const [selectedTournamentId, setSelectedTournamentId] =
+    useState<number | null>(null);
 
   const [selectedMatchId, setSelectedMatchId] =
     useState<number | null>(null);
@@ -46,16 +61,19 @@ export default function AdminPage() {
     useState(false);
 
   useEffect(() => {
-    initialise();
+    void initialise();
+  }, []);
+
+  useEffect(() => {
+    if (!authorised || !selectedTournamentId) return;
 
     const interval = window.setInterval(
-      () => void loadMatches(),
+      () => void loadMatches(selectedTournamentId),
       30_000
     );
 
-    return () =>
-      window.clearInterval(interval);
-  }, []);
+    return () => window.clearInterval(interval);
+  }, [authorised, selectedTournamentId]);
 
   async function initialise() {
     try {
@@ -87,7 +105,44 @@ export default function AdminPage() {
 
       setAuthorised(true);
 
-      await loadMatches();
+      const competitionResponse = await fetch(
+        "/api/admin/competitions",
+        { cache: "no-store" }
+      );
+
+      if (!competitionResponse.ok) {
+        const competitionError = await competitionResponse.json().catch(() => ({}));
+        throw new Error(
+          competitionError?.error ?? "Unable to load competitions."
+        );
+      }
+
+      const competitionData = await competitionResponse.json();
+      const availableCompetitions = Array.isArray(competitionData.competitions)
+        ? competitionData.competitions.filter(
+            (competition: AdminCompetition) =>
+              competition._count?.matches > 0 &&
+              competition.status !== "CANCELLED"
+          )
+        : [];
+
+      setCompetitions(availableCompetitions);
+
+      const preferredTournamentId = availableCompetitions.some(
+        (competition: AdminCompetition) =>
+          competition.id === competitionData.currentTournamentId
+      )
+        ? competitionData.currentTournamentId
+        : availableCompetitions[0]?.id ?? null;
+
+      setSelectedTournamentId(preferredTournamentId);
+
+      if (preferredTournamentId) {
+        await loadMatches(preferredTournamentId);
+      } else {
+        setMatches([]);
+        setSelectedMatchId(null);
+      }
 
       setLoading(false);
     } catch (error) {
@@ -111,24 +166,24 @@ export default function AdminPage() {
     }
   }
 
-  async function loadMatches() {
+  async function loadMatches(tournamentId?: number | null) {
+    const targetTournamentId = tournamentId ?? selectedTournamentId;
+    const query = targetTournamentId
+      ? `?tournamentId=${targetTournamentId}`
+      : "";
+
     const response = await fetch(
-      "/api/admin/matches"
+      `/api/admin/matches${query}`,
+      { cache: "no-store" }
     );
 
-    if (
-      response.status === 401
-    ) {
-      window.location.href =
-        "/login";
+    if (response.status === 401) {
+      window.location.href = "/login";
       return;
     }
 
-    if (
-      response.status === 403
-    ) {
-      window.location.href =
-        "/dashboard";
+    if (response.status === 403) {
+      window.location.href = "/dashboard";
       return;
     }
 
@@ -145,22 +200,43 @@ export default function AdminPage() {
     const sortedData =
       [...data].sort(
         (a: any, b: any) =>
-          new Date(
-            a.kickoffTime
-          ).getTime() -
-          new Date(
-            b.kickoffTime
-          ).getTime()
+          new Date(a.kickoffTime).getTime() -
+          new Date(b.kickoffTime).getTime()
       );
 
     setMatches(sortedData);
 
-    if (
-      sortedData.length > 0 &&
-      !selectedMatchId
-    ) {
-      setSelectedMatchId(
-        sortedData[0].id
+    setSelectedMatchId((current) => {
+      const nextId =
+        current && sortedData.some((match: any) => match.id === current)
+          ? current
+          : sortedData[0]?.id ?? null;
+
+      if (nextId !== current) {
+        const nextMatch = sortedData.find((match: any) => match.id === nextId);
+        setHomeScore(nextMatch?.actualHomeScore?.toString() ?? "");
+        setAwayScore(nextMatch?.actualAwayScore?.toString() ?? "");
+      }
+
+      return nextId;
+    });
+  }
+
+  async function changeTournament(tournamentId: number) {
+    setSelectedTournamentId(tournamentId);
+    setSelectedMatchId(null);
+    setHomeScore("");
+    setAwayScore("");
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    try {
+      await loadMatches(tournamentId);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to load the selected competition."
       );
     }
   }
@@ -226,7 +302,7 @@ export default function AdminPage() {
       setHomeScore("");
       setAwayScore("");
 
-      loadMatches();
+      void loadMatches(selectedTournamentId);
     } else {
       setErrorMessage(
         result.error ??
@@ -236,17 +312,10 @@ export default function AdminPage() {
   }
 
   function getCurrentTournamentMatches() {
-    const currentTournamentId = matches[0]?.tournamentId;
-    return [...matches]
-      .filter(
-        (match: any) =>
-          match.tournamentId === currentTournamentId
-      )
-      .sort(
-        (a: any, b: any) =>
-          (a.matchNumber ?? 0) -
-          (b.matchNumber ?? 0)
-      );
+    return [...matches].sort(
+      (a: any, b: any) =>
+        (a.matchNumber ?? 0) - (b.matchNumber ?? 0)
+    );
   }
 
   async function completeNextTestGame() {
@@ -268,7 +337,7 @@ export default function AdminPage() {
 
       if (!nextMatch) {
         setSuccessMessage(
-          "All 15 test games already have scores."
+          "All selected-competition test games already have scores."
         );
         return;
       }
@@ -291,13 +360,9 @@ export default function AdminPage() {
         [28, 22],
       ];
 
-      const scoreIndex = Math.max(
-        0,
-        Math.min(
-          testScores.length - 1,
-          (nextMatch.matchNumber ?? 1) - 1
-        )
-      );
+      const scoreIndex =
+        Math.max(0, (nextMatch.matchNumber ?? 1) - 1) %
+        testScores.length;
 
       const [testHomeScore, testAwayScore] =
         testScores[scoreIndex];
@@ -328,7 +393,7 @@ export default function AdminPage() {
         );
       }
 
-      await loadMatches();
+      await loadMatches(selectedTournamentId);
 
       setSuccessMessage(
         `Test game ${nextMatch.matchNumber} completed: ${nextMatch.homeTeam.shortCode} ${testHomeScore} - ${testAwayScore} ${nextMatch.awayTeam.shortCode}.`
@@ -354,6 +419,12 @@ export default function AdminPage() {
         "/api/admin/results/reset",
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tournamentId: selectedTournamentId,
+          }),
         }
       );
 
@@ -372,7 +443,7 @@ export default function AdminPage() {
       await loadMatches();
 
       setSuccessMessage(
-        "All current competition scores and calculated scoring have been reset. Test games scored: 0 / 15."
+        `All selected competition scores and calculated scoring have been reset. Test games scored: 0 / ${matches.length}.`
       );
     } catch (error) {
       setErrorMessage(
@@ -437,8 +508,16 @@ export default function AdminPage() {
         selectedMatchId
     );
 
+  const selectedCompetition =
+    competitions.find(
+      (competition) =>
+        competition.id === selectedTournamentId
+    ) ?? null;
+
   const tournamentOneMatches =
     getCurrentTournamentMatches();
+
+  const totalTestGames = tournamentOneMatches.length;
 
   const testGamesScored =
     tournamentOneMatches.filter(
@@ -463,6 +542,39 @@ export default function AdminPage() {
           title="Admin Results Entry"
           subtitle="Manage match results and tournament scoring"
         />
+
+        <div className="mb-6">
+          <Card title="Competition">
+            {competitions.length > 0 ? (
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-[var(--brand-navy)]">
+                  Select tournament
+                  <select
+                    className="mt-2 w-full rounded-lg border border-[var(--brand-border)] bg-white px-3 py-2"
+                    value={selectedTournamentId ?? ""}
+                    onChange={(event) =>
+                      void changeTournament(Number(event.target.value))
+                    }
+                  >
+                    {competitions.map((competition) => (
+                      <option key={competition.id} value={competition.id}>
+                        {formatCompetitionTitle(competition.name, competition.year)}
+                        {competition.status ? ` · ${competition.status}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="text-sm text-[var(--brand-muted)]">
+                  Fixtures, result entry and testing controls below apply only to the selected tournament.
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-[var(--brand-muted)]">
+                No competitions with fixtures are available for result entry.
+              </p>
+            )}
+          </Card>
+        </div>
 
         <div className="mb-6">
           <Card title="Communications">
@@ -491,10 +603,10 @@ export default function AdminPage() {
             <div className="space-y-4">
               <div>
                 <p className="font-semibold text-[var(--brand-navy)]">
-                  Test Games Scored: {testGamesScored} / 15
+                  Test Games Scored: {testGamesScored} / {totalTestGames}
                 </p>
                 <p className="mt-1 text-sm text-[var(--brand-muted)]">
-                  Complete one current-competition fixture per click. Press the first button 15 times to score all 15 games. Reset removes the entered results and all calculated scoring while keeping entrants and their predictions.
+                  Complete one selected-competition fixture per click. Reset removes entered results and calculated scoring for this tournament while keeping entrants and their predictions.
                 </p>
               </div>
 
@@ -503,13 +615,14 @@ export default function AdminPage() {
                   fullWidth
                   disabled={
                     testActionRunning ||
-                    testGamesScored >= 15
+                    totalTestGames === 0 ||
+                    testGamesScored >= totalTestGames
                   }
                   onClick={completeNextTestGame}
                 >
                   {testActionRunning
                     ? "Working..."
-                    : `Complete Next Test Game (${testGamesScored}/15)`}
+                    : `Complete Next Test Game (${testGamesScored}/${totalTestGames})`}
                 </Button>
 
                 <Button
@@ -517,6 +630,7 @@ export default function AdminPage() {
                   variant="secondary"
                   disabled={
                     testActionRunning ||
+                    !selectedTournamentId ||
                     testGamesScored === 0
                   }
                   onClick={resetAllTestScores}
@@ -549,7 +663,16 @@ export default function AdminPage() {
         )}
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <Card title="Fixtures">
+          <Card
+            title={
+              selectedCompetition
+                ? `Fixtures — ${formatCompetitionTitle(
+                    selectedCompetition.name,
+                    selectedCompetition.year
+                  )}`
+                : "Fixtures"
+            }
+          >
             <div className="max-h-[700px] space-y-2 overflow-y-auto">
               {matches.map(
                 (match) => (
