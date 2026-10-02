@@ -91,6 +91,10 @@ describe("GET /api/admin/matches", () => {
         awayTeam: true,
         tournament: {
           select: {
+            id: true,
+            name: true,
+            year: true,
+            status: true,
             firstKickoff: true,
           },
         },
