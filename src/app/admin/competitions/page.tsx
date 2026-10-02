@@ -78,7 +78,12 @@ function isCrossYear(name: string) {
 
 function supportsOnlineFixtureSearch(name: string) {
   const key = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-  return key.includes("unitedrugbychampionship") || key.includes("challengecup");
+  return (
+    key.includes("unitedrugbychampionship") ||
+    key.includes("challengecup") ||
+    key.includes("rugbyworldcup") ||
+    key === "worldcup"
+  );
 }
 
 function fixtureValidationWarnings(
