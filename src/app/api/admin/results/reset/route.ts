@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { requireCurrentViewableTournament } from "@/lib/currentTournament";
+import { COMPETITION_STORY_PREFIX } from "@/lib/competitionStories";
 
 export async function POST(request: Request) {
   try {
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
         ? "OPEN"
         : tournament.status;
 
-    await prisma.$transaction(async (tx) => {
+    const resetResult = await prisma.$transaction(async (tx) => {
       await tx.scoreAudit.deleteMany({
         where: { matchId: { in: matchIds } },
       });
@@ -100,6 +101,14 @@ export async function POST(request: Request) {
         where: { tournamentId: tournament.id },
       });
 
+      const newsReset = await tx.systemSetting.deleteMany({
+        where: {
+          key: {
+            startsWith: COMPETITION_STORY_PREFIX + tournament.id + "_",
+          },
+        },
+      });
+
       if (nextTournamentStatus !== tournament.status) {
         await tx.tournament.update({
           where: { id: tournament.id },
@@ -123,6 +132,10 @@ export async function POST(request: Request) {
           value: "false",
         },
       });
+
+      return {
+        newsStoriesRemoved: newsReset.count,
+      };
     });
 
     return NextResponse.json({
@@ -131,6 +144,8 @@ export async function POST(request: Request) {
       resetMatches: matchIds.length,
       testGamesScored: 0,
       auditHistoryCleared: true,
+      newsReset: true,
+      newsStoriesRemoved: resetResult.newsStoriesRemoved,
     });
   } catch (error) {
     console.error("Failed to reset competition scores:", error);

@@ -443,7 +443,7 @@ export default function AdminPage() {
       await loadMatches();
 
       setSuccessMessage(
-        `All selected competition scores and calculated scoring have been reset. Test games scored: 0 / ${matches.length}.`
+        `All selected competition scores, calculated scoring and generated news have been reset. Test games scored: 0 / ${matches.length}.`
       );
     } catch (error) {
       setErrorMessage(
@@ -606,7 +606,7 @@ export default function AdminPage() {
                   Test Games Scored: {testGamesScored} / {totalTestGames}
                 </p>
                 <p className="mt-1 text-sm text-[var(--brand-muted)]">
-                  Complete one selected-competition fixture per click. Reset removes entered results and calculated scoring for this tournament while keeping entrants and their predictions.
+                  Complete one selected-competition fixture per click. Reset removes entered results, calculated scoring and all generated News reports for this tournament while keeping entrants and their predictions.
                 </p>
               </div>
 
