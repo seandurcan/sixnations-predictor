@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCompetitionTitle } from "@/lib/competitionTitle";
 import { assignCompetitionRanks } from "@/lib/scoring";
 import { headers } from "next/headers";
+import { COMPETITION_INTRO_STORY_PREFIX, ensureCompetitionIntroductionStories } from "@/lib/competitionIntroductionStories";
 
 export const COMPETITION_STORY_PREFIX = "COMPETITION_STORY_";
 
@@ -11,12 +12,14 @@ const FALLBACK_RETRY_MS = 6 * 60 * 60 * 1000;
 export type StoryPayload = {
   tournamentId: number;
   round: number;
+  kind?: "round" | "introduction";
   headline: string;
   standfirst?: string;
   body: string;
   generatedAt: string;
   version?: number;
   generation?: "ai" | "fallback";
+  sources?: Array<{ label: string; url: string }>;
 };
 
 type EntryWithUser = {
@@ -736,6 +739,7 @@ export async function generateCompletedRoundStory(
   const payload: StoryPayload = {
     tournamentId,
     round,
+    kind: "round",
     headline: article.headline,
     standfirst: article.standfirst,
     body: article.body,
@@ -768,8 +772,15 @@ function shouldRefreshStory(story: StoryPayload) {
 }
 
 export async function listCompetitionStories() {
+  await ensureCompetitionIntroductionStories();
+
   let settings = await prisma.systemSetting.findMany({
-    where: { key: { startsWith: COMPETITION_STORY_PREFIX } },
+    where: {
+      OR: [
+        { key: { startsWith: COMPETITION_STORY_PREFIX } },
+        { key: { startsWith: COMPETITION_INTRO_STORY_PREFIX } },
+      ],
+    },
     orderBy: { updatedAt: "desc" },
   });
 
@@ -781,7 +792,9 @@ export async function listCompetitionStories() {
     }
   });
 
-  const refresh = parsed.filter(shouldRefreshStory);
+  const refresh = parsed.filter(
+    (story) => story.kind !== "introduction" && shouldRefreshStory(story)
+  );
   if (refresh.length > 0) {
     await Promise.all(
       refresh.map((story) =>
@@ -795,7 +808,12 @@ export async function listCompetitionStories() {
     );
 
     settings = await prisma.systemSetting.findMany({
-      where: { key: { startsWith: COMPETITION_STORY_PREFIX } },
+      where: {
+        OR: [
+          { key: { startsWith: COMPETITION_STORY_PREFIX } },
+          { key: { startsWith: COMPETITION_INTRO_STORY_PREFIX } },
+        ],
+      },
       orderBy: { updatedAt: "desc" },
     });
   }
@@ -808,9 +826,9 @@ export async function listCompetitionStories() {
         return [];
       }
     })
-    .sort((a, b) =>
-      a.tournamentId === b.tournamentId
-        ? b.round - a.round
-        : Date.parse(b.generatedAt) - Date.parse(a.generatedAt)
+    .sort(
+      (a, b) =>
+        Date.parse(b.generatedAt) - Date.parse(a.generatedAt) ||
+        b.round - a.round
     );
 }

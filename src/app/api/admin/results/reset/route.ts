@@ -144,7 +144,7 @@ export async function POST(request: Request) {
       resetMatches: matchIds.length,
       testGamesScored: 0,
       auditHistoryCleared: true,
-      newsReset: true,
+      roundNewsReset: true,
       newsStoriesRemoved: resetResult.newsStoriesRemoved,
     });
   } catch (error) {

@@ -15,11 +15,13 @@ type NewsCompetition = {
 type NewsStory = {
   tournamentId: number;
   round: number;
+  kind?: "round" | "introduction";
   headline: string;
   standfirst?: string;
   body: string;
   generatedAt: string;
   generation?: "ai" | "fallback";
+  sources?: Array<{ label: string; url: string }>;
 };
 
 export default function CompetitionNews({
@@ -57,7 +59,11 @@ export default function CompetitionNews({
     () =>
       stories
         .filter((story) => story.tournamentId === selectedCompetitionId)
-        .sort((a, b) => b.round - a.round),
+        .sort(
+          (a, b) =>
+            Date.parse(b.generatedAt) - Date.parse(a.generatedAt) ||
+            b.round - a.round
+        ),
     [stories, selectedCompetitionId]
   );
 
@@ -147,8 +153,27 @@ export default function CompetitionNews({
                   ))}
               </div>
 
-              <p className="mt-5 border-t border-slate-200 pt-3 text-xs text-[var(--brand-muted)]">
-                Round {story.round} {" - "}
+              {story.sources?.length ? (
+                <div className="mt-5 border-t border-slate-200 pt-3 text-xs text-[var(--brand-muted)]">
+                  <span className="font-semibold">Official sources:</span>{" "}
+                  {story.sources.map((source, index) => (
+                    <span key={source.url}>
+                      {index > 0 ? " · " : ""}
+                      <a
+                        className="underline underline-offset-2 hover:text-[var(--brand-blue)]"
+                        href={source.url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {source.label}
+                      </a>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              <p className={`${story.sources?.length ? "mt-2" : "mt-5 border-t border-slate-200 pt-3"} text-xs text-[var(--brand-muted)]`}>
+                {story.kind === "introduction" ? "Competition Preview" : `Round ${story.round}`} {" - "}
                 {story.generation === "ai"
                   ? "AI-written from verified Perfect XV competition data"
                   : "Generated from verified Perfect XV competition data"}
