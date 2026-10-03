@@ -9,6 +9,7 @@ import {
 import { validateCompetitionReadiness } from "@/lib/competitionReadiness";
 import { isSixNationsCompetition } from "@/lib/fixtureDiscovery";
 import { formatCompetitionTitle } from "@/lib/competitionTitle";
+import { sortCompetitionsBySchedule } from "@/lib/competitionOrder";
 
 const PERMANENT_TEAMS = [
   "England",
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
     currentTournamentId: currentTournament?.id ?? null,
     permanentTeams: teams,
     permanentTeamSetComplete: teams.length === PERMANENT_TEAMS.length,
-    competitions,
+    competitions: sortCompetitionsBySchedule(competitions),
   });
 }
 

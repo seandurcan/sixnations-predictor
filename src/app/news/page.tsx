@@ -1,12 +1,40 @@
-import Card from "@/components/ui/Card";
 import PageContainer from "@/components/layout/PageContainer";
 import PageHeader from "@/components/ui/PageHeader";
+import CompetitionNews from "@/components/news/CompetitionNews";
 import { listCompetitionStories } from "@/lib/competitionStories";
+import {
+  VIEWABLE_TOURNAMENT_STATUSES,
+  getCurrentViewableTournament,
+} from "@/lib/currentTournament";
+import { sortCompetitionsBySchedule } from "@/lib/competitionOrder";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewsPage() {
-  const stories = await listCompetitionStories();
+  const [stories, competitions, currentCompetition] = await Promise.all([
+    listCompetitionStories(),
+    prisma.tournament.findMany({
+      where: {
+        status: { in: [...VIEWABLE_TOURNAMENT_STATUSES] },
+      },
+      select: {
+        id: true,
+        name: true,
+        year: true,
+        status: true,
+        firstKickoff: true,
+      },
+    }),
+    getCurrentViewableTournament(),
+  ]);
+
+  const orderedCompetitions = sortCompetitionsBySchedule(competitions).map(
+    (competition) => ({
+      ...competition,
+      firstKickoff: competition.firstKickoff?.toISOString() ?? null,
+    })
+  );
 
   return (
     <main className="bg-white p-4 text-[var(--brand-navy)] sm:p-8">
@@ -16,43 +44,11 @@ export default async function NewsPage() {
           subtitle="Round-by-round reports from the Perfect XV sports desk"
         />
 
-        <div className="space-y-6">
-          {stories.length === 0 ? (
-            <Card title="No stories yet">
-              <p className="text-sm text-[var(--brand-muted)]">
-                Competition reports will appear here automatically after completed rounds.
-              </p>
-            </Card>
-          ) : (
-            stories.map((story) => (
-              <Card key={story.tournamentId + "-" + story.round} title={story.headline}>
-                {story.standfirst ? (
-                  <p className="mb-5 text-base font-semibold leading-7 text-[var(--brand-navy)]">
-                    {story.standfirst}
-                  </p>
-                ) : null}
-
-                <div className="space-y-4">
-                  {story.body
-                    .split(/\n{2,}/)
-                    .filter(Boolean)
-                    .map((paragraph, index) => (
-                      <p key={index} className="leading-7">
-                        {paragraph}
-                      </p>
-                    ))}
-                </div>
-
-                <p className="mt-5 border-t border-slate-200 pt-3 text-xs text-[var(--brand-muted)]">
-                  Round {story.round} {" - "}
-                  {story.generation === "ai"
-                    ? "AI-written from verified Perfect XV competition data"
-                    : "Generated from verified Perfect XV competition data"}
-                </p>
-              </Card>
-            ))
-          )}
-        </div>
+        <CompetitionNews
+          competitions={orderedCompetitions}
+          stories={stories}
+          initialCompetitionId={currentCompetition?.id ?? orderedCompetitions[0]?.id ?? null}
+        />
       </PageContainer>
     </main>
   );

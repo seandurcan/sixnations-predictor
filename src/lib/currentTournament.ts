@@ -19,25 +19,7 @@ function isViewableStatus(status: string) {
   return VIEWABLE_TOURNAMENT_STATUSES.includes(status as ViewableStatus);
 }
 
-async function selectedTournament() {
-  const selected = await prisma.systemSetting.findUnique({
-    where: { key: CURRENT_TOURNAMENT_SETTING },
-  });
-
-  const selectedId = Number(selected?.value);
-  if (!Number.isInteger(selectedId) || selectedId <= 0) return null;
-
-  return prisma.tournament.findUnique({
-    where: { id: selectedId },
-  });
-}
-
 export async function getCurrentTournament() {
-  const selected = await selectedTournament();
-  if (selected && isActiveStatus(selected.status)) {
-    return selected;
-  }
-
   return prisma.tournament.findFirst({
     where: { status: { in: [...ACTIVE_TOURNAMENT_STATUSES] } },
     orderBy: [{ firstKickoff: "asc" }, { id: "asc" }],
@@ -45,19 +27,11 @@ export async function getCurrentTournament() {
 }
 
 export async function getCurrentViewableTournament() {
-  const selected = await selectedTournament();
-  if (selected && isViewableStatus(selected.status)) {
-    return selected;
-  }
-
-  const active = await prisma.tournament.findFirst({
-    where: { status: { in: [...ACTIVE_TOURNAMENT_STATUSES] } },
-    orderBy: [{ firstKickoff: "asc" }, { id: "asc" }],
-  });
+  const active = await getCurrentTournament();
   if (active) return active;
 
   return prisma.tournament.findFirst({
-    where: { status: "COMPLETED" },
+    where: { status: { in: ["COMPLETED", "ARCHIVED"] } },
     orderBy: [{ firstKickoff: "desc" }, { id: "desc" }],
   });
 }

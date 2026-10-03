@@ -6,6 +6,7 @@ import {
   getCurrentViewableTournament,
 } from "@/lib/currentTournament";
 import { prisma } from "@/lib/prisma";
+import { sortCompetitionsBySchedule } from "@/lib/competitionOrder";
 
 export const dynamic = "force-dynamic";
 
@@ -33,12 +34,13 @@ export async function GET() {
   });
 
   const current = await getCurrentViewableTournament();
+  const orderedTournaments = sortCompetitionsBySchedule(tournaments);
 
-  const entries = user && tournaments.length > 0
+  const entries = user && orderedTournaments.length > 0
     ? await prisma.competitionEntry.findMany({
         where: {
           userId: user.id,
-          tournamentId: { in: tournaments.map((tournament) => tournament.id) },
+          tournamentId: { in: orderedTournaments.map((tournament) => tournament.id) },
         },
         select: {
           tournamentId: true,
@@ -52,7 +54,7 @@ export async function GET() {
 
   return NextResponse.json({
     currentTournamentId: current?.id ?? null,
-    competitions: tournaments.map((tournament) => ({
+    competitions: orderedTournaments.map((tournament) => ({
       id: tournament.id,
       name: tournament.name,
       year: tournament.year,
