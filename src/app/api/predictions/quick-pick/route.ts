@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { fixturePredictionIsLocked } from "@/lib/predictionLocking";
+import { cancelScheduledFinalPredictionReminder } from "@/lib/reminders/reminderService";
 
 function randomScore() {
   return Math.floor(Math.random() * 41);
@@ -72,6 +73,9 @@ export async function POST(request: Request) {
       homeScore: randomScore(),
       awayScore: randomScore(),
     }));
+    const completedEntry =
+      completedEntry;
+
     await prisma.$transaction([
       ...picks.map((pick) =>
         prisma.prediction.upsert({
@@ -91,9 +95,9 @@ export async function POST(request: Request) {
       prisma.user.update({
         where: { id: user.id },
         data: {
-          predictionsSubmitted: openMatches.length === tournament.matches.length,
+          predictionsSubmitted: completedEntry,
           predictionSubmittedAt:
-            openMatches.length === tournament.matches.length && !user.predictionSubmittedAt
+            completedEntry && !user.predictionSubmittedAt
               ? new Date()
               : undefined,
         },
@@ -101,14 +105,21 @@ export async function POST(request: Request) {
       prisma.competitionEntry.update({
         where: { id: competitionEntry.id },
         data: {
-          predictionsSubmitted: openMatches.length === tournament.matches.length,
+          predictionsSubmitted: completedEntry,
           predictionSubmittedAt:
-            openMatches.length === tournament.matches.length && !competitionEntry.predictionSubmittedAt
+            completedEntry && !competitionEntry.predictionSubmittedAt
               ? new Date()
               : undefined,
         },
       }),
     ]);
+
+    if (completedEntry) {
+      await cancelScheduledFinalPredictionReminder(
+        user.id,
+        tournament.id
+      );
+    }
 
     return NextResponse.json({
       success: true,
