@@ -47,6 +47,18 @@ function parsedDate(value: Date | string | null | undefined) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+export function effectiveCompetitionPredictionLockAt(input: {
+  firstKickoff?: Date | string | null;
+  configuredPredictionLockAt?: Date | string | null;
+}) {
+  const firstKickoff = parsedDate(input.firstKickoff);
+  if (firstKickoff) {
+    return new Date(firstKickoff.getTime() - 60_000);
+  }
+
+  return parsedDate(input.configuredPredictionLockAt);
+}
+
 export function fixturePredictionLockAt(input: {
   competitionName: string;
   tournamentPredictionLockAt?: Date | string | null;
@@ -61,14 +73,14 @@ export function fixturePredictionLockAt(input: {
 
   const stageKey = predictionStageKey(input.competitionName, targetRound);
 
-  if (stageKey === "TOURNAMENT") {
-    const configured = parsedDate(input.tournamentPredictionLockAt);
-    if (configured) return configured;
-  }
-
   const stageMatches = (input.tournamentMatches ?? []).filter(
     (match) => predictionStageKey(input.competitionName, match.round) === stageKey
   );
+
+  if (stageKey === "TOURNAMENT" && stageMatches.length === 0) {
+    const configured = parsedDate(input.tournamentPredictionLockAt);
+    if (configured) return configured;
+  }
 
   const firstStageKickoff = stageMatches
     .map((match) => parsedDate(match.kickoffTime))
