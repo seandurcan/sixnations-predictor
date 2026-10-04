@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { PDFDocument, StandardFonts, rgb, type PDFImage, type PDFFont, type PDFPage } from "pdf-lib";
 import { formatCompetitionTitle } from "@/lib/competitionTitle";
+import { effectiveCompetitionPredictionLockAt } from "@/lib/predictionLocking";
 
 export type PredictionPdfRow = {
   id: number;
