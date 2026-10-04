@@ -21,12 +21,13 @@ const sections = [
   ["reminders", "10. Verification and prediction reminders"],
   ["results", "11. Match results and live scoring"],
   ["scoring", "12. Scoring and leaderboard checks"],
-  ["completion", "13. Competition completion and prizes"],
-  ["audit", "14. Audit History"],
-  ["testing", "15. Testing controls"],
-  ["operations", "16. Deployment and operations"],
-  ["matchday", "17. Match-day checklist"],
-  ["support", "18. Support Assistant learning"],
+  ["news", "13. News and competition reports"],
+  ["completion", "14. Competition completion and prizes"],
+  ["audit", "15. Audit History"],
+  ["testing", "16. Testing controls"],
+  ["operations", "17. Deployment and operations"],
+  ["matchday", "18. Match-day checklist"],
+  ["support", "19. Support Assistant learning"],
 ] as const;
 
 function Checklist({ items }: { items: React.ReactNode[] }) {
@@ -254,20 +255,32 @@ export default function AdministrationManualPage() {
             </Card>
           </section>
 
+          <section id="news" className="scroll-mt-28">
+            <Card title="13. News and Competition Reports">
+              <Checklist items={[
+                <>News is competition-specific. The News page creates its competition buttons automatically from active/historical competition data and follows the current/next competition ordering.</>,
+                <>An active competition receives a pre-tournament introduction covering its dates, duration, teams, recent winners and useful verified background.</>,
+                <>After play begins, round reports are generated from verified Perfect XV match, prediction and leaderboard data.</>,
+                <>When <strong>Reset All Game Scores</strong> is used for a selected competition during testing, delete that competition&apos;s generated round reports because those games are no longer treated as played. Retain the pre-tournament introduction.</>,
+                <>Review News after fixture/result changes to ensure a report never describes a match as completed when the corresponding result has been reset or corrected.</>,
+              ]} />
+            </Card>
+          </section>
+
           <section id="completion" className="scroll-mt-28">
-            <Card title="13. Competition Completion and Prizes">
+            <Card title="14. Competition Completion and Prizes">
               <Checklist items={[
                 <>Confirm every fixture is final before closing a competition.</>,
                 <>Verify the final leaderboard and any joint positions before publishing winners.</>,
                 <>Prize allocation uses the 3:2:1 split.</>,
                 <>Two joint winners share first and second prize; three or more joint winners share the top three prizes equally.</>,
-                <>Keep winner and historical leaderboard records available for later reference/download.</>,
+                <>Keep winner and historical leaderboard records available for later reference.</>,
               ]} />
             </Card>
           </section>
 
           <section id="audit" className="scroll-mt-28">
-            <Card title="14. Audit History">
+            <Card title="15. Audit History">
               <p className="text-[var(--brand-muted)]">
                 Audit History is the read-only record of important administrative actions, including result
                 changes and controlled account-support actions. Use filters to investigate who changed what
@@ -277,7 +290,7 @@ export default function AdministrationManualPage() {
           </section>
 
           <section id="testing" className="scroll-mt-28">
-            <Card title="15. Testing Controls">
+            <Card title="16. Testing Controls">
               <Checklist items={[
                 <>Use testing controls only against staging/test data.</>,
                 <>Select the intended tournament before using Admin Results testing controls.</>,
@@ -289,7 +302,7 @@ export default function AdministrationManualPage() {
           </section>
 
           <section id="operations" className="scroll-mt-28">
-            <Card title="16. Deployment and Operations">
+            <Card title="17. Deployment and Operations">
               <Checklist items={[
                 <>Deploy changes to staging first.</>,
                 <>Verify the affected workflow on staging before production promotion.</>,
@@ -304,7 +317,7 @@ export default function AdministrationManualPage() {
           </section>
 
           <section id="matchday" className="scroll-mt-28">
-            <Card title="17. Match-Day Checklist">
+            <Card title="18. Match-Day Checklist">
               <Checklist items={[
                 <>Before kick-off, confirm fixture time, teams and live-score readiness.</>,
                 <>Confirm the applicable prediction deadline is one minute before the first kick-off of the tournament or stage, and verify the two-hour final reminder was queued/sent for the first competition kick-off.</>,
@@ -320,7 +333,7 @@ export default function AdministrationManualPage() {
           </section>
 
           <section id="support" className="scroll-mt-28">
-            <Card title="18. Support Assistant Learning">
+            <Card title="19. Support Assistant Learning">
               <Checklist items={[
                 <>Open <strong>Support Insights</strong> from the Admin menu to review recent support questions, helpful/not-helpful feedback and proposed wording-to-topic mappings.</>,
                 <>A mapping proposal is created when a user selects one of the assistant&apos;s likely-answer options.</>,
