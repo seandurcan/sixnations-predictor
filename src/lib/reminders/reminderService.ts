@@ -223,3 +223,138 @@ export async function processReminders(action: ReminderAction) {
     manualOverrideUntil: MANUAL_OVERRIDE_UNTIL_ISO,
   };
 }
+
+
+export type ScheduledFinalReminderKind = "PREDICTION" | "VERIFICATION";
+
+export const FINAL_REMINDER_EMAIL_PREFIX = "FINAL_REMINDER_EMAIL_";
+
+export function finalReminderSettingKey(
+  kind: ScheduledFinalReminderKind,
+  userId: number,
+  tournamentId: number
+) {
+  return `${FINAL_REMINDER_EMAIL_PREFIX}${kind}_${userId}_${tournamentId}`;
+}
+
+type ScheduledFinalReminderRecord = {
+  emailId: string;
+  scheduledAt: string;
+};
+
+function readScheduledReminder(value: string): ScheduledFinalReminderRecord | null {
+  try {
+    const parsed = JSON.parse(value) as Partial<ScheduledFinalReminderRecord>;
+    if (
+      typeof parsed.emailId === "string" &&
+      parsed.emailId &&
+      typeof parsed.scheduledAt === "string"
+    ) {
+      return {
+        emailId: parsed.emailId,
+        scheduledAt: parsed.scheduledAt,
+      };
+    }
+  } catch {
+    // Ignore malformed legacy settings.
+  }
+  return null;
+}
+
+export async function recordScheduledFinalReminder(input: {
+  kind: ScheduledFinalReminderKind;
+  userId: number;
+  tournamentId: number;
+  emailId: string;
+  scheduledAt: Date;
+}) {
+  const key = finalReminderSettingKey(
+    input.kind,
+    input.userId,
+    input.tournamentId
+  );
+
+  await prisma.systemSetting.upsert({
+    where: { key },
+    update: {
+      value: JSON.stringify({
+        emailId: input.emailId,
+        scheduledAt: input.scheduledAt.toISOString(),
+      }),
+    },
+    create: {
+      key,
+      value: JSON.stringify({
+        emailId: input.emailId,
+        scheduledAt: input.scheduledAt.toISOString(),
+      }),
+    },
+  });
+}
+
+export async function hasScheduledFinalReminder(input: {
+  kind: ScheduledFinalReminderKind;
+  userId: number;
+  tournamentId: number;
+}) {
+  const setting = await prisma.systemSetting.findUnique({
+    where: {
+      key: finalReminderSettingKey(
+        input.kind,
+        input.userId,
+        input.tournamentId
+      ),
+    },
+    select: { key: true },
+  });
+  return Boolean(setting);
+}
+
+async function cancelSetting(key: string, value: string) {
+  const scheduled = readScheduledReminder(value);
+  if (!scheduled || !process.env.RESEND_API_KEY) return false;
+
+  try {
+    await resend.emails.cancel(scheduled.emailId);
+    await prisma.systemSetting.delete({ where: { key } }).catch(() => undefined);
+    return true;
+  } catch (error) {
+    console.error("Unable to cancel scheduled final reminder", {
+      key,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+export async function cancelScheduledFinalPredictionReminder(
+  userId: number,
+  tournamentId: number
+) {
+  const key = finalReminderSettingKey("PREDICTION", userId, tournamentId);
+  const setting = await prisma.systemSetting.findUnique({
+    where: { key },
+    select: { key: true, value: true },
+  });
+  if (!setting) return false;
+  return cancelSetting(setting.key, setting.value);
+}
+
+export async function cancelScheduledFinalVerificationReminders(
+  userId: number
+) {
+  const settings = await prisma.systemSetting.findMany({
+    where: {
+      key: {
+        startsWith: `${FINAL_REMINDER_EMAIL_PREFIX}VERIFICATION_${userId}_`,
+      },
+    },
+    select: { key: true, value: true },
+  });
+
+  const results = await Promise.all(
+    settings.map((setting) => cancelSetting(setting.key, setting.value))
+  );
+
+  return results.filter(Boolean).length;
+}
