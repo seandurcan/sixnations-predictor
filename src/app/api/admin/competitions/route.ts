@@ -10,6 +10,7 @@ import { validateCompetitionReadiness } from "@/lib/competitionReadiness";
 import { isSixNationsCompetition } from "@/lib/fixtureDiscovery";
 import { formatCompetitionTitle } from "@/lib/competitionTitle";
 import { sortCompetitionsBySchedule } from "@/lib/competitionOrder";
+import { effectiveCompetitionPredictionLockAt } from "@/lib/predictionLocking";
 
 const PERMANENT_TEAMS = [
   "England",
@@ -44,7 +45,13 @@ export async function GET(request: NextRequest) {
     currentTournamentId: currentTournament?.id ?? null,
     permanentTeams: teams,
     permanentTeamSetComplete: teams.length === PERMANENT_TEAMS.length,
-    competitions: sortCompetitionsBySchedule(competitions),
+    competitions: sortCompetitionsBySchedule(competitions).map((competition) => ({
+      ...competition,
+      predictionLockAt: effectiveCompetitionPredictionLockAt({
+        firstKickoff: competition.firstKickoff,
+        configuredPredictionLockAt: competition.predictionLockAt,
+      }),
+    })),
   });
 }
 
