@@ -115,12 +115,14 @@ export default function AdminDocsPage() {
           <Card title="4. Post-Deployment Verification">
             <Checklist items={[
               <>Confirm login, logout, email verification and password reset still work.</>,
-              <>Open Predictions and verify the correct competition is selected.</>,
-              <>Before lock, verify prediction entry/editing, Quick Pick and the “Time until all predictions lock” countdown.</>,
+              <>Open Predictions and verify the correct competition is selected. The current competition must be the active competition with the soonest first kick-off, followed by the next soonest.</>,
+              <>Before lock, verify prediction entry/editing, Quick Pick and the countdown. For tournament-wide entry, the deadline must resolve to exactly one minute before the first kick-off; stage-based competitions must show the appropriate stage deadline.</>,
+              <>Verify the four-, three-, two- and one-week reminder milestones and that the final email is queued for exactly two hours before first kick-off.</>,
               <>After completed test results, verify Match Points use 1 + 2 + 3 scoring and an exact score totals 6 points.</>,
               <>Verify Prediction Delta sign and Cumulative Prediction Delta display.</>,
-              <>Verify leaderboard totals, ranking and movement after a completed result.</>,
-              <>Check Admin Results, Competition Manager, Entrants, Users, Communications and Audit History.</>,
+              <>Verify leaderboard totals, ranking and movement after a completed result, then test the PDF download for the selected competition.</>,
+              <>Check competition-specific News buttons, introductory News, round-report generation and reset behaviour.</>,
+              <>Check Admin Results, Competition Manager, Entrants, Users, Communications, Support Insights and Audit History.</>,
               <>Check Vercel runtime errors after the release.</>,
             ]} />
           </Card>
@@ -187,10 +189,14 @@ export default function AdminDocsPage() {
             ]} />
           </Card>
 
-          <Card title="9. Email Operations">
+          <Card title="9. Email and Reminder Operations">
             <Checklist items={[
               <>Treat provider/API acceptance and actual mailbox delivery as separate checks.</>,
               <>Verification, password reset, prediction reminders, announcements and locked-prediction confirmations use different workflows and should be tested separately.</>,
+              <>The weekly prediction-reminder sequence is four, three, two and one week before first kick-off. The final reminder is exactly two hours before first kick-off.</>,
+              <>The Vercel team is on the Hobby plan, where Cron Jobs run at most daily with coarse timing. The daily final-reminder scheduler therefore uses Resend&apos;s scheduled-delivery facility to queue the final email for the exact two-hour timestamp.</>,
+              <>If a user completes all required predictions before a queued final reminder is delivered, Perfect XV attempts to cancel the scheduled provider email. Successful email verification similarly cancels queued final verification reminders.</>,
+              <>Check the daily reminder cron responses and email-provider scheduling records before assuming a reminder was delivered.</>,
               <>Respect unsubscribe and email-preference settings for optional communications.</>,
               <>Before a bulk announcement, verify audience selection, message content and competition context on staging where possible.</>,
             ]} />
@@ -210,6 +216,7 @@ export default function AdminDocsPage() {
               <>Record the exact page, account role, competition, time and action that produced the fault.</>,
               <>Check the user-visible message and network/API status where available.</>,
               <>Check the relevant Vercel deployment state and runtime logs.</>,
+              <>For reminder incidents, distinguish between the daily Vercel scheduler run, a successfully queued Resend email, cancellation of a queued reminder, and actual mailbox delivery.</>,
               <>Compare staging and production before assuming the same code is live in both.</>,
               <>For scoring issues, independently calculate one affected match before changing code.</>,
               <>Make one targeted correction, redeploy to staging, and repeat the same verification path.</>,
@@ -221,6 +228,9 @@ export default function AdminDocsPage() {
               <>Staging deployment is READY.</>,
               <>Affected staging workflow has been manually verified.</>,
               <>Scoring and leaderboard checks pass if the release touches predictions/results.</>,
+              <>If the release touches competition timing, verify current/next ordering, the one-minute lock calculation, weekly reminder milestones and the exact two-hour final scheduled reminder.</>,
+              <>If the release touches competition/news administration, verify automatic fixture discovery, safe competition removal, Admin Results tournament selection, News competition buttons and News reset behaviour.</>,
+              <>Confirm User Manual, Administration Manual and Operational Documentation match the released behaviour.</>,
               <>No unexpected staging runtime errors remain.</>,
               <>Database migration requirements are understood and backed up.</>,
               <>Production change contains the same verified code, with no unrelated branch drift.</>,
