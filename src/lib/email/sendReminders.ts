@@ -22,12 +22,13 @@ async function sendOrThrow(message: {
   to: string;
   subject: string;
   text: string;
+  scheduledAt?: string;
 }) {
   if (!process.env.RESEND_API_KEY) {
     throw new Error("RESEND_API_KEY is not configured.");
   }
 
-  const { error } = await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from: FROM_ADDRESS,
     ...message,
   });
@@ -35,6 +36,8 @@ async function sendOrThrow(message: {
   if (error) {
     throw new Error(error.message || "Resend rejected the email.");
   }
+
+  return data;
 }
 
 export async function sendVerificationReminder(
@@ -44,7 +47,8 @@ export async function sendVerificationReminder(
     email: string;
   },
   finalReminder = false,
-  timeRemaining?: string
+  timeRemaining?: string,
+  scheduledAt?: Date
 ) {
   const token = crypto.randomUUID() + crypto.randomUUID();
 
@@ -53,7 +57,9 @@ export async function sendVerificationReminder(
       data: {
         userId: user.id,
         token,
-        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+        expiresAt: new Date(
+          (scheduledAt?.getTime() ?? Date.now()) + 60 * 60 * 1000
+        ),
       },
     });
 
@@ -64,13 +70,15 @@ export async function sendVerificationReminder(
       timeRemaining
     );
 
-    await sendOrThrow({
+    const data = await sendOrThrow({
       to: user.email,
       subject: email.subject,
       text: email.text,
+      scheduledAt: scheduledAt?.toISOString(),
     });
 
     await recordVerificationReminder(user.id);
+    return { emailId: data?.id ?? null };
   } catch (error) {
     await prisma.emailVerification
       .delete({ where: { token } })
@@ -86,7 +94,8 @@ export async function sendPredictionReminder(
     email: string;
   },
   finalReminder = false,
-  timeRemaining?: string
+  timeRemaining?: string,
+  scheduledAt?: Date
 ) {
   const email = buildPredictionReminderEmail(
     user.firstName,
@@ -95,11 +104,13 @@ export async function sendPredictionReminder(
     timeRemaining
   );
 
-  await sendOrThrow({
+  const data = await sendOrThrow({
     to: user.email,
     subject: email.subject,
     text: email.text,
+    scheduledAt: scheduledAt?.toISOString(),
   });
 
   await recordPredictionReminder(user.id);
+  return { emailId: data?.id ?? null };
 }
