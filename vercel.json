@@ -3,11 +3,11 @@
   "crons": [
     {
       "path": "/cron/reminders",
-      "schedule": "10 20 * * *"
+      "schedule": "0 8 * * *"
     },
     {
       "path": "/cron/reminders/final",
-      "schedule": "10 19 * * *"
+      "schedule": "5 0 * * *"
     },
     {
       "path": "/api/cron/prediction-confirmations",
