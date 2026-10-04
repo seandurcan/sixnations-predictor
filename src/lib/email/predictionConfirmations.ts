@@ -133,8 +133,10 @@ export async function sendPredictionConfirmation(userId: number, tournamentId: n
 export async function processDuePredictionConfirmations(now = new Date()) {
   const tournaments = await prisma.tournament.findMany({
     where: {
-      predictionLockAt: { lte: now },
-      firstKickoff: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
+      firstKickoff: {
+        lte: new Date(now.getTime() + 60_000),
+        gte: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+      },
       status: { in: ["OPEN", "LOCKED", "IN_PROGRESS"] },
     },
     select: { id: true },
