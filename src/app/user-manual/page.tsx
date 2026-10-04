@@ -22,8 +22,9 @@ const sections = [
   ["invite", "14. Invite friends"],
   ["account-details", "15. Update your details"],
   ["email", "16. Email preferences"],
-  ["heritage", "17. Heritage & History"],
-  ["support", "18. Perfect XV Support Chatbot"],
+  ["news", "17. News by competition"],
+  ["heritage", "18. Heritage & History"],
+  ["support", "19. Perfect XV Support Chatbot"],
 ] as const;
 
 function BulletList({ items }: { items: React.ReactNode[] }) {
@@ -109,11 +110,11 @@ export default function UserManualPage() {
 
           <section id="competitions" className="scroll-mt-28">
             <Card title="3. Choosing a Competition">
-              <p className="text-[var(--brand-muted)]">
-                Perfect XV supports multiple competitions. Where more than one competition is available,
-                use the competition selector on supported pages. Your entry, predictions, leaderboard
-                position and results belong to the selected competition.
-              </p>
+              <BulletList items={[
+                <>Perfect XV supports multiple competitions. Where more than one competition is available, use the competition selector on supported pages.</>,
+                <>The <strong>current competition</strong> is the active competition with the soonest first kick-off. Other active/future competitions follow in chronological order; completed competitions remain available as history where the page supports them.</>,
+                <>Your entry, predictions, leaderboard position, results, News and downloadable leaderboard belong to the competition you have selected.</>,
+              ]} />
             </Card>
           </section>
 
@@ -140,12 +141,14 @@ export default function UserManualPage() {
           </section>
 
           <section id="locking" className="scroll-mt-28">
-            <Card title="6. Prediction Locking">
-              <p className="text-[var(--brand-muted)]">
-                All predictions lock <strong>one minute before the first fixture of the competition kicks off</strong>.
-                The Predictions page displays <strong>Time until all predictions lock</strong>. Once the deadline
-                passes, predictions cannot be entered or changed.
-              </p>
+            <Card title="6. Prediction Locking and Reminders">
+              <BulletList items={[
+                <>For the Six Nations and other tournament-wide prediction competitions, all predictions lock <strong>one minute before the first fixture kicks off</strong>.</>,
+                <>Competitions with later knockout participants, such as the Rugby World Cup or Challenge Cup, can use stage-based locking: the known pool/regular stage locks one minute before that stage begins, and later knockout stages receive their own deadline when those fixtures are known.</>,
+                <>The Predictions page displays the relevant countdown. Once a deadline passes, predictions covered by that deadline cannot be entered or changed.</>,
+                <>Outstanding-prediction reminders begin about four weeks before the first kick-off, then repeat at three weeks, two weeks and one week.</>,
+                <>The final reminder is scheduled for <strong>exactly two hours before the first kick-off</strong>. If you complete all required predictions before it is sent, Perfect XV cancels that scheduled final prediction reminder.</>,
+              ]} />
             </Card>
           </section>
 
@@ -295,6 +298,10 @@ export default function UserManualPage() {
                 wrong. The cumulative total keeps those signs. If entrants are still equal after all five
                 criteria, they remain jointly ranked.
               </p>
+              <p className="mt-3 text-[var(--brand-muted)]">
+                Where more than one competition is available, select the competition first. <strong>Download Leaderboard PDF</strong>
+                downloads the full leaderboard for that selected competition, not merely the page currently visible on screen.
+              </p>
             </Card>
           </section>
 
@@ -362,8 +369,25 @@ export default function UserManualPage() {
             </Card>
           </section>
 
+          <section id="news" className="scroll-mt-28">
+            <Card title="17. News by Competition">
+              <BulletList items={[
+                <>The News page has a button for each active or historical competition available to News. Buttons are created from competition data automatically rather than being hard-coded.</>,
+                <>Competition buttons follow the Perfect XV competition order: current/soonest first, then the next soonest, with completed competitions retained as history.</>,
+                <>Each active competition receives an introductory sports-desk article covering its start and duration, participating teams, recent winners and useful background.</>,
+                <>After play begins, round reports are generated from verified Perfect XV results and leaderboard data.</>,
+                <>If an administrator uses <strong>Reset All Game Scores</strong> during testing, match-generated round reports are removed because those games are no longer treated as played. The pre-tournament introduction remains.</>,
+              ]} />
+              <div className="mt-4">
+                <Link href="/news" className="font-semibold text-[var(--brand-blue)] underline">
+                  Open Perfect XV News
+                </Link>
+              </div>
+            </Card>
+          </section>
+
           <section id="heritage" className="scroll-mt-28">
-            <Card title="17. Heritage & History">
+            <Card title="18. Heritage & History">
               <p className="text-[var(--brand-muted)]">
                 Heritage & History contains the championship archive, eras, teams, players, records, trophies,
                 venues, milestones and classic-match material. It is available as reference content and does not
@@ -378,7 +402,7 @@ export default function UserManualPage() {
           </section>
 
           <section id="support" className="scroll-mt-28">
-            <Card title="18. Perfect XV Support Chatbot">
+            <Card title="19. Perfect XV Support Chatbot">
               <p className="mb-3 text-[var(--brand-muted)]">
                 The Perfect XV chatbot is the built-in first point of contact for questions about using the
                 site. Look for the <strong>Ask Perfect XV</strong> button, normally displayed at the
