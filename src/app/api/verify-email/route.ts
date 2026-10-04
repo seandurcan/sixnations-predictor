@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { cancelScheduledFinalVerificationReminders } from "@/lib/reminders/reminderService";
 
 export async function POST(
   request: Request
@@ -76,6 +77,10 @@ export async function POST(
         verifiedAt: new Date(),
       },
     });
+
+    await cancelScheduledFinalVerificationReminders(
+      verification.userId
+    );
 
     return NextResponse.json({
       success: true,
