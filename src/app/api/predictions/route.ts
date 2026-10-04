@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { fixturePredictionLockAt } from "@/lib/predictionLocking";
+import { cancelScheduledFinalPredictionReminder } from "@/lib/reminders/reminderService";
 
 export async function POST(
   request: Request
@@ -150,6 +151,13 @@ export async function POST(
           data: { predictionsSubmitted: completedEntry, predictionSubmittedAt: submittedAt },
         }),
       ]);
+
+      if (completedEntry) {
+        await cancelScheduledFinalPredictionReminder(
+          user.id,
+          match.tournamentId
+        );
+      }
     }
 
     return NextResponse.json({
