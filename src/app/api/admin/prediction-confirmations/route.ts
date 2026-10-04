@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { sendPredictionConfirmation } from "@/lib/email/predictionConfirmations";
 import { prisma } from "@/lib/prisma";
+import { effectiveCompetitionPredictionLockAt } from "@/lib/predictionLocking";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request);
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
   const tournament = await prisma.tournament.findFirst({
     where: { status: { in: ["OPEN", "LOCKED", "IN_PROGRESS", "COMPLETED"] } },
     orderBy: [{ firstKickoff: "desc" }, { id: "desc" }],
-    select: { id: true, year: true, name: true, predictionLockAt: true },
+    select: { id: true, year: true, name: true, firstKickoff: true, predictionLockAt: true },
   });
   if (!tournament) return NextResponse.json({ success: true, tournament: null, deliveries: [] });
   const deliveries = await prisma.predictionConfirmationDelivery.findMany({
@@ -19,7 +20,13 @@ export async function GET(request: NextRequest) {
   });
   return NextResponse.json({
     success: true,
-    tournament,
+    tournament: {
+      ...tournament,
+      predictionLockAt: effectiveCompetitionPredictionLockAt({
+        firstKickoff: tournament.firstKickoff,
+        configuredPredictionLockAt: tournament.predictionLockAt,
+      }),
+    },
     deliveries: deliveries.map((delivery) => ({
       id: delivery.id,
       user: delivery.user,
