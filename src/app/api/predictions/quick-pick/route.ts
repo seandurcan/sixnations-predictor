@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       awayScore: randomScore(),
     }));
     const completedEntry =
-      completedEntry;
+      openMatches.length === tournament.matches.length;
 
     await prisma.$transaction([
       ...picks.map((pick) =>
