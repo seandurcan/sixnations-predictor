@@ -7,6 +7,7 @@ import {
 } from "@/lib/currentTournament";
 import { prisma } from "@/lib/prisma";
 import { sortCompetitionsBySchedule } from "@/lib/competitionOrder";
+import { effectiveCompetitionPredictionLockAt } from "@/lib/predictionLocking";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +63,11 @@ export async function GET() {
       entryFee: Number(tournament.entryFee),
       currency: tournament.currency,
       firstKickoff: tournament.firstKickoff?.toISOString() ?? null,
-      predictionLockAt: tournament.predictionLockAt?.toISOString() ?? null,
+      predictionLockAt:
+        effectiveCompetitionPredictionLockAt({
+          firstKickoff: tournament.firstKickoff,
+          configuredPredictionLockAt: tournament.predictionLockAt,
+        })?.toISOString() ?? null,
       entry: entryByTournament.get(tournament.id) ?? null,
     })),
   }, {
