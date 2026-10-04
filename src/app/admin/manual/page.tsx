@@ -121,9 +121,12 @@ export default function AdministrationManualPage() {
           <section id="competitions" className="scroll-mt-28">
             <Card title="3. Competition Manager">
               <Checklist items={[
-                <>Create and maintain annual competitions independently rather than assuming one fixed tournament.</>,
+                <>Create and maintain competitions independently rather than assuming one fixed tournament.</>,
                 <>The competition name should not include the year; the year is stored separately.</>,
-                <>When creating a new annual competition, the year defaults to the next appropriate year and remains editable.</>,
+                <>When creating a new competition, the year defaults to the next appropriate year and remains editable.</>,
+                <>The current competition is determined by the soonest first kick-off among active competitions; the next soonest follows automatically.</>,
+                <>Creating a competition starts automatic fixture discovery. Perfect XV tries API-Sports first, then an official/published source, then AI-assisted web research where configured. Nothing is imported until the administrator reviews and approves the preview.</>,
+                <>A non-current <strong>DRAFT</strong> or <strong>READY</strong> competition can be removed with explicit title confirmation. Active/completed competitions and competitions with completed payments are protected.</>,
                 <>Check status, entry fee, currency, first kick-off and prediction-lock timing before opening entry.</>,
                 <>Do not make a competition live until fixtures and readiness checks are complete.</>,
               ]} />
@@ -133,9 +136,11 @@ export default function AdministrationManualPage() {
           <section id="fixtures" className="scroll-mt-28">
             <Card title="4. Fixture Discovery and Import">
               <Checklist items={[
-                <>Use official/provider fixture discovery where coverage is available.</>,
-                <>Use CSV/manual import when provider discovery is incomplete or unavailable.</>,
+                <>Use <strong>Find Fixtures Automatically</strong>. The source order is API-Sports → official/published competition source → AI-assisted web research when required and configured.</>,
+                <>If automatic discovery still cannot produce a trustworthy schedule, use the CSV/Excel template and manual import fallback.</>,
                 <>Always review the preview before import and validate each fixture&apos;s teams, date, kick-off time, round, venue and ordering.</>,
+                <>Fixture import sets the competition first kick-off and the initial prediction deadline to one minute before that kick-off.</>,
+                <>For stage-based competitions, later knockout rounds can receive their own stage deadline when participants become known.</>,
                 <>Reject duplicate or obviously incomplete fixtures rather than repairing them after launch.</>,
                 <>After import, verify the full fixture count and chronological sequence on the public Fixtures page.</>,
               ]} />
@@ -201,8 +206,11 @@ export default function AdministrationManualPage() {
             <Card title="10. Verification and Prediction Reminders">
               <Checklist items={[
                 <>Verification reminders are for registered accounts that still require email verification.</>,
-                <>Prediction reminders are based on outstanding predictions and stop once predictions lock.</>,
-                <>The planned reminder sequence begins in advance of lock, becomes more frequent near the deadline and includes a final near-lock reminder.</>,
+                <>Prediction reminders are sent only to entrants with outstanding predictions for the relevant competition.</>,
+                <>The automatic sequence is four weeks before first kick-off, then three weeks, two weeks and one week before first kick-off.</>,
+                <>The final reminder is scheduled for <strong>exactly two hours before the first kick-off</strong>. Because the Vercel Hobby scheduler itself runs daily, Perfect XV queues the final email with the email provider in advance for the exact delivery time.</>,
+                <>If an entrant completes all required predictions after the final email has been queued but before it is sent, the scheduled prediction reminder is cancelled. Verification reminders are similarly cancelled after successful verification where possible.</>,
+                <>No reminder is sent after the applicable prediction deadline.</>,
                 <>After lock, entrants who submitted predictions can receive an email copy of their locked predictions.</>,
               ]} />
             </Card>
@@ -211,11 +219,13 @@ export default function AdministrationManualPage() {
           <section id="results" className="scroll-mt-28">
             <Card title="11. Match Results and Live Scoring">
               <Checklist items={[
+                <>Use the competition selector at the top of <strong>Admin Results Entry</strong> before entering, testing or resetting results.</>,
                 <>Where live-score coverage is available, scores can update automatically.</>,
                 <>A match must not be treated as completed until the result is final.</>,
                 <>Use Admin Results to enter or correct an official result manually when required.</>,
-                <>After a result change, verify the Predictions results view, leaderboard totals, ranking movement and Audit History.</>,
+                <>After a result change, verify the Predictions results view, leaderboard totals, ranking movement, News and Audit History.</>,
                 <>Correct only the affected fixture; do not use a full reset to repair one score.</>,
+                <><strong>Reset All Game Scores</strong> applies only to the selected competition. It clears entered results, calculated scoring, snapshots/winners and generated round News reports while retaining entrants, predictions and the pre-tournament introductory News article.</>,
               ]} />
             </Card>
           </section>
@@ -270,9 +280,10 @@ export default function AdministrationManualPage() {
             <Card title="15. Testing Controls">
               <Checklist items={[
                 <>Use testing controls only against staging/test data.</>,
+                <>Select the intended tournament before using Admin Results testing controls.</>,
                 <>Quick Pick and fictitious Stripe payments may be used during testing.</>,
                 <>A score reset must restore the pre-match prediction-entry state and must never be run against live production unintentionally.</>,
-                <>After a reset, verify Quick Pick, countdown and prediction entry return as expected.</>,
+                <>After a reset, verify Quick Pick, countdown and prediction entry return as expected, the leaderboard is reset, and match-generated News reports are gone while the competition introduction remains.</>,
               ]} />
             </Card>
           </section>
@@ -296,7 +307,7 @@ export default function AdministrationManualPage() {
             <Card title="17. Match-Day Checklist">
               <Checklist items={[
                 <>Before kick-off, confirm fixture time, teams and live-score readiness.</>,
-                <>Confirm predictions are locked at the competition deadline.</>,
+                <>Confirm the applicable prediction deadline is one minute before the first kick-off of the tournament or stage, and verify the two-hour final reminder was queued/sent for the first competition kick-off.</>,
                 <>During play, monitor provider updates and only intervene if data is clearly wrong.</>,
                 <>At full time, verify the final score and completion status.</>,
                 <>Check entrant Match Points, Cumulative Prediction Delta and leaderboard movement.</>,
@@ -317,7 +328,7 @@ export default function AdministrationManualPage() {
                 <>Only approved mappings can improve future question interpretation. The assistant never rewrites scoring, locking, leaderboard or other authoritative rules from user interactions.</>,
                 <>Support-learning records do not intentionally store user ID or IP address, and obvious email, card-like number and password/CVV patterns are redacted before storage.</>,
                 <>Review Not Helpful responses and recurring ambiguous questions as candidates for clearer approved help content.</>,
-                <>Escalated questions appear as Helpdesk tickets. The initial alert is emailed to <strong>administrator@perfect-xv.org</strong>; a WhatsApp admin alert is also attempted when the WhatsApp Business environment variables are configured.</>,
+                <>Escalated questions appear as Helpdesk tickets. The initial alert is emailed to <strong>administrator@perfect-xv.org</strong>. WhatsApp is not required for the current helpdesk workflow.</>,
                 <>Write the helpdesk reply in Support Insights and send it from there so the user receives the answer at the email address they supplied.</>,
                 <>If the reply resolves a reusable misunderstanding, select the appropriate chatbot topic and approve the reply for chatbot learning. The clarification then becomes available to future similar questions.</>,
               ]} />
