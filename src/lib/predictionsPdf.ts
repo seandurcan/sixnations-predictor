@@ -241,7 +241,11 @@ export async function createPredictionsPdf(
       });
 
       y -= 28;
-      const firstKickoff = tournament.predictionLockAt ?? tournament.firstKickoff ?? rows[0].match.kickoffTime;
+      const firstKickoff =
+        effectiveCompetitionPredictionLockAt({
+          firstKickoff: tournament.firstKickoff ?? rows[0].match.kickoffTime,
+          configuredPredictionLockAt: tournament.predictionLockAt,
+        }) ?? rows[0].match.kickoffTime;
       pageFooters.set(page, remainingText(firstKickoff, generatedAt));
     };
 
@@ -254,7 +258,12 @@ export async function createPredictionsPdf(
       ];
 
       const tournamentKickoff =
-        row.match.tournament.predictionLockAt ?? row.match.tournament.firstKickoff ?? row.match.kickoffTime;
+        effectiveCompetitionPredictionLockAt({
+          firstKickoff:
+            row.match.tournament.firstKickoff ?? row.match.kickoffTime,
+          configuredPredictionLockAt:
+            row.match.tournament.predictionLockAt,
+        }) ?? row.match.kickoffTime;
       const kickoff =
         generatedAt >= tournamentKickoff && row.match.completed
           ? "Concluded"
