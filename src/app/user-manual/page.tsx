@@ -11,7 +11,7 @@ const sections = [
   ["competitions", "3. Choosing a competition"],
   ["payment", "4. Competition entry and payment"],
   ["predictions", "5. Entering and editing predictions"],
-  ["locking", "6. Prediction locking"],
+  ["locking", "6. Prediction locking and reminders"],
   ["quick-pick", "7. Quick Pick"],
   ["results", "8. Predictions after matches begin"],
   ["scoring", "9. Scoring"],
