@@ -129,6 +129,12 @@ export default function LeaderboardPage() {
   const [error, setError] =
     useState<string | null>(null);
 
+  const [downloadingPdf, setDownloadingPdf] =
+    useState(false);
+
+  const [downloadError, setDownloadError] =
+    useState<string | null>(null);
+
   useEffect(() => {
     const controller =
       new AbortController();
@@ -304,6 +310,68 @@ export default function LeaderboardPage() {
       return data;
     }, [leaderboard, sortBy]);
 
+  async function downloadLeaderboardPdf() {
+    setDownloadError(null);
+    setDownloadingPdf(true);
+
+    try {
+      const query = selectedCompetitionId
+        ? `?tournamentId=${selectedCompetitionId}`
+        : "";
+      const response = await fetch(
+        `/api/leaderboard/pdf${query}`,
+        {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        }
+      );
+
+      if (!response.ok) {
+        let message =
+          "Unable to download the leaderboard PDF. Please try again.";
+        try {
+          const result = await response.json() as { error?: string };
+          if (result.error) message = result.error;
+        } catch {
+          // Keep the friendly fallback message.
+        }
+        throw new Error(message);
+      }
+
+      const blob = await response.blob();
+      if (blob.size === 0) {
+        throw new Error("The leaderboard PDF was empty. Please try again.");
+      }
+
+      const contentDisposition =
+        response.headers.get("content-disposition") ?? "";
+      const filenameMatch =
+        contentDisposition.match(/filename="([^"]+)"/i);
+      const filename =
+        filenameMatch?.[1] ?? "perfect-xv-leaderboard.pdf";
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (downloadFailure) {
+      setDownloadError(
+        downloadFailure instanceof Error
+          ? downloadFailure.message
+          : "Unable to download the leaderboard PDF. Please try again."
+      );
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }
+
   function renderRankMovement(
     player: LeaderboardEntry
   ) {
@@ -389,14 +457,23 @@ export default function LeaderboardPage() {
 
           <Button
             variant="secondary"
-            onClick={() => {
-              window.location.href =
-                "/api/leaderboard/pdf";
-            }}
+            disabled={downloadingPdf || loadingCompetitions}
+            onClick={() => void downloadLeaderboardPdf()}
           >
-            Download Leaderboard PDF
+            {downloadingPdf
+              ? "Preparing PDF..."
+              : "Download Leaderboard PDF"}
           </Button>
         </div>
+
+        {downloadError && (
+          <div
+            className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700"
+            role="alert"
+          >
+            {downloadError}
+          </div>
+        )}
 
         <Card title="Leaderboard">
           <div className="mb-4 flex justify-end">
