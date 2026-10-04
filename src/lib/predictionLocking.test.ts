@@ -7,14 +7,20 @@ import {
 } from "./predictionLocking";
 
 describe("stage-based prediction locking", () => {
-  it("preserves tournament-wide locking for Six Nations", () => {
+  it("preserves tournament-wide locking for Six Nations and derives it from the first fixture", () => {
     expect(predictionLockMode("Six Nations Championship")).toBe("TOURNAMENT");
+    const fixtures = [
+      { round: 1, kickoffTime: "2027-02-05T20:10:00.000Z" },
+      { round: 5, kickoffTime: "2027-03-13T20:10:00.000Z" },
+    ];
+
     expect(
       fixturePredictionLockAt({
         competitionName: "Six Nations Championship",
-        tournamentPredictionLockAt: "2027-02-05T20:09:00.000Z",
-        kickoffTime: "2027-03-13T20:10:00.000Z",
+        tournamentPredictionLockAt: "2027-02-05T20:10:00.000Z",
+        kickoffTime: fixtures[1].kickoffTime,
         matchRound: 5,
+        tournamentMatches: fixtures,
       })?.toISOString()
     ).toBe("2027-02-05T20:09:00.000Z");
   });
