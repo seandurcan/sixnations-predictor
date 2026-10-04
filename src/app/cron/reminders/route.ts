@@ -1,210 +1,149 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { dueWeeklyReminder } from "@/lib/reminders/schedule";
+import {
+  getUsersWithOutstandingPredictions,
+} from "@/lib/reminders/reminderService";
+import {
+  sendPredictionReminder,
+  sendVerificationReminder,
+} from "@/lib/email/sendReminders";
 
-export async function GET(
-  request: Request
-) {
+export const dynamic = "force-dynamic";
+
+export async function GET(request: Request) {
   try {
-    const authHeader =
-      request.headers.get(
-        "authorization"
-      );
+    const authHeader = request.headers.get("authorization");
+    const cronSecret = process.env.CRON_SECRET;
 
-    const cronSecret =
-      process.env.CRON_SECRET;
-
-    if (
-      !cronSecret ||
-      authHeader !==
-        `Bearer ${cronSecret}`
-    ) {
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Unauthorized",
-        },
-        {
-          status: 401,
-        }
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
       );
     }
 
-    const setting =
-      await prisma.systemSetting.findUnique({
-        where: {
-          key: "automaticRemindersEnabled",
-        },
-      });
-
-    if (
-      setting &&
-      setting.value === "false"
-    ) {
+    const setting = await prisma.systemSetting.findUnique({
+      where: { key: "automaticRemindersEnabled" },
+    });
+    if (setting?.value === "false") {
       return NextResponse.json({
         success: true,
         skipped: true,
-        reason:
-          "Automatic reminders disabled",
+        reason: "Automatic reminders disabled",
       });
     }
 
     const now = new Date();
-
-    const tournament = await prisma.tournament.findFirst({
+    const tournaments = await prisma.tournament.findMany({
       where: {
         status: "OPEN",
-        predictionLockAt: { gt: now },
+        firstKickoff: { gt: now },
       },
-      orderBy: { predictionLockAt: "asc" },
+      orderBy: { firstKickoff: "asc" },
     });
 
-    if (!tournament || !tournament.predictionLockAt) {
-      return NextResponse.json({
-        success: true,
-        skipped: true,
-        reason: "No upcoming open tournament",
+    const results: Array<Record<string, unknown>> = [];
+
+    for (const tournament of tournaments) {
+      if (!tournament.firstKickoff) continue;
+
+      const milestone = dueWeeklyReminder(
+        tournament.firstKickoff,
+        now
+      );
+      if (!milestone) continue;
+
+      const runKey =
+        `PREDICTION_REMINDER_${tournament.id}_${milestone.daysBefore}D`;
+      const alreadyRun = await prisma.systemSetting.findUnique({
+        where: { key: runKey },
       });
-    }
+      if (alreadyRun) continue;
 
-    const reminderAt = new Date(
-      tournament.predictionLockAt.getTime() - 7 * 24 * 60 * 60 * 1000
-    );
+      let verificationSent = 0;
+      let verificationFailed = 0;
+      let predictionSent = 0;
+      let predictionFailed = 0;
 
-    if (now < reminderAt || now >= tournament.predictionLockAt) {
-      return NextResponse.json({
-        success: true,
-        skipped: true,
-        reason: "Not the one-week lockdown reminder window",
-        reminderAt: reminderAt.toISOString(),
-        predictionLockAt: tournament.predictionLockAt.toISOString(),
+      const verificationUsers = await prisma.user.findMany({
+        where: { emailVerified: false, deletedAt: null },
+        select: { id: true, firstName: true, email: true },
       });
-    }
 
-    const alreadyRun = await prisma.systemSetting.findUnique({
-      where: { key: "lastOneWeekPredictionReminderRun" },
-    });
-    const runKey = String(tournament.id);
-    if (alreadyRun?.value === runKey) {
-      return NextResponse.json({
-        success: true,
-        skipped: true,
-        reason: "One-week reminder already sent for this tournament",
-      });
-    }
-
-    let verificationSent = 0;
-    let predictionSent = 0;
-    let verificationFailed = 0;
-    let predictionFailed = 0;
-
-    const {
-      getUsersWithOutstandingPredictions,
-    } = await import(
-      "@/lib/reminders/reminderService"
-    );
-
-    const {
-      sendPredictionReminder,
-      sendVerificationReminder,
-    } = await import(
-      "@/lib/email/sendReminders"
-    );
-
-    const verificationUsers = await prisma.user.findMany({
-      where: { emailVerified: false, deletedAt: null },
-      select: { id: true, firstName: true, email: true },
-    });
-
-    for (const user of verificationUsers) {
-      try {
-        await sendVerificationReminder(
-          {
-            id: user.id,
-            firstName:
-              user.firstName,
-            email: user.email,
-          },
-          false,
-          "One week"
-        );
-        verificationSent++;
-      } catch (error) {
-        verificationFailed++;
-        console.error("Scheduled verification reminder failed", {
-          userId: user.id,
-          error: error instanceof Error ? error.message : String(error),
-        });
+      for (const user of verificationUsers) {
+        try {
+          await sendVerificationReminder(
+            user,
+            false,
+            milestone.label
+          );
+          verificationSent++;
+        } catch (error) {
+          verificationFailed++;
+          console.error("Scheduled verification reminder failed", {
+            tournamentId: tournament.id,
+            userId: user.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
       }
-    }
 
-    const predictionUsers =
-      await getUsersWithOutstandingPredictions(tournament.id);
+      const predictionUsers =
+        await getUsersWithOutstandingPredictions(tournament.id);
 
-    for (const user of predictionUsers) {
-      try {
-        await sendPredictionReminder(
-          {
-            id: user.id,
-            firstName:
-              user.firstName,
-            email: user.email,
-          },
-          false,
-          "One week"
-        );
-        predictionSent++;
-      } catch (error) {
-        predictionFailed++;
-        console.error("Scheduled prediction reminder failed", {
-          userId: user.id,
-          error: error instanceof Error ? error.message : String(error),
-        });
+      for (const user of predictionUsers) {
+        try {
+          await sendPredictionReminder(
+            user,
+            false,
+            milestone.label
+          );
+          predictionSent++;
+        } catch (error) {
+          predictionFailed++;
+          console.error("Scheduled prediction reminder failed", {
+            tournamentId: tournament.id,
+            userId: user.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
       }
+
+      const runTimestamp = new Date().toISOString();
+      await prisma.systemSetting.upsert({
+        where: { key: runKey },
+        update: { value: runTimestamp },
+        create: { key: runKey, value: runTimestamp },
+      });
+      await prisma.systemSetting.upsert({
+        where: { key: "lastReminderRun" },
+        update: { value: runTimestamp },
+        create: { key: "lastReminderRun", value: runTimestamp },
+      });
+
+      results.push({
+        tournamentId: tournament.id,
+        daysBefore: milestone.daysBefore,
+        label: milestone.label,
+        targetAt: milestone.targetAt.toISOString(),
+        verificationSent,
+        verificationFailed,
+        predictionSent,
+        predictionFailed,
+      });
     }
-
-    await prisma.systemSetting.upsert({
-      where: {
-        key: "lastReminderRun",
-      },
-      update: {
-        value: new Date().toISOString(),
-      },
-      create: {
-        key: "lastReminderRun",
-        value: new Date().toISOString(),
-      },
-    });
-
-    await prisma.systemSetting.upsert({
-      where: { key: "lastOneWeekPredictionReminderRun" },
-      update: { value: runKey },
-      create: { key: "lastOneWeekPredictionReminderRun", value: runKey },
-    });
 
     return NextResponse.json({
       success: true,
-      verificationSent,
-      verificationFailed,
-      predictionSent,
-      predictionFailed,
-      reminderAt: reminderAt.toISOString(),
-      predictionLockAt: tournament.predictionLockAt.toISOString(),
+      processed: results.length,
+      results,
     });
   } catch (error) {
-    console.error(
-      "Scheduled reminder job failed",
-      error
-    );
-
+    console.error("Scheduled reminder job failed", error);
     return NextResponse.json(
-      {
-        success: false,
-        error:
-          "Scheduled reminder job failed",
-      },
-      {
-        status: 500,
-      }
+      { success: false, error: "Scheduled reminder job failed" },
+      { status: 500 }
     );
   }
 }
