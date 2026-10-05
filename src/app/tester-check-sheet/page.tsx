@@ -183,7 +183,7 @@ export default function TesterCheckSheetPage() {
           </div>
 
           <p className="tester-print-only mt-4 text-sm font-semibold">
-            Return completed sheet: administrator@perfect-xv.org or by WhatsApp to the Perfect XV administrator.
+            Return completed sheet: administrator@perfect-xv.org or WhatsApp 089 263 0893.
           </p>
         </Card>
 
@@ -331,7 +331,7 @@ export default function TesterCheckSheetPage() {
 
           <div className="tester-print-only mt-6 border-t border-slate-400 pt-4 text-sm">
             <p><strong>Return to:</strong> administrator@perfect-xv.org</p>
-            <p className="mt-1"><strong>Or:</strong> WhatsApp to the Perfect XV administrator.</p>
+            <p className="mt-1"><strong>Or WhatsApp:</strong> 089 263 0893</p>
           </div>
         </form>
       </PageContainer>
