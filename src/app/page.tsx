@@ -164,6 +164,17 @@ export default function HomePage() {
                   Invite Friends to Perfect XV
                 </Button>
               </div>
+
+              <div className="mt-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    window.location.href = "/tester-check-sheet";
+                  }}
+                >
+                  Tester Quick Check Sheet
+                </Button>
+              </div>
             </div>
 
             <Card id="tournament-predictor-card" className="border-[rgba(0,123,255,0.22)] bg-[rgba(0,123,255,0.04)]">
@@ -415,6 +426,16 @@ export default function HomePage() {
                   }}
                 >
                   Invite Friends to Perfect XV
+                </Button>
+
+                <Button
+                  fullWidth
+                  variant="secondary"
+                  onClick={() => {
+                    window.location.href = "/tester-check-sheet";
+                  }}
+                >
+                  Open Tester Quick Check
                 </Button>
               </div>
             </Card>
