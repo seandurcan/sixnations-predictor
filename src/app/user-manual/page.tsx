@@ -25,6 +25,7 @@ const sections = [
   ["news", "17. News by competition"],
   ["heritage", "18. Heritage & History"],
   ["support", "19. Perfect XV Support Chatbot"],
+  ["whatsapp", "20. Join the WhatsApp Group"],
 ] as const;
 
 function BulletList({ items }: { items: React.ReactNode[] }) {
@@ -420,6 +421,25 @@ export default function UserManualPage() {
                 <>In this way, every engagement can contribute to improvement: successful matches confirm useful wording, ambiguous questions reveal where more interpretation choices are needed, and unsuccessful answers or Helpdesk clarifications identify material that should be improved.</>,
                 <>Do not enter passwords, payment-card details or unnecessary sensitive information into the chatbot.</>,
               ]} />
+            </Card>
+          </section>
+          <section id="whatsapp" className="scroll-mt-28">
+            <Card title="20. Join the WhatsApp Group">
+              <p className="mb-3 text-[var(--brand-muted)]">
+                The Perfect XV WhatsApp group is an optional way to stay connected with other participants.
+                Joining the group is separate from registering for a competition, paying an entry fee or
+                submitting predictions.
+              </p>
+              <BulletList items={[
+                <>Open <strong>Connect</strong> in your profile menu on a desktop computer, or from the main menu on a phone, and select <strong>Join the WhatsApp Group</strong>.</>,
+                <>On a computer, scan the displayed QR code with your phone camera. On your phone, use the <strong>Join the WhatsApp Group</strong> button to open the invitation directly in WhatsApp.</>,
+                <>WhatsApp will ask you to confirm that you want to join. Group members may be able to see your WhatsApp phone number and profile details.</>,
+              ]} />
+              <div className="mt-4">
+                <Link href="/connect/whatsapp" className="font-semibold text-[var(--brand-blue)] underline">
+                  Open the WhatsApp Group invitation
+                </Link>
+              </div>
             </Card>
           </section>
         </div>

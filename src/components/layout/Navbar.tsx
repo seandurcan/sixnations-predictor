@@ -191,6 +191,9 @@ export default function NavBar() {
   const [helpManualsOpen, setHelpManualsOpen] =
     useState(false);
 
+  const [connectOpen, setConnectOpen] =
+    useState(false);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -326,6 +329,7 @@ export default function NavBar() {
       setProfileOpen(false);
       setAdminOpen(false);
       setHelpManualsOpen(false);
+      setConnectOpen(false);
     }, 0);
     return () => window.clearTimeout(closeTask);
   }, [pathname]);
@@ -376,6 +380,7 @@ export default function NavBar() {
     setProfileOpen(false);
     setAdminOpen(false);
     setHelpManualsOpen(false);
+    setConnectOpen(false);
   }
 
   function openConnect() {
@@ -919,17 +924,42 @@ export default function NavBar() {
                       </span>
                       <span>User Manual</span>
                     </Link>
-                    {/* Relocated Connect utility inside profile dropdown */}
+                    {/* Keep the existing Connect QR tool and offer WhatsApp beside it. */}
                     <div className="my-2 border-t border-slate-100" />
                     <button
                       type="button"
                       role="menuitem"
-                      onClick={openConnect}
+                      onClick={() => setConnectOpen((current) => !current)}
+                      aria-expanded={connectOpen}
+                      aria-controls="desktop-connect-options"
                       className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-lime-50 hover:text-slate-900"
                     >
                       <span aria-hidden="true">{ICONS.mobile}</span>
-                      <span>Connect (QR Code)</span>
+                      <span className="flex-1">Connect</span>
+                      <span aria-hidden="true">{connectOpen ? "−" : "+"}</span>
                     </button>
+                    {connectOpen && (
+                      <div id="desktop-connect-options" className="ml-5 border-l border-slate-200 pl-2">
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={openConnect}
+                          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-lime-50 hover:text-slate-900"
+                        >
+                          <span aria-hidden="true">{ICONS.mobile}</span>
+                          <span>Connect (QR Code)</span>
+                        </button>
+                        <Link
+                          href="/connect/whatsapp"
+                          role="menuitem"
+                          className={dropdownLinkClasses("/connect/whatsapp")}
+                          onClick={closeMenus}
+                        >
+                          <span aria-hidden="true">💬</span>
+                          <span>Join the WhatsApp Group</span>
+                        </Link>
+                      </div>
+                    )}
                   </div>
 
                   <div className="border-t border-slate-100 pt-2">
@@ -1070,12 +1100,35 @@ export default function NavBar() {
 
             <button
               type="button"
-              onClick={openConnect}
+              onClick={() => setConnectOpen((current) => !current)}
+              aria-expanded={connectOpen}
+              aria-controls="mobile-connect-options"
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base font-medium text-slate-700 transition-colors duration-200 hover:bg-lime-50 hover:text-slate-900"
             >
               <span aria-hidden="true">{ICONS.mobile}</span>
-              <span>Connect (QR Code)</span>
+              <span className="flex-1">Connect</span>
+              <span aria-hidden="true">{connectOpen ? "−" : "+"}</span>
             </button>
+            {connectOpen && (
+              <div id="mobile-connect-options" className="ml-6 border-l border-slate-200 pl-2">
+                <button
+                  type="button"
+                  onClick={openConnect}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base font-medium text-slate-700 transition-colors hover:bg-lime-50 hover:text-slate-900"
+                >
+                  <span aria-hidden="true">{ICONS.mobile}</span>
+                  <span>Connect (QR Code)</span>
+                </button>
+                <Link
+                  href="/connect/whatsapp"
+                  className={mobileLinkClasses("/connect/whatsapp")}
+                  onClick={closeMenus}
+                >
+                  <span aria-hidden="true">💬</span>
+                  <span>Join the WhatsApp Group</span>
+                </Link>
+              </div>
+            )
 
             {!loading &&
               !authenticated &&
