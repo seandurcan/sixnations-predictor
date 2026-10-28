@@ -1128,7 +1128,7 @@ export default function NavBar() {
                   <span>Join the WhatsApp Group</span>
                 </Link>
               </div>
-            )
+            )}
 
             {!loading &&
               !authenticated &&
