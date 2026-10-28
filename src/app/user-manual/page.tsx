@@ -434,6 +434,7 @@ export default function UserManualPage() {
                 <>Open <strong>Connect</strong> in your profile menu on a desktop computer, or from the main menu on a phone, and select <strong>Join the WhatsApp Group</strong>.</>,
                 <>On a computer, scan the displayed QR code with your phone camera. On your phone, use the <strong>Join the WhatsApp Group</strong> button to open the invitation directly in WhatsApp.</>,
                 <>WhatsApp will ask you to confirm that you want to join. Group members may be able to see your WhatsApp phone number and profile details.</>,
+                <>After joining, post a short message with your <strong>first name and surname</strong> so other group members know who you are. This does not change your WhatsApp profile name and is separate from entering the Perfect XV competition.</>,
               ]} />
               <div className="mt-4">
                 <Link href="/connect/whatsapp" className="font-semibold text-[var(--brand-blue)] underline">

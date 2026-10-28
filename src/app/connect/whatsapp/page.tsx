@@ -11,6 +11,14 @@ export default function WhatsAppConnectPage() {
           Join the Perfect XV WhatsApp group to connect with other participants.
           Joining is optional and does not register you for a competition.
         </p>
+        <div className="mt-6 rounded-xl border border-slate-200 px-4 py-4 text-left">
+          <h2 className="font-semibold">Please introduce yourself when you join</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            After joining the WhatsApp group, please send a short message with your
+            first name and surname so other members know who you are.
+            This does not change your WhatsApp profile name.
+          </p>
+        </div>
         <div className="mx-auto mt-7 max-w-sm rounded-xl border border-slate-200 bg-white p-3">
           <img
             src="/images/whatsapp-group-qr.svg"
