@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Card from "@/components/ui/Card";
 import HeritageSection from "@/components/heritage/HeritageSection";
 import { heritageRecords } from "@/lib/heritage";
@@ -7,7 +8,13 @@ export const metadata: Metadata = { title: "Championship Records | Perfect XV", 
 
 export default function Page() {
   
-  return <HeritageSection slug="records"><Card>
+  return <HeritageSection slug="records"><div className="space-y-5">
+    <div className="rounded-xl border border-[var(--brand-border)] bg-slate-50 p-5">
+      <h2 className="text-lg font-bold">All-time international Test records</h2>
+      <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">Compare the historical Test match records of national teams around the world, including wins, win percentages and 2026 competition groupings.</p>
+      <Link href="/heritage/all-time-test-records" className="mt-3 inline-block font-semibold text-[var(--brand-blue)] underline underline-offset-4">Read the complete historical report</Link>
+    </div>
+    <Card>
             <div className="grid gap-4 md:grid-cols-2">
               {heritageRecords.map((record) => (
                 <article
@@ -32,5 +39,5 @@ export default function Page() {
                 </article>
               ))}
             </div>
-          </Card></HeritageSection>;
+          </Card></div></HeritageSection>;
 }

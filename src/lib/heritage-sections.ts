@@ -48,6 +48,12 @@ export const heritageSections = [
     "introduction": "Explore notable scoring and Championship records, with links to the underlying statistics. These are the benchmarks left behind by outstanding teams and individual performances."
   },
   {
+    "slug": "all-time-test-records",
+    "title": "All-Time International Test Records",
+    "label": "All-time Test records",
+    "introduction": "An illustrated statistical history of men’s international rugby: the world’s most Test victories, highest win percentages, and comparisons of the 2026 Nations Championship, Nations Cup and other national sides."
+  },
+  {
     "slug": "trophies",
     "title": "Trophies & Rivalries",
     "label": "Trophies & rivalries",
