@@ -131,11 +131,6 @@ export default function AllTimeTestRecordsPage() {
   return (
     <HeritageSection slug="all-time-test-records">
       <div className="space-y-10 leading-7">
-        <div className="rounded-xl bg-slate-50 p-5 text-sm text-[var(--brand-muted)]">
-          <p><strong className="text-[var(--brand-navy)]">Men’s senior international rugby union.</strong> Historical records checked 14 November 2026, with leading-team source pages updated to 8 November 2026. Other national records may have earlier cutoff dates.</p>
-          <p className="mt-2">This is a fixed research snapshot, not a live statistical feed, official World Rugby all-time ranking, or opponent-strength-adjusted assessment.</p>
-        </div>
-
         <nav aria-label="On this report" className="rounded-xl border border-[var(--brand-border)] bg-white p-5">
           <h2 className="font-bold">In this report</h2>
           <ul className="mt-3 grid gap-x-5 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
