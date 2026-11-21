@@ -241,6 +241,7 @@ export default function AllTimeTestRecordsPage() {
             <li><a href="https://springboks.rugby/tournaments/nations-championship" target="_blank" rel="noopener noreferrer" className="text-[var(--brand-blue)] underline">South African Rugby — 2026 Nations Championship</a></li>
           </ol>
           <p className="text-sm text-[var(--brand-muted)]">Report prepared 14 November 2026. The figures are a dated research snapshot and may change with subsequent fixtures or data corrections.</p>
+          <p><Link href="/heritage/historical-performance" className="font-semibold text-[var(--brand-blue)] underline underline-offset-4">Continue with Research Series 02: Historical Performance, Rivalries & Competitive Strength</Link></p>
           <p><Link href="/heritage/records" className="text-sm font-semibold text-[var(--brand-blue)] underline underline-offset-4">Browse Six Nations Championship records</Link></p>
         </Chapter>
       </div>

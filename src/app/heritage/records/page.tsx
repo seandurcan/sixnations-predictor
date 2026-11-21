@@ -13,6 +13,8 @@ export default function Page() {
       <h2 className="text-lg font-bold">All-time international Test records</h2>
       <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">Compare the historical Test match records of national teams around the world, including wins, win percentages and 2026 competition groupings.</p>
       <Link href="/heritage/all-time-test-records" className="mt-3 inline-block font-semibold text-[var(--brand-blue)] underline underline-offset-4">Read the complete historical report</Link>
+      <p className="mt-3 text-sm leading-6 text-[var(--brand-muted)]">For head-to-head rivalries, modern performance, decade leaders and emerging teams, read the second research report.</p>
+      <Link href="/heritage/historical-performance" className="mt-2 inline-block font-semibold text-[var(--brand-blue)] underline underline-offset-4">View Historical Performance, Rivalries & Competitive Strength</Link>
     </div>
     <Card>
             <div className="grid gap-4 md:grid-cols-2">

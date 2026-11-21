@@ -54,6 +54,12 @@ export const heritageSections = [
     "introduction": "An illustrated statistical history of men’s international rugby: the world’s most Test victories, highest win percentages, and comparisons of the 2026 Nations Championship, Nations Cup and other national sides."
   },
   {
+    "slug": "historical-performance",
+    "title": "Historical Performance, Rivalries & Competitive Strength",
+    "label": "World rugby performance",
+    "introduction": "A five-part statistical study of international Test strength, famous rivalries, decade leaders, scoring margins and the progress of emerging rugby nations."
+  },
+  {
     "slug": "trophies",
     "title": "Trophies & Rivalries",
     "label": "Trophies & rivalries",
